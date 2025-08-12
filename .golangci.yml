@@ -17,13 +17,11 @@ linters:
     - unconvert
     - wastedassign
     - whitespace
-    - go-critic
+    - gocritic
     - gocyclo
 
 linters-settings:
-  go-critic:
+  gocritic:
     enable-all: true
   gocyclo:
     min-complexity: 15
-
-version: "2"
