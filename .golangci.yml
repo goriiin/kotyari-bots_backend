@@ -5,5 +5,3 @@ run:
 
 linters:
   default: all
-
-version: v2.1
