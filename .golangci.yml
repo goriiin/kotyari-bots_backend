@@ -1,0 +1,9 @@
+run:
+  concurrency: 6
+  timeout: 5m
+  tests: true
+
+linters:
+  default: all
+
+version: 2.3.1

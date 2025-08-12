@@ -1,0 +1,38 @@
+name: push_pull
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  build:
+    name: go-build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.24
+        uses: actions/setup-go@v5
+        with:
+          go-version: ^1.24.5
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+
+      - name: Get dependencies
+        run: go mod tidy
+
+      - name: Run make test
+        run: go test ./...
+
+  lint:
+    name: go-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.5'
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
