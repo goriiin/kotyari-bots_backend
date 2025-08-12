@@ -9,7 +9,6 @@ linters:
     - govet
     - staticcheck
     - unused
-    - gofmt
     - goimports
     - revive
     - bodyclose
@@ -17,5 +16,15 @@ linters:
     - tparallel
     - unconvert
     - wastedassign
+    - whitespace
+    - gocritic
+    - gocyclo
+
+linters-settings:
+  gocritic:
+    enable-all: true
+  gocyclo:
+    min-complexity: 15
+
 
 version: "2"
