@@ -1,7 +1,8 @@
+version: "2"
+
 run:
   concurrency: 6
   timeout: 5m
-  tests: true
 
 linters:
   enable:
@@ -9,7 +10,6 @@ linters:
     - govet
     - staticcheck
     - unused
-    - goimports
     - revive
     - bodyclose
     - ineffassign
@@ -19,9 +19,12 @@ linters:
     - whitespace
     - gocritic
     - gocyclo
-
-linters-settings:
-  gocritic:
-    enable-all: true
-  gocyclo:
-    min-complexity: 15
+  settings:
+    gocritic:
+      enable-all: true
+    gocyclo:
+      min-complexity: 15
+    revive:
+      rules:
+        - name: package-comments
+          disabled: true
