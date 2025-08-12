@@ -20,7 +20,7 @@ linters:
     - go-critic
     - gocyclo
 
-linters_settings:
+linters-settings:
   go-critic:
     enable-all: true
   gocyclo:
