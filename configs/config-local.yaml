@@ -1,0 +1,24 @@
+environment: production
+debug: false
+
+api:
+  host: 0.0.0.0
+  port: 8080
+
+local_api:
+  host: localhost
+  port: 8081
+
+database:
+  host: prod-db.example.com
+  port: 5432
+  name: production_db
+  user: prod_user
+  password: prod_password
+
+
+local_database:
+  host: localhost
+  port: 5432
+  name: local_db
+
