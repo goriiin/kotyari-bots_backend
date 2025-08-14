@@ -22,6 +22,4 @@ func main() {
 		cfg = newCfg
 		fmt.Printf("новая: %s:%d\n", cfg.API.Host, cfg.API.Port)
 	})
-
-	fmt.Scan()
 }

@@ -82,7 +82,7 @@ type ConfigLoader struct {
 	configPath string
 }
 
-func newConfigLoader(envFlag string, configPath string) *ConfigLoader {
+func newConfigLoader(envFlag, configPath string) *ConfigLoader {
 	cl := &ConfigLoader{
 		viper:      viper.New(),
 		defaults:   make(map[string]interface{}),
@@ -114,18 +114,6 @@ func (cl *ConfigLoader) loadEnvFiles() {
 			}
 		}
 	}
-}
-
-func (cl *ConfigLoader) detectPreliminaryEnvironment() string {
-	if cl.envFlag != "" {
-		return cl.envFlag
-	}
-
-	if env := os.Getenv(appEnv); env != "" {
-		return env
-	}
-
-	return envLocal
 }
 
 func (cl *ConfigLoader) initialize() {
@@ -162,7 +150,7 @@ func (cl *ConfigLoader) initialize() {
 }
 
 func (cl *ConfigLoader) loadEnvironmentVariables() {
-	envPrefix := ""
+	var envPrefix string
 	switch cl.environment {
 	case envLocal:
 		envPrefix = localPrefix
@@ -190,28 +178,6 @@ func (cl *ConfigLoader) loadEnvironmentVariables() {
 
 		cl.viper.Set(viperKey, value)
 		log.Printf("Set %s = %s", viperKey, value)
-	}
-}
-
-func (cl *ConfigLoader) forceEnvOverrides() {
-	prefix := cl.viper.GetEnvPrefix() + "_"
-
-	for _, env := range os.Environ() {
-		pair := strings.SplitN(env, "=", 2)
-		if len(pair) != 2 {
-			continue
-		}
-
-		key := pair[0]
-		value := pair[1]
-
-		if strings.HasPrefix(key, prefix) {
-			viperKey := strings.TrimPrefix(key, prefix)
-			viperKey = strings.ToLower(viperKey)
-			viperKey = strings.ReplaceAll(viperKey, "_", ".")
-
-			cl.viper.Set(viperKey, value)
-		}
 	}
 }
 
@@ -310,7 +276,7 @@ func (cl *ConfigLoader) Load(config interface{}) error {
 }
 
 func (cl *ConfigLoader) applyEnvOverrides(config interface{}) {
-	envPrefix := ""
+	var envPrefix string
 	switch cl.environment {
 	case envLocal:
 		envPrefix = localPrefix
@@ -324,7 +290,7 @@ func (cl *ConfigLoader) applyEnvOverrides(config interface{}) {
 	cl.applyEnvOverridesRecursive(rv, "", envPrefix)
 }
 
-func (cl *ConfigLoader) applyEnvOverridesRecursive(v reflect.Value, prefix string, envPrefix string) {
+func (cl *ConfigLoader) applyEnvOverridesRecursive(v reflect.Value, prefix, envPrefix string) {
 	t := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
