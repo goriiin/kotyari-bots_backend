@@ -22,6 +22,8 @@ linters:
   settings:
     gocritic:
       enable-all: true
+      disabled-checks:
+        - paramTypeCombine
     gocyclo:
       min-complexity: 15
     revive:
