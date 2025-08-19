@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kotyari-bots_backend/pkg/utils"
+	"time"
 )
 
 func GetPool(ctx context.Context, config Config) (*pgxpool.Pool, error) {
@@ -23,6 +24,13 @@ func GetPool(ctx context.Context, config Config) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create connection pool: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err = TestPing(ctx, pool)
+	if err != nil {
+		return nil, fmt.Errorf("get pool failed: %w", err)
 	}
 
 	return pool, nil
