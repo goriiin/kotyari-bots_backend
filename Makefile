@@ -70,7 +70,7 @@ check: lint format_check
 example-run:
 	@go run cmd/main/main.go
 example-run-local:  ## Запустить в local режиме
-	@go run cmd/main/main.go --env=local --config="./configs/config-local.yaml"
+	@go run cmd/main/main.go --env=local --config="./configs/local-config.yaml"
 
 example-run-prod:  ## Запустить в production режиме
 	@go run cmd/main/main.go --env=prod

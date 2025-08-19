@@ -1,0 +1,46 @@
+services:
+  api_integrations:
+    image: postgres:17.5
+    ports:
+      - "54325:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${LOCAL_API_INT_DATABASE_USER}
+      - POSTGRES_PASSWORD=${LOCAL_API_INT_DATABASE_PASSWORD}
+      - POSTGRES_DB=${LOCAL_API_INT_DATABASE_NAME}
+    volumes:
+      - api_integrations_db_data:/var/lib/postgresql/data/
+    container_name: api_integrations_db
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - app-network
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://kafka:9093'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: '6aa74627-ee8e-4b0c-ac0f-20c8ec74069f'
+
+
+volumes:
+  api_integrations_db_data:
+
+networks:
+  app-network:
+    driver: bridge
