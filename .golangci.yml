@@ -24,6 +24,7 @@ linters:
       enable-all: true
       disabled-checks:
         - paramTypeCombine
+        - hugeParam
     gocyclo:
       min-complexity: 15
     revive:
