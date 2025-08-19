@@ -2,7 +2,8 @@ package postgres
 
 import (
 	"fmt"
-	"github.com/kotyari-bots_backend/pkg/utils"
+
+	"github.com/goriiin/kotyari-bots_backend/pkg/utils"
 )
 
 func ToUrl(conf Config) string {

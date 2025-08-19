@@ -2,7 +2,8 @@ package config
 
 import (
 	"fmt"
-	"github.com/kotyari-bots_backend/pkg/postgres"
+
+	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
 
 type HTTPServerConfig struct {

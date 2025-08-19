@@ -10,13 +10,10 @@ jobs:
     name: go-build and test
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Go 1.24
-        uses: actions/setup-go@v5
+      - name: Setup Go Environment
+        uses: ./.github/actions/setup-go
         with:
-          go-version: ^1.24.5
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v4
+          go-version: '^1.24.5'
 
       - name: Get dependencies
         run: go mod tidy

@@ -3,9 +3,10 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/kotyari-bots_backend/pkg/utils"
 	"time"
+
+	"github.com/goriiin/kotyari-bots_backend/pkg/utils"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func GetPool(ctx context.Context, config Config) (*pgxpool.Pool, error) {

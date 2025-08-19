@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/kotyari-bots_backend/pkg/config"
+
+	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
 const local = "config-local"

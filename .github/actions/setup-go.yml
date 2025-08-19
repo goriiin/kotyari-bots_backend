@@ -1,0 +1,20 @@
+name: 'Setup Go Environment'
+description: 'Checks out code, sets up Go, and caches dependencies'
+
+# Определяем входные параметры для нашего экшена.
+inputs:
+  go-version:
+    description: 'The Go version to set up'
+    required: true
+    default: '1.24.5' # Установите ваш стандартный дефолт
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.go-version }}

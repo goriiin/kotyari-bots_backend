@@ -1,0 +1,7 @@
+sections:
+  - standard
+  - default
+  - prefix(github.com/dkoshenkov/kotyari-bots_backend)
+
+section-separators:
+  - newline
