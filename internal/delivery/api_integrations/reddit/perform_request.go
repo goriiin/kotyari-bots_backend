@@ -6,15 +6,23 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
+	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
-// TODO: move
-const redditAPIString = "reddit"
+// TODO: move in future
+const (
+	redditAPIString         = "reddit"
+	defaultErrGroupWaitTime = 20 * time.Second
+)
 
 func (r *RedditAPIDelivery) performRequests() ([]RedditAPIResponse, error) {
 	// TODO: log
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultErrGroupWaitTime)
+	defer cancel()
 
 	integrations, err := r.integration.GetIntegrations(ctx, redditAPIString)
 	if err != nil {
@@ -22,45 +30,59 @@ func (r *RedditAPIDelivery) performRequests() ([]RedditAPIResponse, error) {
 		return nil, err
 	}
 
-	var redditAPIResponses []RedditAPIResponse
+	redditAPIResponses := make([]RedditAPIResponse, 0, len(integrations))
+	g, _ := errgroup.WithContext(ctx)
 
-	// TODO: async requests
+	var mu sync.Mutex
 	for _, integration := range integrations {
-		req, err := http.NewRequest(http.MethodGet, integration.Url, http.NoBody)
-		if err != nil {
-			// TODO: log, err
+		g.Go(func() error {
+			req, err := http.NewRequest(http.MethodGet, integration.Url, http.NoBody)
+			if err != nil {
+				// TODO: log, err
 
-			return nil, err
-		}
+				return fmt.Errorf("failed to create request: %w", err)
+			}
 
-		resp, err := r.client.Do(req)
-		if err != nil {
-			// TODO: log, err
+			resp, err := r.client.Do(req)
+			if err != nil {
+				// TODO: log, err
 
-			return nil, err
-		}
+				return fmt.Errorf("failed to do request: %w", err)
+			}
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			// TODO: log, err
+			// TODO: add resp.StatusCode check
 
-			return nil, fmt.Errorf("респонс бади хуйня из жопы %s\n%s", err.Error(), string(body))
-		}
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				// TODO: log, err
 
-		err = resp.Body.Close()
-		if err != nil {
-			// TODO: log, err
+				return fmt.Errorf("bad resposeBody: %w\n%s", err, string(body))
+			}
 
-			return nil, err
-		}
+			err = resp.Body.Close()
+			if err != nil {
+				// TODO: log, err
 
-		var redditAPIResponse RedditAPIResponse
-		if err := json.Unmarshal(body, &redditAPIResponse); err != nil {
-			// TODO: log, err
+				return fmt.Errorf("failed to close body: %w", err)
+			}
 
-			return nil, fmt.Errorf("анмаршал хуйни УРЛ: %s", integration.Url)
-		}
-		redditAPIResponses = append(redditAPIResponses, redditAPIResponse)
+			var redditAPIResponse RedditAPIResponse
+			if err := json.Unmarshal(body, &redditAPIResponse); err != nil {
+				// TODO: log, err
+
+				return fmt.Errorf("failed to unmarshal: %s", integration.Url)
+			}
+
+			mu.Lock()
+			redditAPIResponses = append(redditAPIResponses, redditAPIResponse)
+			mu.Unlock()
+
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return redditAPIResponses, err
 	}
 
 	return redditAPIResponses, nil

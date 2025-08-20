@@ -3,8 +3,9 @@ package reddit
 import (
 	"fmt"
 
-	"github.com/kotyari-bots_backend/internal/kafka"
-	"github.com/kotyari-bots_backend/pkg/config"
+	"github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	"github.com/goriiin/kotyari-bots_backend/pkg/config"
+	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
 
 type redditAPIConfig struct {
@@ -14,9 +15,9 @@ type redditAPIConfig struct {
 }
 type RedditAppConfig struct {
 	config.ConfigBase
-	API      redditAPIConfig       `mapstructure:"reddit_api"`
-	Database config.DatabaseConfig `mapstructure:"reddit_database"`
-	Kafka    kafka.KafkaConfig     `mapstructure:"reddit_producer"`
+	API      redditAPIConfig   `mapstructure:"reddit_api"`
+	Database postgres.Config   `mapstructure:"reddit_database"`
+	Kafka    kafka.KafkaConfig `mapstructure:"reddit_producer"`
 }
 
 func (c *RedditAppConfig) Validate() error {

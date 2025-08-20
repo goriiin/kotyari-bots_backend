@@ -3,17 +3,16 @@ package main
 import (
 	"log"
 
-	redditapp "github.com/goriiin/kotyari-bots_backend/internal/apps/api_integrations/reddit"
+	"github.com/goriiin/kotyari-bots_backend/internal/apps/aggregator"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
 const local = "local-config"
 
 func main() {
-	cfg, _ := config.New[redditapp.RedditAppConfig]()
-
+	cfg, _ := config.New[aggregator.AggregatorAppConfig]()
 	config.WatchConfig(func() {
-		newCfg, err := config.NewWithConfig[redditapp.RedditAppConfig](local)
+		newCfg, err := config.NewWithConfig[aggregator.AggregatorAppConfig](local)
 		if err != nil {
 			return
 		}
@@ -21,12 +20,13 @@ func main() {
 		cfg = newCfg
 	})
 
-	app, err := redditapp.NewRedditAPIApp(cfg)
+	app, err := aggregator.NewAggregatorApp(cfg)
 	if err != nil {
-		log.Fatalf("failed to init reddit app: %v", err)
+		log.Fatalf("failed to init aggregator app: %v", err)
 	}
 
 	if err := app.Run(); err != nil {
 		log.Fatalf("reddit app exited with error: %v", err)
 	}
+
 }

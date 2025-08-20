@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/jackc/pgx/v5"
-	"github.com/kotyari-bots_backend/internal/model"
 )
 
 func (a *APIIntegrationsRepo) GetIntegrations(ctx context.Context, integrationName string) ([]model.APIIntegration, error) {

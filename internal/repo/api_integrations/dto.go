@@ -1,6 +1,6 @@
 package api_integrations
 
-import "github.com/kotyari-bots_backend/internal/model"
+import "github.com/goriiin/kotyari-bots_backend/internal/model"
 
 type APIIntegrationDTO struct {
 	Provider string `db:"provider"`

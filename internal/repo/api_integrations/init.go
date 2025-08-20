@@ -1,8 +1,9 @@
 package api_integrations
 
-import "github.com/kotyari-bots_backend/internal/repo/pool"
+import "github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
 
 type APIIntegrationsRepo struct {
+	// TODO: logs
 	db pool.DBPool
 }
 

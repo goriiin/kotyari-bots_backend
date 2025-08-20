@@ -18,8 +18,6 @@ func (r *RedditAPIDelivery) Run() error {
 				if err != nil {
 					return err
 				}
-
-				//fmt.Println(post.PostData.Title)
 			}
 		}
 		return nil

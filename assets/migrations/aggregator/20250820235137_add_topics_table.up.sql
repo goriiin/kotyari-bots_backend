@@ -1,7 +1,8 @@
-CREATE TABLE IF NOT EXISTS integrations (
+CREATE TABLE IF NOT EXISTS topics (
     "id" bigint NOT NULL GENERATED ALWAYS AS IDENTITY,
-    "provider" text NOT NULL,
-    "url" text NOT NULL,
+    "source" text NOT NULL,
+    "text" text NOT NULL,
+    "hash" text NOT NULL UNIQUE,
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 )

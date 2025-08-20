@@ -3,7 +3,7 @@ package producer
 import (
 	"context"
 
-	kafka2 "github.com/kotyari-bots_backend/internal/kafka"
+	kafka2 "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -13,15 +13,13 @@ type KafkaProducer struct {
 }
 
 func NewKafkaProducer(config *kafka2.KafkaConfig) *KafkaProducer {
-	writer := &kafka.Writer{
-		Addr:                   kafka.TCP(config.Brokers...),
-		Topic:                  config.Topic,
-		Balancer:               &kafka.LeastBytes{},
-		AllowAutoTopicCreation: true,
-	}
-
 	return &KafkaProducer{
-		writer: writer,
+		writer: &kafka.Writer{
+			Addr:                   kafka.TCP(config.Brokers...),
+			Topic:                  config.Topic,
+			Balancer:               &kafka.LeastBytes{},
+			AllowAutoTopicCreation: true,
+		},
 	}
 }
 
