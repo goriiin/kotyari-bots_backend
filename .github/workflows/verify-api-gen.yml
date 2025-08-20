@@ -1,0 +1,38 @@
+name: 'Verify API Code Generation'
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  verify-generation:
+    name: 'Verify API code is up-to-date'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.5'
+
+      - name: 'Generate API code'
+        run: make api
+
+      - name: 'Check for differences'
+        run: |
+          # Используем git diff, чтобы проверить, изменились ли файлы после генерации
+          if ! git diff --quiet; then
+            echo "Сгенерированный API-код не соответствует спецификации."
+            echo "Обнаружены следующие изменения:"
+            echo ""
+            git diff
+            echo ""
+            echo "-----------------------------------------------------"
+            echo "Пожалуйста, запустите 'make api' локально и закоммитьте изменения."
+            exit 1
+          fi

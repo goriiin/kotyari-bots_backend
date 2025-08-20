@@ -1,0 +1,267 @@
+openapi: 3.0.0
+info:
+  title: "Profiles Service"
+  description: "API для управления профилями пользователей."
+  version: "1.0.0"
+servers:
+  - url: /api/v1
+
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Уникальный идентификатор профиля."
+          readOnly: true
+        name:
+          type: string
+          description: "Имя пользователя."
+        email:
+          type: string
+          format: email
+          description: "Электронная почта пользователя (уникальная)."
+        prompt:
+          type: string
+          description: "Системный промпт для AI."
+        createdAt:
+          type: string
+          format: date-time
+          description: "Время создания профиля."
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Время последнего обновления профиля."
+          readOnly: true
+      required:
+        - id
+        - name
+        - email
+        - createdAt
+        - updatedAt
+
+    ProfileInput:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Имя пользователя."
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: "Электронная почта пользователя."
+          example: "john.doe@example.com"
+        prompt:
+          type: string
+          description: "Системный промпт для AI."
+          example: "You are a helpful assistant."
+      required:
+        - name
+        - email
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: "Внутренний код ошибки."
+        message:
+          type: string
+          description: "Человекочитаемое сообщение об ошибке."
+      required:
+        - code
+        - message
+
+  parameters:
+    ProfileID:
+      name: id
+      in: path
+      required: true
+      description: "Уникальный идентификатор профиля (UUID)."
+      schema:
+        type: string
+        format: uuid
+    ProfileEmail:
+      name: email
+      in: path
+      required: true
+      description: "Электронная почта профиля."
+      schema:
+        type: string
+        format: email
+
+  responses:
+    OK:
+      description: "Успешный запрос (OK)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Profile' # Ссылка на схему Profile
+    OKList:
+      description: "Успешный запрос (OK), возвращает список профилей."
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Profile'
+    Created:
+      description: "Ресурс успешно создан (Created)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Profile'
+    NoContent:
+      description: "Ресурс успешно удален, тело ответа отсутствует (No Content)."
+    NotFound:
+      description: "Запрашиваемый ресурс не найден (Not Found)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: "Некорректный запрос (Bad Request). Например, невалидное тело запроса или параметры."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: "Внутренняя ошибка сервера (Internal Server Error)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+
+paths:
+  /profiles:
+    get:
+      summary: "Получить список всех профилей"
+      operationId: "listProfiles"
+      tags: ["Profiles"]
+      responses:
+        '200':
+          $ref: '#/components/responses/OKList'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /profile/:
+    post:
+      summary: "Создать новый профиль"
+      operationId: "createProfile"
+      tags: ["Profiles"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest' # Ошибка валидации тела запроса
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /profile/id/{id}:
+    get:
+      summary: "Получить профиль по ID"
+      operationId: "getProfileById"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileID'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: "Обновить профиль по ID"
+      operationId: "updateProfileById"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: "Удалить профиль по ID"
+      operationId: "deleteProfileById"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileID'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /profile/email/{email}:
+    get:
+      summary: "Получить профиль по email"
+      operationId: "getProfileByEmail"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileEmail'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: "Обновить профиль по email"
+      operationId: "updateProfileByEmail"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileEmail'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: "Удалить профиль по email"
+      operationId: "deleteProfileByEmail"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileEmail'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
