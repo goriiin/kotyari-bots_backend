@@ -33,10 +33,10 @@ lint:
 	golangci-lint run
 
 format:
-	gci write .
+	@gci write . --skip-generated --skip-vendor < /dev/null
 
 format_check:
-	gci diff .
+	@gci diff . --skip-generated --skip-vendor < /dev/null
 
 check: lint format_check
 

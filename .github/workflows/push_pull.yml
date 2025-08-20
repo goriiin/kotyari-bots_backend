@@ -10,6 +10,9 @@ jobs:
     name: go-build and test
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Setup Go Environment
         uses: ./.github/actions/setup-go
         with:
