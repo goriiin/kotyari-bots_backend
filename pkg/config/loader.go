@@ -3,8 +3,6 @@ package config
 import (
 	"flag"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,6 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/fsnotify/fsnotify"
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 

@@ -1,4 +1,4 @@
-name: push_pull
+name: gci-format
 on:
   push:
     branches: [dev]
@@ -6,8 +6,8 @@ on:
     branches: [dev, main]
 
 jobs:
-  build:
-    name: go-build and test
+  format-go:
+    name: format-check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -18,8 +18,8 @@ jobs:
         with:
           go-version: ^1.24.5
 
-      - name: Get dependencies
-        run: go mod tidy
+      - name: Install tools
+        run: make download_gci
 
-      - name: Run make test
-        run: go test ./...
+      - name: Check Go Formatting
+        run: make format_check

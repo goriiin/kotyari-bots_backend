@@ -1,24 +1,21 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
+)
 
 type HTTPServerConfig struct {
 	Host string `mapstructure:"host" env:"HOST"`
 	Port int    `mapstructure:"port" env:"PORT"`
 }
 
-type DatabaseConfig struct {
-	Host     string `mapstructure:"host" env:"HOST"`
-	Port     int    `mapstructure:"port" env:"PORT"`
-	Name     string `mapstructure:"name" env:"NAME"`
-	User     string `mapstructure:"user" env:"USER"`
-	Password string `mapstructure:"password" env:"PASSWORD"`
-}
-
+// AppConfig EXAMPLE
 type AppConfig struct {
 	ConfigBase
 	API      HTTPServerConfig `mapstructure:"api" envPrefix:"API"`
-	Database DatabaseConfig   `mapstructure:"database" envPrefix:"DATABASE"`
+	Database postgres.Config  `mapstructure:"database" envPrefix:"DATABASE"`
 }
 
 func (c *AppConfig) Validate() error {
