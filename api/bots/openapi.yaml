@@ -1,0 +1,402 @@
+openapi: 3.0.0
+info:
+  title: "Bots Service"
+  description: "API для управления ботами, их профилями и задачами."
+  version: "1.0.0"
+servers:
+  - url: /api/v1
+components:
+  schemas:
+    Bot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Уникальный идентификатор бота."
+          readOnly: true
+        name:
+          type: string
+          description: "Имя бота."
+        email:
+          type: string
+          format: email
+          description: "Контактная почта, связанная с ботом."
+        system_prompt:
+          type: string
+          description: "Системный промпт для AI."
+        moderation_required:
+          type: boolean
+          description: "Флаг, указывающий на необходимость модерации контента."
+          default: false
+        auto_publish:
+          type: boolean
+          description: "Флаг, указывающий на автоматическую публикацию."
+          default: false
+        profiles:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/Profile'
+        createdAt:
+          type: string
+          format: date-time
+          description: "Время создания бота."
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Время последнего обновления бота."
+          readOnly: true
+      required:
+        - id
+        - name
+        - email
+        - moderation_required
+        - auto_publish
+        - createdAt
+        - updatedAt
+
+    BotInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        system_prompt:
+          type: string
+        moderation_required:
+          type: boolean
+        auto_publish:
+          type: boolean
+      required:
+        - name
+        - email
+
+    TaskInput:
+      type: object
+      properties:
+        description:
+          type: string
+          description: "Текстовое описание задачи для бота."
+      required:
+        - description
+
+    AddProfileRequest:
+      type: object
+      properties:
+        profile_id:
+          type: string
+          format: uuid
+          description: "ID профиля, который нужно добавить к боту."
+      required:
+        - profile_id
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+        - id
+        - name
+        - email
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+  parameters:
+    BotID:
+      name: id
+      in: path
+      required: true
+      description: "Уникальный идентификатор бота (UUID)."
+      schema:
+        type: string
+        format: uuid
+    BotEmail:
+      name: email
+      in: path
+      required: true
+      description: "Электронная почта бота."
+      schema:
+        type: string
+        format: email
+    ProfileID:
+      name: profileId
+      in: path
+      required: true
+      description: "Уникальный идентификатор профиля (UUID)."
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    OKBot:
+      description: "Успешный запрос (OK)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Bot'
+    OKBotList:
+      description: "Успешный запрос. Возвращает список ботов, который может быть пустым."
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Bot'
+    OKProfileList:
+      description: "Успешный запрос. Возвращает список профилей, который может быть пустым."
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Profile'
+    Created:
+      description: "Ресурс успешно создан (Created)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Bot'
+    NoContent:
+      description: "Операция успешна, тело ответа отсутствует (No Content)."
+    NotFound:
+      description: "Ресурс не найден (Not Found)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: "Некорректный запрос (Bad Request)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: "Внутренняя ошибка сервера (Internal Server Error)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+paths:
+  /bots:
+    get:
+      summary: "Получить список всех ботов"
+      operationId: "listBots"
+      tags: ["Bots"]
+      responses:
+        '200':
+          $ref: '#/components/responses/OKBotList'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /bot:
+    post:
+      summary: "Создать нового бота"
+      operationId: "createBot"
+      tags: ["Bots"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotInput'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /bot/id/{id}:
+    get:
+      summary: "Получить бота по ID"
+      operationId: "getBotById"
+      tags: ["Bots"]
+      parameters:
+        - $ref: '#/components/parameters/BotID'
+      responses:
+        '200':
+          $ref: '#/components/responses/OKBot'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: "Обновить бота по ID"
+      operationId: "updateBotById"
+      tags: ["Bots"]
+      parameters:
+        - $ref: '#/components/parameters/BotID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotInput'
+      responses:
+        '200':
+          $ref: '#/components/responses/OKBot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: "Удалить бота по ID"
+      operationId: "deleteBotById"
+      tags: ["Bots"]
+      parameters:
+        - $ref: '#/components/parameters/BotID'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /bot/email/{email}:
+    get:
+      summary: "Получить бота по email"
+      operationId: "getBotByEmail"
+      tags: ["Bots"]
+      parameters:
+        - $ref: '#/components/parameters/BotEmail'
+      responses:
+        '200':
+          $ref: '#/components/responses/OKBot'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: "Обновить бота по email"
+      operationId: "updateBotByEmail"
+      tags: ["Bots"]
+      parameters:
+        - $ref: '#/components/parameters/BotEmail'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BotInput'
+      responses:
+        '200':
+          $ref: '#/components/responses/OKBot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: "Удалить бота по email"
+      operationId: "deleteBotByEmail"
+      tags: ["Bots"]
+      parameters:
+        - $ref: '#/components/parameters/BotEmail'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /bot/{id}/profiles:
+    get:
+      summary: "Получить все профили, привязанные к боту"
+      operationId: "getBotProfiles"
+      tags: ["Bot-Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/BotID'
+      responses:
+        '200':
+          $ref: '#/components/responses/OKProfileList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: "Добавить профиль к боту"
+      operationId: "addProfileToBot"
+      tags: ["Bot-Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/BotID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddProfileRequest'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /bot/{id}/profiles/{profileId}:
+    delete:
+      summary: "Удалить профиль у бота"
+      operationId: "removeProfileFromBot"
+      tags: ["Bot-Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/BotID'
+        - $ref: '#/components/parameters/ProfileID'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /bot/{id}/tasks:
+    post:
+      summary: "Создать задачу для бота"
+      operationId: "createBotTask"
+      tags: ["Bot-Tasks"]
+      parameters:
+        - $ref: '#/components/parameters/BotID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskInput'
+      responses:
+        '202':
+          description: "Задача принята в обработку."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
