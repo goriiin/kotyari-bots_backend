@@ -3,7 +3,6 @@ package consumer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
@@ -42,7 +41,7 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 			ctx, cancel := context.WithTimeout(ctx, batchTimeout)
 			defer cancel()
 
-			for len(messages) < 5 {
+			for len(messages) < batchSize {
 				message, err := k.reader.ReadMessage(ctx)
 				if err != nil {
 					if errors.Is(err, context.DeadlineExceeded) {
@@ -62,8 +61,6 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 
 				messages = append(messages, message)
 			}
-
-			fmt.Println(messages)
 
 			if len(messages) > 0 {
 				select {

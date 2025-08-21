@@ -1,15 +1,11 @@
 package aggregator
 
-import (
-	"context"
-	"fmt"
-)
+import "context"
 
 func (a *AggregatorDelivery) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	fmt.Println("here")
 	messageBatches := a.consumer.ReadBatches(ctx)
 
 	for batch := range messageBatches {
