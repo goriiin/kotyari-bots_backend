@@ -29,10 +29,10 @@ func NewAggregatorApp(config *AggregatorAppConfig) (*AggregatorApp, error) {
 
 	aggregatorRepo := aggregator.NewAggregatorRepo(pgxPool)
 	aggregatorUseCase := aggregatorService.NewAggregatorService(aggregatorRepo)
-	aggregatorDelivery := aggregatorDelivery.NewAggregatorDelivery(kafkaConsumer, aggregatorUseCase)
+	aggregatorDel := aggregatorDelivery.NewAggregatorDelivery(kafkaConsumer, aggregatorUseCase)
 
 	return &AggregatorApp{
-		delivery: aggregatorDelivery,
+		delivery: aggregatorDel,
 		config:   *config,
 	}, nil
 }
