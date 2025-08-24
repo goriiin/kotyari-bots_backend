@@ -59,6 +59,14 @@ verify_lint_config:
 lint:
 	golangci-lint run
 
+format:
+	@gci write . --skip-generated --skip-vendor < /dev/null
+
+format_check:
+	@gci diff . --skip-generated --skip-vendor < /dev/null
+
+check: lint format_check
+
 example-run:
 	@go run cmd/main/main.go
 example-run-local:  ## Запустить в local режиме
