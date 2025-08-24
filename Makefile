@@ -11,8 +11,8 @@ help:
 	@echo 'check_lint - Verify linter version (>= 2)'
 	@echo 'verify_lint_config - Verifies linter config'
 	@echo 'lint - running linter'
-	@echo "  make api          - Сгенерировать Go-код из всех openapi.yml файлов."
-	@echo "  make install-ogen - Установить или обновить генератор кода ogen."
+	@echo "api          - Сгенерировать Go-код из всех openapi.yml файлов."
+	@echo "install-ogen - Установить или обновить генератор кода ogen."
 
 
 api: install_ogen
