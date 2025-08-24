@@ -16,107 +16,25 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-// DeleteProfileByEmailParams is parameters of deleteProfileByEmail operation.
-type DeleteProfileByEmailParams struct {
-	// Электронная почта профиля.
-	Email string
-}
-
-func unpackDeleteProfileByEmailParams(packed middleware.Parameters) (params DeleteProfileByEmailParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "email",
-			In:   "path",
-		}
-		params.Email = packed[key].(string)
-	}
-	return params
-}
-
-func decodeDeleteProfileByEmailParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteProfileByEmailParams, _ error) {
-	// Decode path: email.
-	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "email",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToString(val)
-				if err != nil {
-					return err
-				}
-
-				params.Email = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-			if err := func() error {
-				if err := (validate.String{
-					MinLength:    0,
-					MinLengthSet: false,
-					MaxLength:    0,
-					MaxLengthSet: false,
-					Email:        true,
-					Hostname:     false,
-					Regex:        nil,
-				}).Validate(string(params.Email)); err != nil {
-					return errors.Wrap(err, "string")
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "email",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
 // DeleteProfileByIdParams is parameters of deleteProfileById operation.
 type DeleteProfileByIdParams struct {
 	// Уникальный идентификатор профиля (UUID).
-	ID uuid.UUID
+	ProfileId uuid.UUID
 }
 
 func unpackDeleteProfileByIdParams(packed middleware.Parameters) (params DeleteProfileByIdParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "id",
+			Name: "profileId",
 			In:   "path",
 		}
-		params.ID = packed[key].(uuid.UUID)
+		params.ProfileId = packed[key].(uuid.UUID)
 	}
 	return params
 }
 
 func decodeDeleteProfileByIdParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteProfileByIdParams, _ error) {
-	// Decode path: id.
+	// Decode path: profileId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -128,7 +46,7 @@ func decodeDeleteProfileByIdParams(args [1]string, argsEscaped bool, r *http.Req
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "id",
+				Param:   "profileId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -145,7 +63,7 @@ func decodeDeleteProfileByIdParams(args [1]string, argsEscaped bool, r *http.Req
 					return err
 				}
 
-				params.ID = c
+				params.ProfileId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -156,89 +74,7 @@ func decodeDeleteProfileByIdParams(args [1]string, argsEscaped bool, r *http.Req
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "id",
-			In:   "path",
-			Err:  err,
-		}
-	}
-	return params, nil
-}
-
-// GetProfileByEmailParams is parameters of getProfileByEmail operation.
-type GetProfileByEmailParams struct {
-	// Электронная почта профиля.
-	Email string
-}
-
-func unpackGetProfileByEmailParams(packed middleware.Parameters) (params GetProfileByEmailParams) {
-	{
-		key := middleware.ParameterKey{
-			Name: "email",
-			In:   "path",
-		}
-		params.Email = packed[key].(string)
-	}
-	return params
-}
-
-func decodeGetProfileByEmailParams(args [1]string, argsEscaped bool, r *http.Request) (params GetProfileByEmailParams, _ error) {
-	// Decode path: email.
-	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
-		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "email",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
-
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
-					return err
-				}
-
-				c, err := conv.ToString(val)
-				if err != nil {
-					return err
-				}
-
-				params.Email = c
-				return nil
-			}(); err != nil {
-				return err
-			}
-			if err := func() error {
-				if err := (validate.String{
-					MinLength:    0,
-					MinLengthSet: false,
-					MaxLength:    0,
-					MaxLengthSet: false,
-					Email:        true,
-					Hostname:     false,
-					Regex:        nil,
-				}).Validate(string(params.Email)); err != nil {
-					return errors.Wrap(err, "string")
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "email",
+			Name: "profileId",
 			In:   "path",
 			Err:  err,
 		}
@@ -249,22 +85,22 @@ func decodeGetProfileByEmailParams(args [1]string, argsEscaped bool, r *http.Req
 // GetProfileByIdParams is parameters of getProfileById operation.
 type GetProfileByIdParams struct {
 	// Уникальный идентификатор профиля (UUID).
-	ID uuid.UUID
+	ProfileId uuid.UUID
 }
 
 func unpackGetProfileByIdParams(packed middleware.Parameters) (params GetProfileByIdParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "id",
+			Name: "profileId",
 			In:   "path",
 		}
-		params.ID = packed[key].(uuid.UUID)
+		params.ProfileId = packed[key].(uuid.UUID)
 	}
 	return params
 }
 
 func decodeGetProfileByIdParams(args [1]string, argsEscaped bool, r *http.Request) (params GetProfileByIdParams, _ error) {
-	// Decode path: id.
+	// Decode path: profileId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -276,7 +112,7 @@ func decodeGetProfileByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "id",
+				Param:   "profileId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -293,7 +129,7 @@ func decodeGetProfileByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 					return err
 				}
 
-				params.ID = c
+				params.ProfileId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -304,7 +140,7 @@ func decodeGetProfileByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "id",
+			Name: "profileId",
 			In:   "path",
 			Err:  err,
 		}
@@ -312,82 +148,146 @@ func decodeGetProfileByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 	return params, nil
 }
 
-// UpdateProfileByEmailParams is parameters of updateProfileByEmail operation.
-type UpdateProfileByEmailParams struct {
-	// Электронная почта профиля.
-	Email string
+// ListMyProfilesParams is parameters of listMyProfiles operation.
+type ListMyProfilesParams struct {
+	// Курсор для получения следующей страницы результатов.
+	Cursor OptString
+	// Максимальное количество результатов на странице.
+	Limit OptInt
 }
 
-func unpackUpdateProfileByEmailParams(packed middleware.Parameters) (params UpdateProfileByEmailParams) {
+func unpackListMyProfilesParams(packed middleware.Parameters) (params ListMyProfilesParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "email",
-			In:   "path",
+			Name: "cursor",
+			In:   "query",
 		}
-		params.Email = packed[key].(string)
+		if v, ok := packed[key]; ok {
+			params.Cursor = v.(OptString)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "limit",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.Limit = v.(OptInt)
+		}
 	}
 	return params
 }
 
-func decodeUpdateProfileByEmailParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateProfileByEmailParams, _ error) {
-	// Decode path: email.
+func decodeListMyProfilesParams(args [0]string, argsEscaped bool, r *http.Request) (params ListMyProfilesParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: cursor.
 	if err := func() error {
-		param := args[0]
-		if argsEscaped {
-			unescaped, err := url.PathUnescape(args[0])
-			if err != nil {
-				return errors.Wrap(err, "unescape path")
-			}
-			param = unescaped
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "cursor",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
 		}
-		if len(param) > 0 {
-			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "email",
-				Value:   param,
-				Style:   uri.PathStyleSimple,
-				Explode: false,
-			})
 
-			if err := func() error {
-				val, err := d.DecodeValue()
-				if err != nil {
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotCursorVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotCursorVal = c
+					return nil
+				}(); err != nil {
 					return err
 				}
-
-				c, err := conv.ToString(val)
-				if err != nil {
-					return err
-				}
-
-				params.Email = c
+				params.Cursor.SetTo(paramsDotCursorVal)
 				return nil
-			}(); err != nil {
+			}); err != nil {
 				return err
 			}
-			if err := func() error {
-				if err := (validate.String{
-					MinLength:    0,
-					MinLengthSet: false,
-					MaxLength:    0,
-					MaxLengthSet: false,
-					Email:        true,
-					Hostname:     false,
-					Regex:        nil,
-				}).Validate(string(params.Email)); err != nil {
-					return errors.Wrap(err, "string")
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
-		} else {
-			return validate.ErrFieldRequired
 		}
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "email",
-			In:   "path",
+			Name: "cursor",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Set default value for query: limit.
+	{
+		val := int(20)
+		params.Limit.SetTo(val)
+	}
+	// Decode query: limit.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "limit",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotLimitVal int
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotLimitVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.Limit.SetTo(paramsDotLimitVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+			if err := func() error {
+				if value, ok := params.Limit.Get(); ok {
+					if err := func() error {
+						if err := (validate.Int{
+							MinSet:        true,
+							Min:           1,
+							MaxSet:        true,
+							Max:           100,
+							MinExclusive:  false,
+							MaxExclusive:  false,
+							MultipleOfSet: false,
+							MultipleOf:    0,
+						}).Validate(int64(value)); err != nil {
+							return errors.Wrap(err, "int")
+						}
+						return nil
+					}(); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "limit",
+			In:   "query",
 			Err:  err,
 		}
 	}
@@ -397,22 +297,22 @@ func decodeUpdateProfileByEmailParams(args [1]string, argsEscaped bool, r *http.
 // UpdateProfileByIdParams is parameters of updateProfileById operation.
 type UpdateProfileByIdParams struct {
 	// Уникальный идентификатор профиля (UUID).
-	ID uuid.UUID
+	ProfileId uuid.UUID
 }
 
 func unpackUpdateProfileByIdParams(packed middleware.Parameters) (params UpdateProfileByIdParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "id",
+			Name: "profileId",
 			In:   "path",
 		}
-		params.ID = packed[key].(uuid.UUID)
+		params.ProfileId = packed[key].(uuid.UUID)
 	}
 	return params
 }
 
 func decodeUpdateProfileByIdParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateProfileByIdParams, _ error) {
-	// Decode path: id.
+	// Decode path: profileId.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -424,7 +324,7 @@ func decodeUpdateProfileByIdParams(args [1]string, argsEscaped bool, r *http.Req
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "id",
+				Param:   "profileId",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -441,7 +341,7 @@ func decodeUpdateProfileByIdParams(args [1]string, argsEscaped bool, r *http.Req
 					return err
 				}
 
-				params.ID = c
+				params.ProfileId = c
 				return nil
 			}(); err != nil {
 				return err
@@ -452,7 +352,7 @@ func decodeUpdateProfileByIdParams(args [1]string, argsEscaped bool, r *http.Req
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "id",
+			Name: "profileId",
 			In:   "path",
 			Err:  err,
 		}

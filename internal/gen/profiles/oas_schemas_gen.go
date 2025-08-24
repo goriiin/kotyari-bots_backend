@@ -5,24 +5,75 @@ package profiles
 import (
 	"time"
 
+	"github.com/go-faster/jx"
 	"github.com/google/uuid"
 )
 
-type CreateProfileBadRequest Error
+type CookieAuth struct {
+	APIKey string
+	Roles  []string
+}
 
-func (*CreateProfileBadRequest) createProfileRes() {}
+// GetAPIKey returns the value of APIKey.
+func (s *CookieAuth) GetAPIKey() string {
+	return s.APIKey
+}
 
-type CreateProfileInternalServerError Error
+// GetRoles returns the value of Roles.
+func (s *CookieAuth) GetRoles() []string {
+	return s.Roles
+}
 
-func (*CreateProfileInternalServerError) createProfileRes() {}
+// SetAPIKey sets the value of APIKey.
+func (s *CookieAuth) SetAPIKey(val string) {
+	s.APIKey = val
+}
 
-type DeleteProfileByEmailInternalServerError Error
+// SetRoles sets the value of Roles.
+func (s *CookieAuth) SetRoles(val []string) {
+	s.Roles = val
+}
 
-func (*DeleteProfileByEmailInternalServerError) deleteProfileByEmailRes() {}
+type CreateMyProfileBadRequest Error
 
-type DeleteProfileByEmailNotFound Error
+func (*CreateMyProfileBadRequest) createMyProfileRes() {}
 
-func (*DeleteProfileByEmailNotFound) deleteProfileByEmailRes() {}
+type CreateMyProfileConflict Error
+
+func (*CreateMyProfileConflict) createMyProfileRes() {}
+
+type CreateMyProfileInternalServerError Error
+
+func (*CreateMyProfileInternalServerError) createMyProfileRes() {}
+
+type CreateMyProfileUnauthorized Error
+
+func (*CreateMyProfileUnauthorized) createMyProfileRes() {}
+
+type CsrfAuth struct {
+	APIKey string
+	Roles  []string
+}
+
+// GetAPIKey returns the value of APIKey.
+func (s *CsrfAuth) GetAPIKey() string {
+	return s.APIKey
+}
+
+// GetRoles returns the value of Roles.
+func (s *CsrfAuth) GetRoles() []string {
+	return s.Roles
+}
+
+// SetAPIKey sets the value of APIKey.
+func (s *CsrfAuth) SetAPIKey(val string) {
+	s.APIKey = val
+}
+
+// SetRoles sets the value of Roles.
+func (s *CsrfAuth) SetRoles(val []string) {
+	s.Roles = val
+}
 
 type DeleteProfileByIdInternalServerError Error
 
@@ -32,17 +83,24 @@ type DeleteProfileByIdNotFound Error
 
 func (*DeleteProfileByIdNotFound) deleteProfileByIdRes() {}
 
+type DeleteProfileByIdUnauthorized Error
+
+func (*DeleteProfileByIdUnauthorized) deleteProfileByIdRes() {}
+
+// Стандартизированная структура ошибки.
 // Ref: #/components/schemas/Error
 type Error struct {
-	// Внутренний код ошибки.
-	Code int `json:"code"`
+	// Машиночитаемый код ошибки.
+	ErrorCode string `json:"errorCode"`
 	// Человекочитаемое сообщение об ошибке.
 	Message string `json:"message"`
+	// Дополнительные детали об ошибке, например, по полям.
+	Details OptErrorDetails `json:"details"`
 }
 
-// GetCode returns the value of Code.
-func (s *Error) GetCode() int {
-	return s.Code
+// GetErrorCode returns the value of ErrorCode.
+func (s *Error) GetErrorCode() string {
+	return s.ErrorCode
 }
 
 // GetMessage returns the value of Message.
@@ -50,9 +108,14 @@ func (s *Error) GetMessage() string {
 	return s.Message
 }
 
-// SetCode sets the value of Code.
-func (s *Error) SetCode(val int) {
-	s.Code = val
+// GetDetails returns the value of Details.
+func (s *Error) GetDetails() OptErrorDetails {
+	return s.Details
+}
+
+// SetErrorCode sets the value of ErrorCode.
+func (s *Error) SetErrorCode(val string) {
+	s.ErrorCode = val
 }
 
 // SetMessage sets the value of Message.
@@ -60,15 +123,22 @@ func (s *Error) SetMessage(val string) {
 	s.Message = val
 }
 
-func (*Error) listProfilesRes() {}
+// SetDetails sets the value of Details.
+func (s *Error) SetDetails(val OptErrorDetails) {
+	s.Details = val
+}
 
-type GetProfileByEmailInternalServerError Error
+// Дополнительные детали об ошибке, например, по полям.
+type ErrorDetails map[string]jx.Raw
 
-func (*GetProfileByEmailInternalServerError) getProfileByEmailRes() {}
-
-type GetProfileByEmailNotFound Error
-
-func (*GetProfileByEmailNotFound) getProfileByEmailRes() {}
+func (s *ErrorDetails) init() ErrorDetails {
+	m := *s
+	if m == nil {
+		m = map[string]jx.Raw{}
+		*s = m
+	}
+	return m
+}
 
 type GetProfileByIdInternalServerError Error
 
@@ -78,15 +148,177 @@ type GetProfileByIdNotFound Error
 
 func (*GetProfileByIdNotFound) getProfileByIdRes() {}
 
-type ListProfilesOKApplicationJSON []Profile
+type GetProfileByIdUnauthorized Error
 
-func (*ListProfilesOKApplicationJSON) listProfilesRes() {}
+func (*GetProfileByIdUnauthorized) getProfileByIdRes() {}
+
+type ListMyProfilesInternalServerError Error
+
+func (*ListMyProfilesInternalServerError) listMyProfilesRes() {}
+
+type ListMyProfilesUnauthorized Error
+
+func (*ListMyProfilesUnauthorized) listMyProfilesRes() {}
 
 // Ref: #/components/responses/NoContent
 type NoContent struct{}
 
-func (*NoContent) deleteProfileByEmailRes() {}
-func (*NoContent) deleteProfileByIdRes()    {}
+func (*NoContent) deleteProfileByIdRes() {}
+
+// NewOptErrorDetails returns new OptErrorDetails with value set to v.
+func NewOptErrorDetails(v ErrorDetails) OptErrorDetails {
+	return OptErrorDetails{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptErrorDetails is optional ErrorDetails.
+type OptErrorDetails struct {
+	Value ErrorDetails
+	Set   bool
+}
+
+// IsSet returns true if OptErrorDetails was set.
+func (o OptErrorDetails) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptErrorDetails) Reset() {
+	var v ErrorDetails
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptErrorDetails) SetTo(v ErrorDetails) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptErrorDetails) Get() (v ErrorDetails, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptErrorDetails) Or(d ErrorDetails) ErrorDetails {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptInt returns new OptInt with value set to v.
+func NewOptInt(v int) OptInt {
+	return OptInt{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptInt is optional int.
+type OptInt struct {
+	Value int
+	Set   bool
+}
+
+// IsSet returns true if OptInt was set.
+func (o OptInt) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptInt) Reset() {
+	var v int
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptInt) SetTo(v int) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptInt) Get() (v int, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptInt) Or(d int) int {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilString returns new OptNilString with value set to v.
+func NewOptNilString(v string) OptNilString {
+	return OptNilString{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilString is optional nullable string.
+type OptNilString struct {
+	Value string
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilString was set.
+func (o OptNilString) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilString) Reset() {
+	var v string
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilString) SetTo(v string) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilString) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilString) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v string
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilString) Get() (v string, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilString) Or(d string) string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
 
 // NewOptString returns new OptString with value set to v.
 func NewOptString(v string) OptString {
@@ -134,13 +366,16 @@ func (o OptString) Or(d string) string {
 	return d
 }
 
+// Профиль пользователя, содержащий персональные
+// настройки.
 // Ref: #/components/schemas/Profile
 type Profile struct {
 	// Уникальный идентификатор профиля.
 	ID uuid.UUID `json:"id"`
-	// Имя пользователя.
+	// Имя пользователя в профиле.
 	Name string `json:"name"`
-	// Электронная почта пользователя (уникальная).
+	// Контактная электронная почта (уникальная в рамках
+	// системы).
 	Email string `json:"email"`
 	// Системный промпт для AI.
 	Prompt OptString `json:"prompt"`
@@ -210,12 +445,11 @@ func (s *Profile) SetUpdatedAt(val time.Time) {
 	s.UpdatedAt = val
 }
 
-func (*Profile) createProfileRes()        {}
-func (*Profile) getProfileByEmailRes()    {}
-func (*Profile) getProfileByIdRes()       {}
-func (*Profile) updateProfileByEmailRes() {}
-func (*Profile) updateProfileByIdRes()    {}
+func (*Profile) createMyProfileRes()   {}
+func (*Profile) getProfileByIdRes()    {}
+func (*Profile) updateProfileByIdRes() {}
 
+// Данные для создания или обновления профиля.
 // Ref: #/components/schemas/ProfileInput
 type ProfileInput struct {
 	// Имя пользователя.
@@ -256,21 +490,44 @@ func (s *ProfileInput) SetPrompt(val OptString) {
 	s.Prompt = val
 }
 
-type UpdateProfileByEmailBadRequest Error
+// Пагинированный список профилей.
+// Ref: #/components/schemas/ProfileList
+type ProfileList struct {
+	Data []Profile `json:"data"`
+	// Курсор для запроса следующей страницы. null, если это
+	// последняя страница.
+	NextCursor OptNilString `json:"nextCursor"`
+}
 
-func (*UpdateProfileByEmailBadRequest) updateProfileByEmailRes() {}
+// GetData returns the value of Data.
+func (s *ProfileList) GetData() []Profile {
+	return s.Data
+}
 
-type UpdateProfileByEmailInternalServerError Error
+// GetNextCursor returns the value of NextCursor.
+func (s *ProfileList) GetNextCursor() OptNilString {
+	return s.NextCursor
+}
 
-func (*UpdateProfileByEmailInternalServerError) updateProfileByEmailRes() {}
+// SetData sets the value of Data.
+func (s *ProfileList) SetData(val []Profile) {
+	s.Data = val
+}
 
-type UpdateProfileByEmailNotFound Error
+// SetNextCursor sets the value of NextCursor.
+func (s *ProfileList) SetNextCursor(val OptNilString) {
+	s.NextCursor = val
+}
 
-func (*UpdateProfileByEmailNotFound) updateProfileByEmailRes() {}
+func (*ProfileList) listMyProfilesRes() {}
 
 type UpdateProfileByIdBadRequest Error
 
 func (*UpdateProfileByIdBadRequest) updateProfileByIdRes() {}
+
+type UpdateProfileByIdConflict Error
+
+func (*UpdateProfileByIdConflict) updateProfileByIdRes() {}
 
 type UpdateProfileByIdInternalServerError Error
 
@@ -279,3 +536,7 @@ func (*UpdateProfileByIdInternalServerError) updateProfileByIdRes() {}
 type UpdateProfileByIdNotFound Error
 
 func (*UpdateProfileByIdNotFound) updateProfileByIdRes() {}
+
+type UpdateProfileByIdUnauthorized Error
+
+func (*UpdateProfileByIdUnauthorized) updateProfileByIdRes() {}

@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func encodeCreateProfileResponse(response CreateProfileRes, w http.ResponseWriter, span trace.Span) error {
+func encodeCreateMyProfileResponse(response CreateMyProfileRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *Profile:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -26,7 +26,7 @@ func encodeCreateProfileResponse(response CreateProfileRes, w http.ResponseWrite
 
 		return nil
 
-	case *CreateProfileBadRequest:
+	case *CreateMyProfileBadRequest:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(400)
 		span.SetStatus(codes.Error, http.StatusText(400))
@@ -39,10 +39,10 @@ func encodeCreateProfileResponse(response CreateProfileRes, w http.ResponseWrite
 
 		return nil
 
-	case *CreateProfileInternalServerError:
+	case *CreateMyProfileUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(500)
-		span.SetStatus(codes.Error, http.StatusText(500))
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -52,23 +52,10 @@ func encodeCreateProfileResponse(response CreateProfileRes, w http.ResponseWrite
 
 		return nil
 
-	default:
-		return errors.Errorf("unexpected response type: %T", response)
-	}
-}
-
-func encodeDeleteProfileByEmailResponse(response DeleteProfileByEmailRes, w http.ResponseWriter, span trace.Span) error {
-	switch response := response.(type) {
-	case *NoContent:
-		w.WriteHeader(204)
-		span.SetStatus(codes.Ok, http.StatusText(204))
-
-		return nil
-
-	case *DeleteProfileByEmailNotFound:
+	case *CreateMyProfileConflict:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(404)
-		span.SetStatus(codes.Error, http.StatusText(404))
+		w.WriteHeader(409)
+		span.SetStatus(codes.Error, http.StatusText(409))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -78,7 +65,7 @@ func encodeDeleteProfileByEmailResponse(response DeleteProfileByEmailRes, w http
 
 		return nil
 
-	case *DeleteProfileByEmailInternalServerError:
+	case *CreateMyProfileInternalServerError:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(500)
 		span.SetStatus(codes.Error, http.StatusText(500))
@@ -101,6 +88,19 @@ func encodeDeleteProfileByIdResponse(response DeleteProfileByIdRes, w http.Respo
 	case *NoContent:
 		w.WriteHeader(204)
 		span.SetStatus(codes.Ok, http.StatusText(204))
+
+		return nil
+
+	case *DeleteProfileByIdUnauthorized:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
 
 		return nil
 
@@ -135,58 +135,25 @@ func encodeDeleteProfileByIdResponse(response DeleteProfileByIdRes, w http.Respo
 	}
 }
 
-func encodeGetProfileByEmailResponse(response GetProfileByEmailRes, w http.ResponseWriter, span trace.Span) error {
-	switch response := response.(type) {
-	case *Profile:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(200)
-		span.SetStatus(codes.Ok, http.StatusText(200))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *GetProfileByEmailNotFound:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(404)
-		span.SetStatus(codes.Error, http.StatusText(404))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *GetProfileByEmailInternalServerError:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(500)
-		span.SetStatus(codes.Error, http.StatusText(500))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	default:
-		return errors.Errorf("unexpected response type: %T", response)
-	}
-}
-
 func encodeGetProfileByIdResponse(response GetProfileByIdRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *Profile:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(200)
 		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetProfileByIdUnauthorized:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -227,9 +194,9 @@ func encodeGetProfileByIdResponse(response GetProfileByIdRes, w http.ResponseWri
 	}
 }
 
-func encodeListProfilesResponse(response ListProfilesRes, w http.ResponseWriter, span trace.Span) error {
+func encodeListMyProfilesResponse(response ListMyProfilesRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *ListProfilesOKApplicationJSON:
+	case *ProfileList:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(200)
 		span.SetStatus(codes.Ok, http.StatusText(200))
@@ -242,10 +209,10 @@ func encodeListProfilesResponse(response ListProfilesRes, w http.ResponseWriter,
 
 		return nil
 
-	case *Error:
+	case *ListMyProfilesUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(500)
-		span.SetStatus(codes.Error, http.StatusText(500))
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -255,53 +222,7 @@ func encodeListProfilesResponse(response ListProfilesRes, w http.ResponseWriter,
 
 		return nil
 
-	default:
-		return errors.Errorf("unexpected response type: %T", response)
-	}
-}
-
-func encodeUpdateProfileByEmailResponse(response UpdateProfileByEmailRes, w http.ResponseWriter, span trace.Span) error {
-	switch response := response.(type) {
-	case *Profile:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(200)
-		span.SetStatus(codes.Ok, http.StatusText(200))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *UpdateProfileByEmailBadRequest:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(400)
-		span.SetStatus(codes.Error, http.StatusText(400))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *UpdateProfileByEmailNotFound:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(404)
-		span.SetStatus(codes.Error, http.StatusText(404))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *UpdateProfileByEmailInternalServerError:
+	case *ListMyProfilesInternalServerError:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(500)
 		span.SetStatus(codes.Error, http.StatusText(500))
@@ -347,10 +268,36 @@ func encodeUpdateProfileByIdResponse(response UpdateProfileByIdRes, w http.Respo
 
 		return nil
 
+	case *UpdateProfileByIdUnauthorized:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
 	case *UpdateProfileByIdNotFound:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *UpdateProfileByIdConflict:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(409)
+		span.SetStatus(codes.Error, http.StatusText(409))
 
 		e := new(jx.Encoder)
 		response.Encode(e)

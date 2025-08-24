@@ -8,71 +8,61 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
-	// CreateProfile implements createProfile operation.
+	// CreateMyProfile implements createMyProfile operation.
 	//
-	// Создать новый профиль.
+	// Создает новый профиль и связывает его с текущим
+	// аккаунтом.
 	//
-	// POST /profile/
-	CreateProfile(ctx context.Context, req *ProfileInput) (CreateProfileRes, error)
-	// DeleteProfileByEmail implements deleteProfileByEmail operation.
-	//
-	// Удалить профиль по email.
-	//
-	// DELETE /profile/email/{email}
-	DeleteProfileByEmail(ctx context.Context, params DeleteProfileByEmailParams) (DeleteProfileByEmailRes, error)
+	// POST /profiles
+	CreateMyProfile(ctx context.Context, req *ProfileInput) (CreateMyProfileRes, error)
 	// DeleteProfileById implements deleteProfileById operation.
 	//
-	// Удалить профиль по ID.
+	// Удаляет профиль по его ID. Доступ разрешен только если
+	// профиль принадлежит текущему аккаунту.
 	//
-	// DELETE /profile/id/{id}
+	// DELETE /profiles/{profileId}
 	DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error)
-	// GetProfileByEmail implements getProfileByEmail operation.
-	//
-	// Получить профиль по email.
-	//
-	// GET /profile/email/{email}
-	GetProfileByEmail(ctx context.Context, params GetProfileByEmailParams) (GetProfileByEmailRes, error)
 	// GetProfileById implements getProfileById operation.
 	//
-	// Получить профиль по ID.
+	// Получает один профиль по его ID. Доступ разрешен
+	// только если профиль принадлежит текущему аккаунту.
 	//
-	// GET /profile/id/{id}
+	// GET /profiles/{profileId}
 	GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error)
-	// ListProfiles implements listProfiles operation.
+	// ListMyProfiles implements listMyProfiles operation.
 	//
-	// Получить список всех профилей.
+	// Возвращает пагинированный список профилей,
+	// принадлежащих текущему аутентифицированному
+	// аккаунту.
 	//
 	// GET /profiles
-	ListProfiles(ctx context.Context) (ListProfilesRes, error)
-	// UpdateProfileByEmail implements updateProfileByEmail operation.
-	//
-	// Обновить профиль по email.
-	//
-	// PUT /profile/email/{email}
-	UpdateProfileByEmail(ctx context.Context, req *ProfileInput, params UpdateProfileByEmailParams) (UpdateProfileByEmailRes, error)
+	ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error)
 	// UpdateProfileById implements updateProfileById operation.
 	//
-	// Обновить профиль по ID.
+	// Полностью обновляет профиль по его ID. Доступ разрешен
+	// только если профиль принадлежит текущему аккаунту.
 	//
-	// PUT /profile/id/{id}
+	// PUT /profiles/{profileId}
 	UpdateProfileById(ctx context.Context, req *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and
 // calls Handler to handle requests.
 type Server struct {
-	h Handler
+	h   Handler
+	sec SecurityHandler
 	baseServer
 }
 
 // NewServer creates new Server.
-func NewServer(h Handler, opts ...ServerOption) (*Server, error) {
+func NewServer(h Handler, sec SecurityHandler, opts ...ServerOption) (*Server, error) {
 	s, err := newServerConfig(opts...).baseServer()
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
 		h:          h,
+		sec:        sec,
 		baseServer: s,
 	}, nil
 }

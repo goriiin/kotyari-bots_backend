@@ -49,16 +49,25 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/profile"
+		case '/': // Prefix: "/profiles"
 
-			if l := len("/profile"); len(elem) >= l && elem[0:l] == "/profile" {
+			if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
 				elem = elem[l:]
 			} else {
 				break
 			}
 
 			if len(elem) == 0 {
-				break
+				switch r.Method {
+				case "GET":
+					s.handleListMyProfilesRequest([0]string{}, elemIsEscaped, w, r)
+				case "POST":
+					s.handleCreateMyProfileRequest([0]string{}, elemIsEscaped, w, r)
+				default:
+					s.notAllowed(w, r, "GET,POST")
+				}
+
+				return
 			}
 			switch elem[0] {
 			case '/': // Prefix: "/"
@@ -69,112 +78,32 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 
-				if len(elem) == 0 {
-					switch r.Method {
-					case "POST":
-						s.handleCreateProfileRequest([0]string{}, elemIsEscaped, w, r)
-					default:
-						s.notAllowed(w, r, "POST")
-					}
-
-					return
-				}
-				switch elem[0] {
-				case 'e': // Prefix: "email/"
-
-					if l := len("email/"); len(elem) >= l && elem[0:l] == "email/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "email"
-					// Leaf parameter, slashes are prohibited
-					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
-					}
-					args[0] = elem
-					elem = ""
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch r.Method {
-						case "DELETE":
-							s.handleDeleteProfileByEmailRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "GET":
-							s.handleGetProfileByEmailRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "PUT":
-							s.handleUpdateProfileByEmailRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "DELETE,GET,PUT")
-						}
-
-						return
-					}
-
-				case 'i': // Prefix: "id/"
-
-					if l := len("id/"); len(elem) >= l && elem[0:l] == "id/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Leaf parameter, slashes are prohibited
-					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
-					}
-					args[0] = elem
-					elem = ""
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch r.Method {
-						case "DELETE":
-							s.handleDeleteProfileByIdRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "GET":
-							s.handleGetProfileByIdRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "PUT":
-							s.handleUpdateProfileByIdRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "DELETE,GET,PUT")
-						}
-
-						return
-					}
-
-				}
-
-			case 's': // Prefix: "s"
-
-				if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
-					elem = elem[l:]
-				} else {
+				// Param: "profileId"
+				// Leaf parameter, slashes are prohibited
+				idx := strings.IndexByte(elem, '/')
+				if idx >= 0 {
 					break
 				}
+				args[0] = elem
+				elem = ""
 
 				if len(elem) == 0 {
 					// Leaf node.
 					switch r.Method {
+					case "DELETE":
+						s.handleDeleteProfileByIdRequest([1]string{
+							args[0],
+						}, elemIsEscaped, w, r)
 					case "GET":
-						s.handleListProfilesRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleGetProfileByIdRequest([1]string{
+							args[0],
+						}, elemIsEscaped, w, r)
+					case "PUT":
+						s.handleUpdateProfileByIdRequest([1]string{
+							args[0],
+						}, elemIsEscaped, w, r)
 					default:
-						s.notAllowed(w, r, "GET")
+						s.notAllowed(w, r, "DELETE,GET,PUT")
 					}
 
 					return
@@ -262,16 +191,35 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/profile"
+		case '/': // Prefix: "/profiles"
 
-			if l := len("/profile"); len(elem) >= l && elem[0:l] == "/profile" {
+			if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
 				elem = elem[l:]
 			} else {
 				break
 			}
 
 			if len(elem) == 0 {
-				break
+				switch method {
+				case "GET":
+					r.name = ListMyProfilesOperation
+					r.summary = "Получить список своих профилей"
+					r.operationID = "listMyProfiles"
+					r.pathPattern = "/profiles"
+					r.args = args
+					r.count = 0
+					return r, true
+				case "POST":
+					r.name = CreateMyProfileOperation
+					r.summary = "Создать новый профиль"
+					r.operationID = "createMyProfile"
+					r.pathPattern = "/profiles"
+					r.args = args
+					r.count = 0
+					return r, true
+				default:
+					return
+				}
 			}
 			switch elem[0] {
 			case '/': // Prefix: "/"
@@ -282,139 +230,41 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 
-				if len(elem) == 0 {
-					switch method {
-					case "POST":
-						r.name = CreateProfileOperation
-						r.summary = "Создать новый профиль"
-						r.operationID = "createProfile"
-						r.pathPattern = "/profile/"
-						r.args = args
-						r.count = 0
-						return r, true
-					default:
-						return
-					}
-				}
-				switch elem[0] {
-				case 'e': // Prefix: "email/"
-
-					if l := len("email/"); len(elem) >= l && elem[0:l] == "email/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "email"
-					// Leaf parameter, slashes are prohibited
-					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
-					}
-					args[0] = elem
-					elem = ""
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch method {
-						case "DELETE":
-							r.name = DeleteProfileByEmailOperation
-							r.summary = "Удалить профиль по email"
-							r.operationID = "deleteProfileByEmail"
-							r.pathPattern = "/profile/email/{email}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "GET":
-							r.name = GetProfileByEmailOperation
-							r.summary = "Получить профиль по email"
-							r.operationID = "getProfileByEmail"
-							r.pathPattern = "/profile/email/{email}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "PUT":
-							r.name = UpdateProfileByEmailOperation
-							r.summary = "Обновить профиль по email"
-							r.operationID = "updateProfileByEmail"
-							r.pathPattern = "/profile/email/{email}"
-							r.args = args
-							r.count = 1
-							return r, true
-						default:
-							return
-						}
-					}
-
-				case 'i': // Prefix: "id/"
-
-					if l := len("id/"); len(elem) >= l && elem[0:l] == "id/" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					// Param: "id"
-					// Leaf parameter, slashes are prohibited
-					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
-					}
-					args[0] = elem
-					elem = ""
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch method {
-						case "DELETE":
-							r.name = DeleteProfileByIdOperation
-							r.summary = "Удалить профиль по ID"
-							r.operationID = "deleteProfileById"
-							r.pathPattern = "/profile/id/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "GET":
-							r.name = GetProfileByIdOperation
-							r.summary = "Получить профиль по ID"
-							r.operationID = "getProfileById"
-							r.pathPattern = "/profile/id/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "PUT":
-							r.name = UpdateProfileByIdOperation
-							r.summary = "Обновить профиль по ID"
-							r.operationID = "updateProfileById"
-							r.pathPattern = "/profile/id/{id}"
-							r.args = args
-							r.count = 1
-							return r, true
-						default:
-							return
-						}
-					}
-
-				}
-
-			case 's': // Prefix: "s"
-
-				if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
-					elem = elem[l:]
-				} else {
+				// Param: "profileId"
+				// Leaf parameter, slashes are prohibited
+				idx := strings.IndexByte(elem, '/')
+				if idx >= 0 {
 					break
 				}
+				args[0] = elem
+				elem = ""
 
 				if len(elem) == 0 {
 					// Leaf node.
 					switch method {
-					case "GET":
-						r.name = ListProfilesOperation
-						r.summary = "Получить список всех профилей"
-						r.operationID = "listProfiles"
-						r.pathPattern = "/profiles"
+					case "DELETE":
+						r.name = DeleteProfileByIdOperation
+						r.summary = "Удалить профиль по ID"
+						r.operationID = "deleteProfileById"
+						r.pathPattern = "/profiles/{profileId}"
 						r.args = args
-						r.count = 0
+						r.count = 1
+						return r, true
+					case "GET":
+						r.name = GetProfileByIdOperation
+						r.summary = "Получить профиль по ID"
+						r.operationID = "getProfileById"
+						r.pathPattern = "/profiles/{profileId}"
+						r.args = args
+						r.count = 1
+						return r, true
+					case "PUT":
+						r.name = UpdateProfileByIdOperation
+						r.summary = "Обновить профиль по ID"
+						r.operationID = "updateProfileById"
+						r.pathPattern = "/profiles/{profileId}"
+						r.args = args
+						r.count = 1
 						return r, true
 					default:
 						return

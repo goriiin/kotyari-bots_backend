@@ -17,6 +17,7 @@ import (
 
 	"github.com/ogen-go/ogen/conv"
 	ht "github.com/ogen-go/ogen/http"
+	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
 	"github.com/ogen-go/ogen/uri"
 )
@@ -28,59 +29,48 @@ func trimTrailingSlashes(u *url.URL) {
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
-	// CreateProfile invokes createProfile operation.
+	// CreateMyProfile invokes createMyProfile operation.
 	//
-	// Создать новый профиль.
+	// Создает новый профиль и связывает его с текущим
+	// аккаунтом.
 	//
-	// POST /profile/
-	CreateProfile(ctx context.Context, request *ProfileInput) (CreateProfileRes, error)
-	// DeleteProfileByEmail invokes deleteProfileByEmail operation.
-	//
-	// Удалить профиль по email.
-	//
-	// DELETE /profile/email/{email}
-	DeleteProfileByEmail(ctx context.Context, params DeleteProfileByEmailParams) (DeleteProfileByEmailRes, error)
+	// POST /profiles
+	CreateMyProfile(ctx context.Context, request *ProfileInput) (CreateMyProfileRes, error)
 	// DeleteProfileById invokes deleteProfileById operation.
 	//
-	// Удалить профиль по ID.
+	// Удаляет профиль по его ID. Доступ разрешен только если
+	// профиль принадлежит текущему аккаунту.
 	//
-	// DELETE /profile/id/{id}
+	// DELETE /profiles/{profileId}
 	DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error)
-	// GetProfileByEmail invokes getProfileByEmail operation.
-	//
-	// Получить профиль по email.
-	//
-	// GET /profile/email/{email}
-	GetProfileByEmail(ctx context.Context, params GetProfileByEmailParams) (GetProfileByEmailRes, error)
 	// GetProfileById invokes getProfileById operation.
 	//
-	// Получить профиль по ID.
+	// Получает один профиль по его ID. Доступ разрешен
+	// только если профиль принадлежит текущему аккаунту.
 	//
-	// GET /profile/id/{id}
+	// GET /profiles/{profileId}
 	GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error)
-	// ListProfiles invokes listProfiles operation.
+	// ListMyProfiles invokes listMyProfiles operation.
 	//
-	// Получить список всех профилей.
+	// Возвращает пагинированный список профилей,
+	// принадлежащих текущему аутентифицированному
+	// аккаунту.
 	//
 	// GET /profiles
-	ListProfiles(ctx context.Context) (ListProfilesRes, error)
-	// UpdateProfileByEmail invokes updateProfileByEmail operation.
-	//
-	// Обновить профиль по email.
-	//
-	// PUT /profile/email/{email}
-	UpdateProfileByEmail(ctx context.Context, request *ProfileInput, params UpdateProfileByEmailParams) (UpdateProfileByEmailRes, error)
+	ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error)
 	// UpdateProfileById invokes updateProfileById operation.
 	//
-	// Обновить профиль по ID.
+	// Полностью обновляет профиль по его ID. Доступ разрешен
+	// только если профиль принадлежит текущему аккаунту.
 	//
-	// PUT /profile/id/{id}
+	// PUT /profiles/{profileId}
 	UpdateProfileById(ctx context.Context, request *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error)
 }
 
 // Client implements OAS client.
 type Client struct {
 	serverURL *url.URL
+	sec       SecuritySource
 	baseClient
 }
 
@@ -89,7 +79,7 @@ var _ Handler = struct {
 }{}
 
 // NewClient initializes new Client defined by OAS.
-func NewClient(serverURL string, opts ...ClientOption) (*Client, error) {
+func NewClient(serverURL string, sec SecuritySource, opts ...ClientOption) (*Client, error) {
 	u, err := url.Parse(serverURL)
 	if err != nil {
 		return nil, err
@@ -102,6 +92,7 @@ func NewClient(serverURL string, opts ...ClientOption) (*Client, error) {
 	}
 	return &Client{
 		serverURL:  u,
+		sec:        sec,
 		baseClient: c,
 	}, nil
 }
@@ -121,21 +112,22 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
-// CreateProfile invokes createProfile operation.
+// CreateMyProfile invokes createMyProfile operation.
 //
-// Создать новый профиль.
+// Создает новый профиль и связывает его с текущим
+// аккаунтом.
 //
-// POST /profile/
-func (c *Client) CreateProfile(ctx context.Context, request *ProfileInput) (CreateProfileRes, error) {
-	res, err := c.sendCreateProfile(ctx, request)
+// POST /profiles
+func (c *Client) CreateMyProfile(ctx context.Context, request *ProfileInput) (CreateMyProfileRes, error) {
+	res, err := c.sendCreateMyProfile(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendCreateProfile(ctx context.Context, request *ProfileInput) (res CreateProfileRes, err error) {
+func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput) (res CreateMyProfileRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createProfile"),
+		otelogen.OperationID("createMyProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/profile/"),
+		semconv.HTTPRouteKey.String("/profiles"),
 	}
 
 	// Run stopwatch.
@@ -150,7 +142,7 @@ func (c *Client) sendCreateProfile(ctx context.Context, request *ProfileInput) (
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, CreateProfileOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, CreateMyProfileOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -168,7 +160,7 @@ func (c *Client) sendCreateProfile(ctx context.Context, request *ProfileInput) (
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/profile/"
+	pathParts[0] = "/profiles"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -176,98 +168,53 @@ func (c *Client) sendCreateProfile(ctx context.Context, request *ProfileInput) (
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeCreateProfileRequest(request, r); err != nil {
+	if err := encodeCreateMyProfileRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	defer resp.Body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeCreateProfileResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// DeleteProfileByEmail invokes deleteProfileByEmail operation.
-//
-// Удалить профиль по email.
-//
-// DELETE /profile/email/{email}
-func (c *Client) DeleteProfileByEmail(ctx context.Context, params DeleteProfileByEmailParams) (DeleteProfileByEmailRes, error) {
-	res, err := c.sendDeleteProfileByEmail(ctx, params)
-	return res, err
-}
-
-func (c *Client) sendDeleteProfileByEmail(ctx context.Context, params DeleteProfileByEmailParams) (res DeleteProfileByEmailRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("deleteProfileByEmail"),
-		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/profile/email/{email}"),
-	}
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, DeleteProfileByEmailOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/profile/email/"
 	{
-		// Encode "email" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "email",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.StringToString(params.Email))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:CookieAuth"
+			switch err := c.securityCookieAuth(ctx, CreateMyProfileOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CookieAuth\"")
+			}
 		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
+		{
+			stage = "Security:CsrfAuth"
+			switch err := c.securityCsrfAuth(ctx, CreateMyProfileOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 1
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CsrfAuth\"")
+			}
 		}
-		pathParts[1] = encoded
-	}
-	uri.AddPathParts(u, pathParts[:]...)
 
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "DELETE", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+				{0b00000010},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
 	}
 
 	stage = "SendRequest"
@@ -278,7 +225,7 @@ func (c *Client) sendDeleteProfileByEmail(ctx context.Context, params DeleteProf
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeDeleteProfileByEmailResponse(resp)
+	result, err := decodeCreateMyProfileResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -288,9 +235,10 @@ func (c *Client) sendDeleteProfileByEmail(ctx context.Context, params DeleteProf
 
 // DeleteProfileById invokes deleteProfileById operation.
 //
-// Удалить профиль по ID.
+// Удаляет профиль по его ID. Доступ разрешен только если
+// профиль принадлежит текущему аккаунту.
 //
-// DELETE /profile/id/{id}
+// DELETE /profiles/{profileId}
 func (c *Client) DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error) {
 	res, err := c.sendDeleteProfileById(ctx, params)
 	return res, err
@@ -300,7 +248,7 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteProfileById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/profile/id/{id}"),
+		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -333,16 +281,16 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profile/id/"
+	pathParts[0] = "/profiles/"
 	{
-		// Encode "id" parameter.
+		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "id",
+			Param:   "profileId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.ID))
+			return e.EncodeValue(conv.UUIDToString(params.ProfileId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -358,6 +306,51 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	r, err := ht.NewRequest(ctx, "DELETE", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:CookieAuth"
+			switch err := c.securityCookieAuth(ctx, DeleteProfileByIdOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CookieAuth\"")
+			}
+		}
+		{
+			stage = "Security:CsrfAuth"
+			switch err := c.securityCsrfAuth(ctx, DeleteProfileByIdOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 1
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CsrfAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+				{0b00000010},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
 	}
 
 	stage = "SendRequest"
@@ -376,101 +369,12 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	return result, nil
 }
 
-// GetProfileByEmail invokes getProfileByEmail operation.
-//
-// Получить профиль по email.
-//
-// GET /profile/email/{email}
-func (c *Client) GetProfileByEmail(ctx context.Context, params GetProfileByEmailParams) (GetProfileByEmailRes, error) {
-	res, err := c.sendGetProfileByEmail(ctx, params)
-	return res, err
-}
-
-func (c *Client) sendGetProfileByEmail(ctx context.Context, params GetProfileByEmailParams) (res GetProfileByEmailRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getProfileByEmail"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profile/email/{email}"),
-	}
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetProfileByEmailOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/profile/email/"
-	{
-		// Encode "email" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "email",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.StringToString(params.Email))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		pathParts[1] = encoded
-	}
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	defer resp.Body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeGetProfileByEmailResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
 // GetProfileById invokes getProfileById operation.
 //
-// Получить профиль по ID.
+// Получает один профиль по его ID. Доступ разрешен
+// только если профиль принадлежит текущему аккаунту.
 //
-// GET /profile/id/{id}
+// GET /profiles/{profileId}
 func (c *Client) GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error) {
 	res, err := c.sendGetProfileById(ctx, params)
 	return res, err
@@ -480,7 +384,7 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getProfileById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profile/id/{id}"),
+		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -513,16 +417,16 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profile/id/"
+	pathParts[0] = "/profiles/"
 	{
-		// Encode "id" parameter.
+		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "id",
+			Param:   "profileId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.ID))
+			return e.EncodeValue(conv.UUIDToString(params.ProfileId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -538,6 +442,51 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:CookieAuth"
+			switch err := c.securityCookieAuth(ctx, GetProfileByIdOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CookieAuth\"")
+			}
+		}
+		{
+			stage = "Security:CsrfAuth"
+			switch err := c.securityCsrfAuth(ctx, GetProfileByIdOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 1
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CsrfAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+				{0b00000010},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
 	}
 
 	stage = "SendRequest"
@@ -556,19 +505,21 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	return result, nil
 }
 
-// ListProfiles invokes listProfiles operation.
+// ListMyProfiles invokes listMyProfiles operation.
 //
-// Получить список всех профилей.
+// Возвращает пагинированный список профилей,
+// принадлежащих текущему аутентифицированному
+// аккаунту.
 //
 // GET /profiles
-func (c *Client) ListProfiles(ctx context.Context) (ListProfilesRes, error) {
-	res, err := c.sendListProfiles(ctx)
+func (c *Client) ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error) {
+	res, err := c.sendListMyProfiles(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendListProfiles(ctx context.Context) (res ListProfilesRes, err error) {
+func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesParams) (res ListMyProfilesRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("listProfiles"),
+		otelogen.OperationID("listMyProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/profiles"),
 	}
@@ -585,7 +536,7 @@ func (c *Client) sendListProfiles(ctx context.Context) (res ListProfilesRes, err
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, ListProfilesOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, ListMyProfilesOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -606,103 +557,93 @@ func (c *Client) sendListProfiles(ctx context.Context) (res ListProfilesRes, err
 	pathParts[0] = "/profiles"
 	uri.AddPathParts(u, pathParts[:]...)
 
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "cursor" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "cursor",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.Cursor.Get(); ok {
+				return e.EncodeValue(conv.StringToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	{
+		// Encode "limit" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "limit",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			if val, ok := params.Limit.Get(); ok {
+				return e.EncodeValue(conv.IntToString(val))
+			}
+			return nil
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
 
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	defer resp.Body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeListProfilesResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// UpdateProfileByEmail invokes updateProfileByEmail operation.
-//
-// Обновить профиль по email.
-//
-// PUT /profile/email/{email}
-func (c *Client) UpdateProfileByEmail(ctx context.Context, request *ProfileInput, params UpdateProfileByEmailParams) (UpdateProfileByEmailRes, error) {
-	res, err := c.sendUpdateProfileByEmail(ctx, request, params)
-	return res, err
-}
-
-func (c *Client) sendUpdateProfileByEmail(ctx context.Context, request *ProfileInput, params UpdateProfileByEmailParams) (res UpdateProfileByEmailRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("updateProfileByEmail"),
-		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/profile/email/{email}"),
-	}
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, UpdateProfileByEmailOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/profile/email/"
 	{
-		// Encode "email" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "email",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.StringToString(params.Email))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:CookieAuth"
+			switch err := c.securityCookieAuth(ctx, ListMyProfilesOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CookieAuth\"")
+			}
 		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
+		{
+			stage = "Security:CsrfAuth"
+			switch err := c.securityCsrfAuth(ctx, ListMyProfilesOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 1
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CsrfAuth\"")
+			}
 		}
-		pathParts[1] = encoded
-	}
-	uri.AddPathParts(u, pathParts[:]...)
 
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "PUT", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-	if err := encodeUpdateProfileByEmailRequest(request, r); err != nil {
-		return res, errors.Wrap(err, "encode request")
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+				{0b00000010},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
 	}
 
 	stage = "SendRequest"
@@ -713,7 +654,7 @@ func (c *Client) sendUpdateProfileByEmail(ctx context.Context, request *ProfileI
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUpdateProfileByEmailResponse(resp)
+	result, err := decodeListMyProfilesResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -723,9 +664,10 @@ func (c *Client) sendUpdateProfileByEmail(ctx context.Context, request *ProfileI
 
 // UpdateProfileById invokes updateProfileById operation.
 //
-// Обновить профиль по ID.
+// Полностью обновляет профиль по его ID. Доступ разрешен
+// только если профиль принадлежит текущему аккаунту.
 //
-// PUT /profile/id/{id}
+// PUT /profiles/{profileId}
 func (c *Client) UpdateProfileById(ctx context.Context, request *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error) {
 	res, err := c.sendUpdateProfileById(ctx, request, params)
 	return res, err
@@ -735,7 +677,7 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateProfileById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/profile/id/{id}"),
+		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -768,16 +710,16 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profile/id/"
+	pathParts[0] = "/profiles/"
 	{
-		// Encode "id" parameter.
+		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "id",
+			Param:   "profileId",
 			Style:   uri.PathStyleSimple,
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.ID))
+			return e.EncodeValue(conv.UUIDToString(params.ProfileId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -796,6 +738,51 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	}
 	if err := encodeUpdateProfileByIdRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
+	}
+
+	{
+		type bitset = [1]uint8
+		var satisfied bitset
+		{
+			stage = "Security:CookieAuth"
+			switch err := c.securityCookieAuth(ctx, UpdateProfileByIdOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 0
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CookieAuth\"")
+			}
+		}
+		{
+			stage = "Security:CsrfAuth"
+			switch err := c.securityCsrfAuth(ctx, UpdateProfileByIdOperation, r); {
+			case err == nil: // if NO error
+				satisfied[0] |= 1 << 1
+			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
+				// Skip this security.
+			default:
+				return res, errors.Wrap(err, "security \"CsrfAuth\"")
+			}
+		}
+
+		if ok := func() bool {
+		nextRequirement:
+			for _, requirement := range []bitset{
+				{0b00000001},
+				{0b00000010},
+			} {
+				for i, mask := range requirement {
+					if satisfied[i]&mask != mask {
+						continue nextRequirement
+					}
+				}
+				return true
+			}
+			return false
+		}(); !ok {
+			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
+		}
 	}
 
 	stage = "SendRequest"

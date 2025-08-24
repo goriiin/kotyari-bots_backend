@@ -13,74 +13,53 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
-// CreateProfile implements createProfile operation.
+// CreateMyProfile implements createMyProfile operation.
 //
-// Создать новый профиль.
+// Создает новый профиль и связывает его с текущим
+// аккаунтом.
 //
-// POST /profile/
-func (UnimplementedHandler) CreateProfile(ctx context.Context, req *ProfileInput) (r CreateProfileRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// DeleteProfileByEmail implements deleteProfileByEmail operation.
-//
-// Удалить профиль по email.
-//
-// DELETE /profile/email/{email}
-func (UnimplementedHandler) DeleteProfileByEmail(ctx context.Context, params DeleteProfileByEmailParams) (r DeleteProfileByEmailRes, _ error) {
+// POST /profiles
+func (UnimplementedHandler) CreateMyProfile(ctx context.Context, req *ProfileInput) (r CreateMyProfileRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // DeleteProfileById implements deleteProfileById operation.
 //
-// Удалить профиль по ID.
+// Удаляет профиль по его ID. Доступ разрешен только если
+// профиль принадлежит текущему аккаунту.
 //
-// DELETE /profile/id/{id}
+// DELETE /profiles/{profileId}
 func (UnimplementedHandler) DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (r DeleteProfileByIdRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetProfileByEmail implements getProfileByEmail operation.
-//
-// Получить профиль по email.
-//
-// GET /profile/email/{email}
-func (UnimplementedHandler) GetProfileByEmail(ctx context.Context, params GetProfileByEmailParams) (r GetProfileByEmailRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // GetProfileById implements getProfileById operation.
 //
-// Получить профиль по ID.
+// Получает один профиль по его ID. Доступ разрешен
+// только если профиль принадлежит текущему аккаунту.
 //
-// GET /profile/id/{id}
+// GET /profiles/{profileId}
 func (UnimplementedHandler) GetProfileById(ctx context.Context, params GetProfileByIdParams) (r GetProfileByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// ListProfiles implements listProfiles operation.
+// ListMyProfiles implements listMyProfiles operation.
 //
-// Получить список всех профилей.
+// Возвращает пагинированный список профилей,
+// принадлежащих текущему аутентифицированному
+// аккаунту.
 //
 // GET /profiles
-func (UnimplementedHandler) ListProfiles(ctx context.Context) (r ListProfilesRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// UpdateProfileByEmail implements updateProfileByEmail operation.
-//
-// Обновить профиль по email.
-//
-// PUT /profile/email/{email}
-func (UnimplementedHandler) UpdateProfileByEmail(ctx context.Context, req *ProfileInput, params UpdateProfileByEmailParams) (r UpdateProfileByEmailRes, _ error) {
+func (UnimplementedHandler) ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (r ListMyProfilesRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
 // UpdateProfileById implements updateProfileById operation.
 //
-// Обновить профиль по ID.
+// Полностью обновляет профиль по его ID. Доступ разрешен
+// только если профиль принадлежит текущему аккаунту.
 //
-// PUT /profile/id/{id}
+// PUT /profiles/{profileId}
 func (UnimplementedHandler) UpdateProfileById(ctx context.Context, req *ProfileInput, params UpdateProfileByIdParams) (r UpdateProfileByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

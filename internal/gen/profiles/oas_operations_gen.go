@@ -6,12 +6,9 @@ package profiles
 type OperationName = string
 
 const (
-	CreateProfileOperation        OperationName = "CreateProfile"
-	DeleteProfileByEmailOperation OperationName = "DeleteProfileByEmail"
-	DeleteProfileByIdOperation    OperationName = "DeleteProfileById"
-	GetProfileByEmailOperation    OperationName = "GetProfileByEmail"
-	GetProfileByIdOperation       OperationName = "GetProfileById"
-	ListProfilesOperation         OperationName = "ListProfiles"
-	UpdateProfileByEmailOperation OperationName = "UpdateProfileByEmail"
-	UpdateProfileByIdOperation    OperationName = "UpdateProfileById"
+	CreateMyProfileOperation   OperationName = "CreateMyProfile"
+	DeleteProfileByIdOperation OperationName = "DeleteProfileById"
+	GetProfileByIdOperation    OperationName = "GetProfileById"
+	ListMyProfilesOperation    OperationName = "ListMyProfiles"
+	UpdateProfileByIdOperation OperationName = "UpdateProfileById"
 )
