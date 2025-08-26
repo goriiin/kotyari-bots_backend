@@ -26,6 +26,6 @@ func main() {
 	}
 
 	if err := app.Run(); err != nil {
-		log.Fatalf("reddit app exited with error: %v", err)
+		log.Fatalf("aggregator app exited with error: %v", err)
 	}
 }

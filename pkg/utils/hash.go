@@ -5,8 +5,8 @@ import (
 	"hash/fnv"
 )
 
-func HashString(s string) string {
+func HashString(s []byte) string {
 	h := fnv.New64a()
-	h.Write([]byte(s))
+	h.Write(s)
 	return fmt.Sprintf("%x", h.Sum64())
 }

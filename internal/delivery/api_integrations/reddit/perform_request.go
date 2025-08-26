@@ -18,7 +18,7 @@ const (
 	defaultErrGroupWaitTime = 20 * time.Second
 )
 
-func (r *RedditAPIDelivery) performRequests() ([]RedditAPIResponse, error) {
+func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 	// TODO: log
 
 	ctx, cancel := context.WithTimeout(context.Background(), defaultErrGroupWaitTime)
@@ -30,10 +30,9 @@ func (r *RedditAPIDelivery) performRequests() ([]RedditAPIResponse, error) {
 		return nil, err
 	}
 
-	redditAPIResponses := make([]RedditAPIResponse, 0, len(integrations))
+	redditAPIResponses := make(chan RedditAPIResponse)
 	g, _ := errgroup.WithContext(ctx)
 
-	var mu sync.Mutex
 	for _, integration := range integrations {
 		g.Go(func() error {
 			req, err := http.NewRequest(http.MethodGet, integration.Url, http.NoBody)
@@ -59,6 +58,8 @@ func (r *RedditAPIDelivery) performRequests() ([]RedditAPIResponse, error) {
 				return fmt.Errorf("bad resposeBody: %w\n%s", err, string(body))
 			}
 
+			fmt.Printf("body: %s\n", string(body))
+
 			err = resp.Body.Close()
 			if err != nil {
 				// TODO: log, err
@@ -72,18 +73,35 @@ func (r *RedditAPIDelivery) performRequests() ([]RedditAPIResponse, error) {
 
 				return fmt.Errorf("failed to unmarshal: %s", integration.Url)
 			}
-
-			mu.Lock()
-			redditAPIResponses = append(redditAPIResponses, redditAPIResponse)
-			mu.Unlock()
+			redditAPIResponses <- redditAPIResponse
+			fmt.Println("resp:", redditAPIResponse)
 
 			return nil
 		})
 	}
 
-	if err := g.Wait(); err != nil {
-		return redditAPIResponses, err
-	}
+	go func() {
+		defer close(redditAPIResponses)
+		if err := g.Wait(); err != nil {
+			// TODO: add error behaviour
+			fmt.Println("uvi")
+		}
+	}()
 
-	return redditAPIResponses, nil
+	posts := make(chan PostData)
+
+	var wg sync.WaitGroup
+	go func() {
+		for redditNews := range redditAPIResponses {
+			wg.Add(1)
+			for _, post := range redditNews.Data.Posts {
+				posts <- post.PostData
+			}
+			wg.Done()
+		}
+		wg.Wait()
+		close(posts)
+	}()
+
+	return posts, nil
 }

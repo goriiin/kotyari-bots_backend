@@ -34,3 +34,4 @@ go.work.sum
 # configs
 
 configs/local-config.yaml
+configs/docker-config.yaml

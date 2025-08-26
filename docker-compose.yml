@@ -15,6 +15,11 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${LOCAL_API_INT_DATABASE_USER} -d ${LOCAL_API_INT_DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   aggregator:
     image: postgres:17.5
@@ -32,6 +37,11 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${LOCAL_AGGREGATOR_DATABASE_USER} -d ${LOCAL_AGGREGATOR_DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
     image: confluentinc/cp-kafka:latest
@@ -40,20 +50,61 @@ services:
       - "9092:9092"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092,INTERNAL://kafka:29092'
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
-      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://kafka:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://kafka:9093,INTERNAL://0.0.0.0:29092'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       CLUSTER_ID: '6aa74627-ee8e-4b0c-ac0f-20c8ec74069f'
 
+  reddit_go:
+    build:
+      context: .
+      dockerfile: ./cmd/reddit/Dockerfile
+    ports:
+      - "8001:8001"
+    image: reddit-go-image
+    container_name: reddit_go
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+      api_integrations:
+        condition: service_healthy
+
+  aggregator_go:
+    build:
+      context: .
+      dockerfile: ./cmd/aggregator/Dockerfile
+    ports:
+      - "8000:8000"
+    image: aggregator-go-image
+    container_name: aggregator_go
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+      api_integrations:
+        condition: service_healthy
 
 volumes:
   api_integrations_db_data:

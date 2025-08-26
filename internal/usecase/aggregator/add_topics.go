@@ -2,6 +2,7 @@ package aggregator
 
 import (
 	"context"
+	"sync"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/utils"
@@ -12,18 +13,28 @@ import (
 const redditSource = "reddit"
 
 func (s *AggregatorService) AddTopics(ctx context.Context, messages []kafka.Message) error {
-	topics := make([]model.Topic, 0, len(messages))
+	topicsChan := make(chan model.Topic, len(messages))
+	var wg sync.WaitGroup
 
 	for _, message := range messages {
-		messageText := string(message.Value)
-		messageHash := utils.HashString(messageText)
+		wg.Add(1)
+		go func(message kafka.Message) {
+			defer wg.Done()
+			messageHash := utils.HashString(message.Value)
+			topic := model.Topic{
+				Source: redditSource,
+				Text:   string(message.Value),
+				Hash:   messageHash,
+			}
+			topicsChan <- topic
+		}(message)
+	}
 
-		topic := model.Topic{
-			Source: redditSource,
-			Text:   messageText,
-			Hash:   messageHash,
-		}
+	wg.Wait()
+	close(topicsChan)
 
+	topics := make([]model.Topic, 0, len(messages))
+	for topic := range topicsChan {
 		topics = append(topics, topic)
 	}
 

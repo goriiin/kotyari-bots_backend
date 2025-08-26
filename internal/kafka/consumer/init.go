@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
@@ -66,14 +67,9 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 				select {
 				case batches <- messages:
 				case <-ctx.Done():
+					fmt.Println("consumer exited")
 					return
 				}
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			default:
 			}
 		}
 	}()

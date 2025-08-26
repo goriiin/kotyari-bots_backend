@@ -7,17 +7,16 @@ import (
 
 func (r *RedditAPIDelivery) Run() error {
 	runRequest := func() error {
-		news, err := r.performRequests()
+		postChan, err := r.performRequests()
 		if err != nil {
 			// TODO: log, err
 			return err
 		}
-		for _, redditNews := range news {
-			for _, post := range redditNews.Data.Posts {
-				err := r.producer.Publish(context.Background(), []byte(post.PostData.Title))
-				if err != nil {
-					return err
-				}
+
+		for post := range postChan {
+			err := r.producer.Publish(context.Background(), []byte(post.Title))
+			if err != nil {
+				return err
 			}
 		}
 		return nil

@@ -15,6 +15,7 @@ func main() {
 	config.WatchConfig(func() {
 		newCfg, err := config.NewWithConfig[redditapp.RedditAppConfig](local)
 		if err != nil {
+			log.Fatalf("error parsing config in runtime: %s", err.Error())
 			return
 		}
 
