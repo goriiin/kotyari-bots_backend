@@ -19,7 +19,7 @@ jobs:
           go-version: ^1.24.5
 
       - name: Install tools
-        run: make download_gci
+        run: make download-gci
 
       - name: Check Go Formatting
-        run: make format_check
+        run: make format-check
