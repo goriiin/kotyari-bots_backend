@@ -30,3 +30,8 @@ go.work.sum
 # Editor/IDE
 .idea/
 # .vscode/
+
+# configs
+
+configs/local-config.yaml
+configs/docker-config.yaml

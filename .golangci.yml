@@ -25,6 +25,8 @@ linters:
       disabled-checks:
         - paramTypeCombine
         - hugeParam
+        - rangeValCopy
+        - deferInLoop
     gocyclo:
       min-complexity: 15
     revive:
