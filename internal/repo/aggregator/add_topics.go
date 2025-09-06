@@ -2,15 +2,15 @@ package aggregator
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/jackc/pgx/v5"
 )
 
 func (a *AggregatorRepo) AddTopics(ctx context.Context, topics []model.Topic) error {
 	if len(topics) == 0 {
-		return fmt.Errorf("no topics to insert")
+		return errors.New("no topics to insert")
 	}
 
 	batch := &pgx.Batch{}
@@ -27,7 +27,7 @@ func (a *AggregatorRepo) AddTopics(ctx context.Context, topics []model.Topic) er
 	for range topics {
 		_, err := b.Exec()
 		if err != nil {
-			return fmt.Errorf("failed to execute batch, %w", err)
+			return errors.Wrap(err, "failed to execute batch")
 		}
 	}
 

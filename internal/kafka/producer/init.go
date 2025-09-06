@@ -3,16 +3,15 @@ package producer
 import (
 	"context"
 
-	kafka2 "github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/segmentio/kafka-go"
 )
 
 type KafkaProducer struct {
-	// TODO: logs
 	writer *kafka.Writer
 }
 
-func NewKafkaProducer(config *kafka2.KafkaConfig) *KafkaProducer {
+func NewKafkaProducer(config *kafkaConfig.KafkaConfig) *KafkaProducer {
 	return &KafkaProducer{
 		writer: &kafka.Writer{
 			Addr:                   kafka.TCP(config.Brokers...),

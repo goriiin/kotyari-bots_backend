@@ -3,6 +3,7 @@ package aggregator
 import (
 	"context"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
@@ -11,11 +12,10 @@ type TopicsCreator interface {
 }
 
 type AggregatorService struct {
-	// TODO: logs
-
+	log           *logger.Logger
 	topicsCreator TopicsCreator
 }
 
-func NewAggregatorService(creator TopicsCreator) *AggregatorService {
-	return &AggregatorService{topicsCreator: creator}
+func NewAggregatorService(log *logger.Logger, creator TopicsCreator) *AggregatorService {
+	return &AggregatorService{topicsCreator: creator, log: log}
 }

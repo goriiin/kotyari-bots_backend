@@ -3,6 +3,7 @@ package aggregator
 import (
 	"context"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -15,12 +16,14 @@ type MessageConsumer interface {
 }
 
 type AggregatorDelivery struct {
+	log      *logger.Logger
 	consumer MessageConsumer
 	manager  AggregatorUseCase
 }
 
-func NewAggregatorDelivery(consumer MessageConsumer, manager AggregatorUseCase) *AggregatorDelivery {
+func NewAggregatorDelivery(log *logger.Logger, consumer MessageConsumer, manager AggregatorUseCase) *AggregatorDelivery {
 	return &AggregatorDelivery{
+		log:      log,
 		consumer: consumer,
 		manager:  manager,
 	}

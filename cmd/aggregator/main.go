@@ -7,12 +7,13 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-const local = "local-config"
+// const local = "local-config"
+const docker = "docker-config"
 
 func main() {
 	cfg, _ := config.New[aggregator.AggregatorAppConfig]()
 	config.WatchConfig(func() {
-		newCfg, err := config.NewWithConfig[aggregator.AggregatorAppConfig](local)
+		newCfg, err := config.NewWithConfig[aggregator.AggregatorAppConfig](docker)
 		if err != nil {
 			return
 		}
@@ -26,6 +27,6 @@ func main() {
 	}
 
 	if err := app.Run(); err != nil {
-		log.Fatalf("aggregator app exited with error: %v", err)
+		app.Log.Fatal().Stack().Err(err).Msg("aggregator app exited with error")
 	}
 }

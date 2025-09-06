@@ -1,14 +1,18 @@
 package aggregator
 
-import "github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
+import (
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
+	"github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
+)
 
 type AggregatorRepo struct {
-	// TODO: logs
-	db pool.DBPool
+	log *logger.Logger
+	db  pool.DBPool
 }
 
-func NewAggregatorRepo(dbPool pool.DBPool) *AggregatorRepo {
+func NewAggregatorRepo(log *logger.Logger, dbPool pool.DBPool) *AggregatorRepo {
 	return &AggregatorRepo{
+		log,
 		dbPool,
 	}
 }

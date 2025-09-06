@@ -9,7 +9,6 @@ func (r *RedditAPIDelivery) Run() error {
 	runRequest := func() error {
 		postChan, err := r.performRequests()
 		if err != nil {
-			// TODO: log, err
 			return err
 		}
 
@@ -23,7 +22,7 @@ func (r *RedditAPIDelivery) Run() error {
 	}
 
 	if err := runRequest(); err != nil {
-		return err
+		r.log.Error().Stack().Err(err).Msg("error happened while performing request")
 	}
 
 	ticker := time.NewTicker(r.interval)
@@ -31,7 +30,7 @@ func (r *RedditAPIDelivery) Run() error {
 
 	for range ticker.C {
 		if err := runRequest(); err != nil {
-			return err
+			r.log.Error().Stack().Err(err).Msg("error happened while performing request")
 		}
 	}
 

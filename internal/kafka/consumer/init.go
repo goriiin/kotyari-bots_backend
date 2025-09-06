@@ -3,10 +3,10 @@ package consumer
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -16,12 +16,13 @@ const (
 )
 
 type KafkaConsumer struct {
-	// TODO: logs
+	log    *logger.Logger
 	reader *kafka.Reader
 }
 
-func NewKafkaConsumer(config *kafkaConfig.KafkaConfig) *KafkaConsumer {
+func NewKafkaConsumer(log *logger.Logger, config *kafkaConfig.KafkaConfig) *KafkaConsumer {
 	return &KafkaConsumer{
+		log: log,
 		reader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers: config.Brokers,
 			Topic:   config.Topic,
@@ -50,13 +51,11 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 					}
 
 					if errors.Is(err, context.Canceled) {
-						// TODO: logs - shutdown
-
+						k.log.Warn().Err(err).Msg("kafka is shutting down")
 						return
 					}
 
-					// TODO: log err
-
+					k.log.Error().Err(err).Msg("unexpected error happened")
 					return
 				}
 
@@ -67,7 +66,6 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 				select {
 				case batches <- messages:
 				case <-ctx.Done():
-					fmt.Println("consumer exited")
 					return
 				}
 			}
