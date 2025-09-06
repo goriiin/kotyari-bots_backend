@@ -3,12 +3,12 @@ package reddit
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
+	"github.com/go-faster/errors"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -38,15 +38,16 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 			req, err := http.NewRequest(http.MethodGet, integration.Url, http.NoBody)
 			if err != nil {
 				// TODO: log, err
-
-				return fmt.Errorf("failed to create request: %w", err)
+				return errors.Wrap(err, "failed to create request")
+				// return fmt.Errorf("failed to create request: %w", err)
 			}
 
 			resp, err := r.client.Do(req)
 			if err != nil {
 				// TODO: log, err
+				return errors.Wrap(err, "failed to perform request")
 
-				return fmt.Errorf("failed to do request: %w", err)
+				//return fmt.Errorf("failed to do request: %w", err)
 			}
 
 			// TODO: add resp.StatusCode check
@@ -54,27 +55,29 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				// TODO: log, err
+				return errors.Wrapf(err, "bad response body: %s", string(body))
 
-				return fmt.Errorf("bad resposeBody: %w\n%s", err, string(body))
+				// return fmt.Errorf("bad resposeBody: %w\n%s", err, string(body))
 			}
-
-			fmt.Printf("body: %s\n", string(body))
 
 			err = resp.Body.Close()
 			if err != nil {
 				// TODO: log, err
 
-				return fmt.Errorf("failed to close body: %w", err)
+				return errors.Wrap(err, "failed to close body")
+
+				// return fmt.Errorf("failed to close body: %w", err)
 			}
 
 			var redditAPIResponse RedditAPIResponse
 			if err := json.Unmarshal(body, &redditAPIResponse); err != nil {
 				// TODO: log, err
+				return errors.Wrapf(err, "failed to unmarhsal: %s", integration.Url)
 
-				return fmt.Errorf("failed to unmarshal: %s", integration.Url)
+				//return fmt.Errorf("failed to unmarshal: %s", integration.Url)
 			}
 			redditAPIResponses <- redditAPIResponse
-			fmt.Println("resp:", redditAPIResponse)
+			//fmt.Println("resp:", redditAPIResponse)
 
 			return nil
 		})
@@ -84,7 +87,8 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 		defer close(redditAPIResponses)
 		if err := g.Wait(); err != nil {
 			// TODO: add error behaviour
-			fmt.Println("uvi")
+			r.log.Error().Err(err).Msg("failed wait")
+			//fmt.Println("uvi"
 		}
 	}()
 

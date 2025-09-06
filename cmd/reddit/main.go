@@ -28,6 +28,7 @@ func main() {
 	}
 
 	if err := app.Run(); err != nil {
-		log.Fatalf("reddit app exited with error: %v", err)
+		app.Log.Fatal().Stack().Err(err).Msg("reddit app exited with error")
+		//log.Fatalf("reddit app exited with error: %v", err)
 	}
 }

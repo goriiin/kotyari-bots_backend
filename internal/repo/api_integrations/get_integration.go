@@ -2,15 +2,16 @@ package api_integrations
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	//"errors"
+	//"fmt"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/jackc/pgx/v5"
+	"github.com/pkg/errors"
 )
 
 func (a *APIIntegrationsRepo) GetIntegrations(ctx context.Context, integrationName string) ([]model.APIIntegration, error) {
-	// TODO: log
+	a.log.Debug().Msg("integrations repo")
 
 	const query = `
 		select provider, url 
@@ -24,17 +25,25 @@ func (a *APIIntegrationsRepo) GetIntegrations(ctx context.Context, integrationNa
 		if errors.Is(err, pgx.ErrNoRows) {
 			// TODO: log no rows
 			// TODO: errors
-			return nil, fmt.Errorf("no rows for %s", integrationName)
+			return nil, errors.Wrapf(err, "no rows for %s", integrationName)
+
+			// return nil, fmt.Errorf("no rows for %s", integrationName)
 		}
 		// TODO: log err
-		return nil, fmt.Errorf("unexpected error: %s", err.Error())
+		return nil, errors.Wrap(err, "unexpected error happened")
 	}
 
 	apiIntegrations, err := pgx.CollectRows(rows, pgx.RowToStructByName[APIIntegrationDTO])
 	if err != nil {
 		// TODO: log error
 		// TODO: errors
-		return nil, fmt.Errorf("failed to collect rows, %s", err.Error())
+		return nil, errors.Wrap(err, "failed to collect rows")
+
+		//return nil, fmt.Errorf("failed to collect rows, %s", err.Error())
+	}
+
+	if len(apiIntegrations) == 0 {
+		return nil, errors.Wrap(err, "no rows for this integration")
 	}
 
 	return apiIntegrationToModelSlice(apiIntegrations), nil
