@@ -32,10 +32,8 @@ go.work.sum
 # .vscode/
 
 # configs
-configs/docker-config.yaml
 
-__pycache__/
-*.pyc
+configs/docker-config.yaml
 
 bin/
 dist/
@@ -43,3 +41,6 @@ build/
 tmp/
 .DS_Store
 *.log
+
+__pycache__/
+*.pyc

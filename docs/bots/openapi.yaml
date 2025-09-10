@@ -64,8 +64,9 @@ components:
       required:
         - id
         - name
+        - email
         - profilesCount
-        - moderationRequired
+        - autoPublish
         - createdAt
         - updatedAt
 
