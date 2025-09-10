@@ -164,7 +164,7 @@ func decodeAddProfileToBotResponse(resp *http.Response) (res AddProfileToBotRes,
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error) {
+func decodeCreateBotResponse(resp *http.Response) (res CreateBotRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -224,7 +224,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotBadRequest
+			var response CreateBotBadRequest
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -259,7 +259,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotUnauthorized
+			var response CreateBotUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -294,7 +294,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotConflict
+			var response CreateBotConflict
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -329,7 +329,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotInternalServerError
+			var response CreateBotInternalServerError
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -697,6 +697,41 @@ func decodeGetBotByIdResponse(resp *http.Response) (res GetBotByIdRes, _ error) 
 				return nil
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response GetBotByIdBadRequest
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
 			}
 			return &response, nil
 		default:
@@ -1121,7 +1156,7 @@ func decodeGetTaskByIdResponse(resp *http.Response) (res GetTaskByIdRes, _ error
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) {
+func decodeListBotsResponse(resp *http.Response) (res ListBotsRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1181,7 +1216,7 @@ func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response ListMyBotsUnauthorized
+			var response ListBotsUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1216,7 +1251,7 @@ func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response ListMyBotsInternalServerError
+			var response ListBotsInternalServerError
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err

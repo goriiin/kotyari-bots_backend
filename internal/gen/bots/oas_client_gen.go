@@ -28,61 +28,61 @@ func trimTrailingSlashes(u *url.URL) {
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
-	// AddProfileToBot invokes addProfileToBot operation.
+	// AddProfileToBot invokes AddProfileToBot operation.
 	//
 	// Привязать профиль к боту.
 	//
 	// PUT /bots/{botId}/profiles/{profileId}
 	AddProfileToBot(ctx context.Context, params AddProfileToBotParams) (AddProfileToBotRes, error)
-	// CreateMyBot invokes createMyBot operation.
+	// CreateBot invokes CreateBot operation.
 	//
 	// Создать нового бота.
 	//
 	// POST /bots
-	CreateMyBot(ctx context.Context, request *BotInput) (CreateMyBotRes, error)
-	// CreateTaskForBotWithProfile invokes createTaskForBotWithProfile operation.
+	CreateBot(ctx context.Context, request *BotInput) (CreateBotRes, error)
+	// CreateTaskForBotWithProfile invokes CreateTaskForBotWithProfile operation.
 	//
 	// Создать задачу для бота с конкретным профилем.
 	//
 	// POST /bots/{botId}/profiles/{profileId}/tasks
 	CreateTaskForBotWithProfile(ctx context.Context, request *TaskInput, params CreateTaskForBotWithProfileParams) (CreateTaskForBotWithProfileRes, error)
-	// DeleteBotById invokes deleteBotById operation.
+	// DeleteBotById invokes DeleteBotById operation.
 	//
 	// Удалить бота по ID.
 	//
 	// DELETE /bots/{botId}
 	DeleteBotById(ctx context.Context, params DeleteBotByIdParams) (DeleteBotByIdRes, error)
-	// GetBotById invokes getBotById operation.
+	// GetBotById invokes GetBotById operation.
 	//
 	// Получить бота по ID.
 	//
 	// GET /bots/{botId}
 	GetBotById(ctx context.Context, params GetBotByIdParams) (GetBotByIdRes, error)
-	// GetBotProfiles invokes getBotProfiles operation.
+	// GetBotProfiles invokes GetBotProfiles operation.
 	//
 	// Получить список профилей, привязанных к боту.
 	//
 	// GET /bots/{botId}/profiles
 	GetBotProfiles(ctx context.Context, params GetBotProfilesParams) (GetBotProfilesRes, error)
-	// GetTaskById invokes getTaskById operation.
+	// GetTaskById invokes GetTaskById operation.
 	//
 	// Получить статус задачи по ID.
 	//
 	// GET /tasks/{taskId}
 	GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error)
-	// ListMyBots invokes listMyBots operation.
+	// ListBots invokes ListBots operation.
 	//
 	// Получить список своих ботов.
 	//
 	// GET /bots
-	ListMyBots(ctx context.Context, params ListMyBotsParams) (ListMyBotsRes, error)
-	// RemoveProfileFromBot invokes removeProfileFromBot operation.
+	ListBots(ctx context.Context, params ListBotsParams) (ListBotsRes, error)
+	// RemoveProfileFromBot invokes RemoveProfileFromBot operation.
 	//
 	// Отвязать профиль от бота.
 	//
 	// DELETE /bots/{botId}/profiles/{profileId}
 	RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (RemoveProfileFromBotRes, error)
-	// UpdateBotById invokes updateBotById operation.
+	// UpdateBotById invokes UpdateBotById operation.
 	//
 	// Полностью обновить бота по ID.
 	//
@@ -135,7 +135,7 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
-// AddProfileToBot invokes addProfileToBot operation.
+// AddProfileToBot invokes AddProfileToBot operation.
 //
 // Привязать профиль к боту.
 //
@@ -147,7 +147,7 @@ func (c *Client) AddProfileToBot(ctx context.Context, params AddProfileToBotPara
 
 func (c *Client) sendAddProfileToBot(ctx context.Context, params AddProfileToBotParams) (res AddProfileToBotRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("addProfileToBot"),
+		otelogen.OperationID("AddProfileToBot"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
 		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}"),
 	}
@@ -290,19 +290,19 @@ func (c *Client) sendAddProfileToBot(ctx context.Context, params AddProfileToBot
 	return result, nil
 }
 
-// CreateMyBot invokes createMyBot operation.
+// CreateBot invokes CreateBot operation.
 //
 // Создать нового бота.
 //
 // POST /bots
-func (c *Client) CreateMyBot(ctx context.Context, request *BotInput) (CreateMyBotRes, error) {
-	res, err := c.sendCreateMyBot(ctx, request)
+func (c *Client) CreateBot(ctx context.Context, request *BotInput) (CreateBotRes, error) {
+	res, err := c.sendCreateBot(ctx, request)
 	return res, err
 }
 
-func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res CreateMyBotRes, err error) {
+func (c *Client) sendCreateBot(ctx context.Context, request *BotInput) (res CreateBotRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createMyBot"),
+		otelogen.OperationID("CreateBot"),
 		semconv.HTTPRequestMethodKey.String("POST"),
 		semconv.URLTemplateKey.String("/bots"),
 	}
@@ -320,7 +320,7 @@ func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res Cr
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, CreateMyBotOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, CreateBotOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -346,7 +346,7 @@ func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res Cr
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
 	}
-	if err := encodeCreateMyBotRequest(request, r); err != nil {
+	if err := encodeCreateBotRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
 	}
 
@@ -355,7 +355,7 @@ func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res Cr
 		var satisfied bitset
 		{
 			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, CreateMyBotOperation, r); {
+			switch err := c.securityCookieAuth(ctx, CreateBotOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -366,7 +366,7 @@ func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res Cr
 		}
 		{
 			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, CreateMyBotOperation, r); {
+			switch err := c.securityCsrfAuth(ctx, CreateBotOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 1
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -403,7 +403,7 @@ func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res Cr
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeCreateMyBotResponse(resp)
+	result, err := decodeCreateBotResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -411,7 +411,7 @@ func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res Cr
 	return result, nil
 }
 
-// CreateTaskForBotWithProfile invokes createTaskForBotWithProfile operation.
+// CreateTaskForBotWithProfile invokes CreateTaskForBotWithProfile operation.
 //
 // Создать задачу для бота с конкретным профилем.
 //
@@ -423,7 +423,7 @@ func (c *Client) CreateTaskForBotWithProfile(ctx context.Context, request *TaskI
 
 func (c *Client) sendCreateTaskForBotWithProfile(ctx context.Context, request *TaskInput, params CreateTaskForBotWithProfileParams) (res CreateTaskForBotWithProfileRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createTaskForBotWithProfile"),
+		otelogen.OperationID("CreateTaskForBotWithProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
 		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}/tasks"),
 	}
@@ -570,7 +570,7 @@ func (c *Client) sendCreateTaskForBotWithProfile(ctx context.Context, request *T
 	return result, nil
 }
 
-// DeleteBotById invokes deleteBotById operation.
+// DeleteBotById invokes DeleteBotById operation.
 //
 // Удалить бота по ID.
 //
@@ -582,7 +582,7 @@ func (c *Client) DeleteBotById(ctx context.Context, params DeleteBotByIdParams) 
 
 func (c *Client) sendDeleteBotById(ctx context.Context, params DeleteBotByIdParams) (res DeleteBotByIdRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("deleteBotById"),
+		otelogen.OperationID("DeleteBotById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
 		semconv.URLTemplateKey.String("/bots/{botId}"),
 	}
@@ -706,7 +706,7 @@ func (c *Client) sendDeleteBotById(ctx context.Context, params DeleteBotByIdPara
 	return result, nil
 }
 
-// GetBotById invokes getBotById operation.
+// GetBotById invokes GetBotById operation.
 //
 // Получить бота по ID.
 //
@@ -718,7 +718,7 @@ func (c *Client) GetBotById(ctx context.Context, params GetBotByIdParams) (GetBo
 
 func (c *Client) sendGetBotById(ctx context.Context, params GetBotByIdParams) (res GetBotByIdRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getBotById"),
+		otelogen.OperationID("GetBotById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.URLTemplateKey.String("/bots/{botId}"),
 	}
@@ -842,7 +842,7 @@ func (c *Client) sendGetBotById(ctx context.Context, params GetBotByIdParams) (r
 	return result, nil
 }
 
-// GetBotProfiles invokes getBotProfiles operation.
+// GetBotProfiles invokes GetBotProfiles operation.
 //
 // Получить список профилей, привязанных к боту.
 //
@@ -854,7 +854,7 @@ func (c *Client) GetBotProfiles(ctx context.Context, params GetBotProfilesParams
 
 func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesParams) (res GetBotProfilesRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getBotProfiles"),
+		otelogen.OperationID("GetBotProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.URLTemplateKey.String("/bots/{botId}/profiles"),
 	}
@@ -911,44 +911,6 @@ func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesPa
 	}
 	pathParts[2] = "/profiles"
 	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeQueryParams"
-	q := uri.NewQueryEncoder()
-	{
-		// Encode "cursor" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "cursor",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Cursor.Get(); ok {
-				return e.EncodeValue(conv.StringToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "limit" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "limit",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Limit.Get(); ok {
-				return e.EncodeValue(conv.IntToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -1017,7 +979,7 @@ func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesPa
 	return result, nil
 }
 
-// GetTaskById invokes getTaskById operation.
+// GetTaskById invokes GetTaskById operation.
 //
 // Получить статус задачи по ID.
 //
@@ -1029,7 +991,7 @@ func (c *Client) GetTaskById(ctx context.Context, params GetTaskByIdParams) (Get
 
 func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) (res GetTaskByIdRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getTaskById"),
+		otelogen.OperationID("GetTaskById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.URLTemplateKey.String("/tasks/{taskId}"),
 	}
@@ -1153,19 +1115,19 @@ func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) 
 	return result, nil
 }
 
-// ListMyBots invokes listMyBots operation.
+// ListBots invokes ListBots operation.
 //
 // Получить список своих ботов.
 //
 // GET /bots
-func (c *Client) ListMyBots(ctx context.Context, params ListMyBotsParams) (ListMyBotsRes, error) {
-	res, err := c.sendListMyBots(ctx, params)
+func (c *Client) ListBots(ctx context.Context, params ListBotsParams) (ListBotsRes, error) {
+	res, err := c.sendListBots(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendListMyBots(ctx context.Context, params ListMyBotsParams) (res ListMyBotsRes, err error) {
+func (c *Client) sendListBots(ctx context.Context, params ListBotsParams) (res ListBotsRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("listMyBots"),
+		otelogen.OperationID("ListBots"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.URLTemplateKey.String("/bots"),
 	}
@@ -1183,7 +1145,7 @@ func (c *Client) sendListMyBots(ctx context.Context, params ListMyBotsParams) (r
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, ListMyBotsOperation,
+	ctx, span := c.cfg.Tracer.Start(ctx, ListBotsOperation,
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -1253,7 +1215,7 @@ func (c *Client) sendListMyBots(ctx context.Context, params ListMyBotsParams) (r
 		var satisfied bitset
 		{
 			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, ListMyBotsOperation, r); {
+			switch err := c.securityCookieAuth(ctx, ListBotsOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 0
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1264,7 +1226,7 @@ func (c *Client) sendListMyBots(ctx context.Context, params ListMyBotsParams) (r
 		}
 		{
 			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, ListMyBotsOperation, r); {
+			switch err := c.securityCsrfAuth(ctx, ListBotsOperation, r); {
 			case err == nil: // if NO error
 				satisfied[0] |= 1 << 1
 			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
@@ -1301,7 +1263,7 @@ func (c *Client) sendListMyBots(ctx context.Context, params ListMyBotsParams) (r
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeListMyBotsResponse(resp)
+	result, err := decodeListBotsResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -1309,7 +1271,7 @@ func (c *Client) sendListMyBots(ctx context.Context, params ListMyBotsParams) (r
 	return result, nil
 }
 
-// RemoveProfileFromBot invokes removeProfileFromBot operation.
+// RemoveProfileFromBot invokes RemoveProfileFromBot operation.
 //
 // Отвязать профиль от бота.
 //
@@ -1321,7 +1283,7 @@ func (c *Client) RemoveProfileFromBot(ctx context.Context, params RemoveProfileF
 
 func (c *Client) sendRemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (res RemoveProfileFromBotRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("removeProfileFromBot"),
+		otelogen.OperationID("RemoveProfileFromBot"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
 		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}"),
 	}
@@ -1464,7 +1426,7 @@ func (c *Client) sendRemoveProfileFromBot(ctx context.Context, params RemoveProf
 	return result, nil
 }
 
-// UpdateBotById invokes updateBotById operation.
+// UpdateBotById invokes UpdateBotById operation.
 //
 // Полностью обновить бота по ID.
 //
@@ -1476,7 +1438,7 @@ func (c *Client) UpdateBotById(ctx context.Context, request *BotInput, params Up
 
 func (c *Client) sendUpdateBotById(ctx context.Context, request *BotInput, params UpdateBotByIdParams) (res UpdateBotByIdRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("updateBotById"),
+		otelogen.OperationID("UpdateBotById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
 		semconv.URLTemplateKey.String("/bots/{botId}"),
 	}

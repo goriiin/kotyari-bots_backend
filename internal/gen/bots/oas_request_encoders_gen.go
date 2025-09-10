@@ -10,7 +10,7 @@ import (
 	ht "github.com/ogen-go/ogen/http"
 )
 
-func encodeCreateMyBotRequest(
+func encodeCreateBotRequest(
 	req *BotInput,
 	r *http.Request,
 ) error {

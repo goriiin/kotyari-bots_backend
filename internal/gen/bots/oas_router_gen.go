@@ -72,9 +72,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if len(elem) == 0 {
 					switch r.Method {
 					case "GET":
-						s.handleListMyBotsRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleListBotsRequest([0]string{}, elemIsEscaped, w, r)
 					case "POST":
-						s.handleCreateMyBotRequest([0]string{}, elemIsEscaped, w, r)
+						s.handleCreateBotRequest([0]string{}, elemIsEscaped, w, r)
 					default:
 						s.notAllowed(w, r, "GET,POST")
 					}
@@ -344,17 +344,17 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				if len(elem) == 0 {
 					switch method {
 					case "GET":
-						r.name = ListMyBotsOperation
+						r.name = ListBotsOperation
 						r.summary = "Получить список своих ботов"
-						r.operationID = "listMyBots"
+						r.operationID = "ListBots"
 						r.pathPattern = "/bots"
 						r.args = args
 						r.count = 0
 						return r, true
 					case "POST":
-						r.name = CreateMyBotOperation
+						r.name = CreateBotOperation
 						r.summary = "Создать нового бота"
-						r.operationID = "createMyBot"
+						r.operationID = "CreateBot"
 						r.pathPattern = "/bots"
 						r.args = args
 						r.count = 0
@@ -386,7 +386,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						case "DELETE":
 							r.name = DeleteBotByIdOperation
 							r.summary = "Удалить бота по ID"
-							r.operationID = "deleteBotById"
+							r.operationID = "DeleteBotById"
 							r.pathPattern = "/bots/{botId}"
 							r.args = args
 							r.count = 1
@@ -394,7 +394,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						case "GET":
 							r.name = GetBotByIdOperation
 							r.summary = "Получить бота по ID"
-							r.operationID = "getBotById"
+							r.operationID = "GetBotById"
 							r.pathPattern = "/bots/{botId}"
 							r.args = args
 							r.count = 1
@@ -402,7 +402,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						case "PUT":
 							r.name = UpdateBotByIdOperation
 							r.summary = "Полностью обновить бота по ID"
-							r.operationID = "updateBotById"
+							r.operationID = "UpdateBotById"
 							r.pathPattern = "/bots/{botId}"
 							r.args = args
 							r.count = 1
@@ -425,7 +425,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							case "GET":
 								r.name = GetBotProfilesOperation
 								r.summary = "Получить список профилей, привязанных к боту"
-								r.operationID = "getBotProfiles"
+								r.operationID = "GetBotProfiles"
 								r.pathPattern = "/bots/{botId}/profiles"
 								r.args = args
 								r.count = 1
@@ -457,7 +457,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								case "DELETE":
 									r.name = RemoveProfileFromBotOperation
 									r.summary = "Отвязать профиль от бота"
-									r.operationID = "removeProfileFromBot"
+									r.operationID = "RemoveProfileFromBot"
 									r.pathPattern = "/bots/{botId}/profiles/{profileId}"
 									r.args = args
 									r.count = 2
@@ -465,7 +465,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								case "PUT":
 									r.name = AddProfileToBotOperation
 									r.summary = "Привязать профиль к боту"
-									r.operationID = "addProfileToBot"
+									r.operationID = "AddProfileToBot"
 									r.pathPattern = "/bots/{botId}/profiles/{profileId}"
 									r.args = args
 									r.count = 2
@@ -489,7 +489,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 									case "POST":
 										r.name = CreateTaskForBotWithProfileOperation
 										r.summary = "Создать задачу для бота с конкретным профилем"
-										r.operationID = "createTaskForBotWithProfile"
+										r.operationID = "CreateTaskForBotWithProfile"
 										r.pathPattern = "/bots/{botId}/profiles/{profileId}/tasks"
 										r.args = args
 										r.count = 2
@@ -530,7 +530,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					case "GET":
 						r.name = GetTaskByIdOperation
 						r.summary = "Получить статус задачи по ID"
-						r.operationID = "getTaskById"
+						r.operationID = "GetTaskById"
 						r.pathPattern = "/tasks/{taskId}"
 						r.args = args
 						r.count = 1

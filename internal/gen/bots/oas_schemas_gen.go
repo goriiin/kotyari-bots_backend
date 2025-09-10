@@ -46,10 +46,9 @@ func (*AddProfileToBotUnauthorized) addProfileToBotRes() {}
 type Bot struct {
 	ID                 uuid.UUID `json:"id"`
 	Name               string    `json:"name"`
-	Email              string    `json:"email"`
+	Profiles           []Profile `json:"profiles"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired bool      `json:"moderationRequired"`
-	AutoPublish        bool      `json:"autoPublish"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -64,9 +63,9 @@ func (s *Bot) GetName() string {
 	return s.Name
 }
 
-// GetEmail returns the value of Email.
-func (s *Bot) GetEmail() string {
-	return s.Email
+// GetProfiles returns the value of Profiles.
+func (s *Bot) GetProfiles() []Profile {
+	return s.Profiles
 }
 
 // GetSystemPrompt returns the value of SystemPrompt.
@@ -77,11 +76,6 @@ func (s *Bot) GetSystemPrompt() OptString {
 // GetModerationRequired returns the value of ModerationRequired.
 func (s *Bot) GetModerationRequired() bool {
 	return s.ModerationRequired
-}
-
-// GetAutoPublish returns the value of AutoPublish.
-func (s *Bot) GetAutoPublish() bool {
-	return s.AutoPublish
 }
 
 // GetCreatedAt returns the value of CreatedAt.
@@ -104,9 +98,9 @@ func (s *Bot) SetName(val string) {
 	s.Name = val
 }
 
-// SetEmail sets the value of Email.
-func (s *Bot) SetEmail(val string) {
-	s.Email = val
+// SetProfiles sets the value of Profiles.
+func (s *Bot) SetProfiles(val []Profile) {
+	s.Profiles = val
 }
 
 // SetSystemPrompt sets the value of SystemPrompt.
@@ -119,11 +113,6 @@ func (s *Bot) SetModerationRequired(val bool) {
 	s.ModerationRequired = val
 }
 
-// SetAutoPublish sets the value of AutoPublish.
-func (s *Bot) SetAutoPublish(val bool) {
-	s.AutoPublish = val
-}
-
 // SetCreatedAt sets the value of CreatedAt.
 func (s *Bot) SetCreatedAt(val time.Time) {
 	s.CreatedAt = val
@@ -134,7 +123,7 @@ func (s *Bot) SetUpdatedAt(val time.Time) {
 	s.UpdatedAt = val
 }
 
-func (*Bot) createMyBotRes()   {}
+func (*Bot) createBotRes()     {}
 func (*Bot) getBotByIdRes()    {}
 func (*Bot) updateBotByIdRes() {}
 
@@ -224,7 +213,7 @@ func (s *BotList) SetNextCursor(val OptNilString) {
 	s.NextCursor = val
 }
 
-func (*BotList) listMyBotsRes() {}
+func (*BotList) listBotsRes() {}
 
 type CookieAuth struct {
 	APIKey string
@@ -251,21 +240,21 @@ func (s *CookieAuth) SetRoles(val []string) {
 	s.Roles = val
 }
 
-type CreateMyBotBadRequest Error
+type CreateBotBadRequest Error
 
-func (*CreateMyBotBadRequest) createMyBotRes() {}
+func (*CreateBotBadRequest) createBotRes() {}
 
-type CreateMyBotConflict Error
+type CreateBotConflict Error
 
-func (*CreateMyBotConflict) createMyBotRes() {}
+func (*CreateBotConflict) createBotRes() {}
 
-type CreateMyBotInternalServerError Error
+type CreateBotInternalServerError Error
 
-func (*CreateMyBotInternalServerError) createMyBotRes() {}
+func (*CreateBotInternalServerError) createBotRes() {}
 
-type CreateMyBotUnauthorized Error
+type CreateBotUnauthorized Error
 
-func (*CreateMyBotUnauthorized) createMyBotRes() {}
+func (*CreateBotUnauthorized) createBotRes() {}
 
 type CreateTaskForBotWithProfileBadRequest Error
 
@@ -373,6 +362,10 @@ func (s *ErrorDetails) init() ErrorDetails {
 	return m
 }
 
+type GetBotByIdBadRequest Error
+
+func (*GetBotByIdBadRequest) getBotByIdRes() {}
+
 type GetBotByIdInternalServerError Error
 
 func (*GetBotByIdInternalServerError) getBotByIdRes() {}
@@ -409,13 +402,13 @@ type GetTaskByIdUnauthorized Error
 
 func (*GetTaskByIdUnauthorized) getTaskByIdRes() {}
 
-type ListMyBotsInternalServerError Error
+type ListBotsInternalServerError Error
 
-func (*ListMyBotsInternalServerError) listMyBotsRes() {}
+func (*ListBotsInternalServerError) listBotsRes() {}
 
-type ListMyBotsUnauthorized Error
+type ListBotsUnauthorized Error
 
-func (*ListMyBotsUnauthorized) listMyBotsRes() {}
+func (*ListBotsUnauthorized) listBotsRes() {}
 
 // Ref: #/components/responses/NoContent
 type NoContent struct{}
@@ -674,9 +667,10 @@ func (o OptString) Or(d string) string {
 // Представление профиля, связанного с ботом.
 // Ref: #/components/schemas/Profile
 type Profile struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	SystemPrompt OptString `json:"systemPrompt"`
 }
 
 // GetID returns the value of ID.
@@ -694,6 +688,11 @@ func (s *Profile) GetEmail() string {
 	return s.Email
 }
 
+// GetSystemPrompt returns the value of SystemPrompt.
+func (s *Profile) GetSystemPrompt() OptString {
+	return s.SystemPrompt
+}
+
 // SetID sets the value of ID.
 func (s *Profile) SetID(val uuid.UUID) {
 	s.ID = val
@@ -709,10 +708,14 @@ func (s *Profile) SetEmail(val string) {
 	s.Email = val
 }
 
+// SetSystemPrompt sets the value of SystemPrompt.
+func (s *Profile) SetSystemPrompt(val OptString) {
+	s.SystemPrompt = val
+}
+
 // Ref: #/components/schemas/ProfileList
 type ProfileList struct {
-	Data       []Profile    `json:"data"`
-	NextCursor OptNilString `json:"nextCursor"`
+	Data []Profile `json:"data"`
 }
 
 // GetData returns the value of Data.
@@ -720,19 +723,9 @@ func (s *ProfileList) GetData() []Profile {
 	return s.Data
 }
 
-// GetNextCursor returns the value of NextCursor.
-func (s *ProfileList) GetNextCursor() OptNilString {
-	return s.NextCursor
-}
-
 // SetData sets the value of Data.
 func (s *ProfileList) SetData(val []Profile) {
 	s.Data = val
-}
-
-// SetNextCursor sets the value of NextCursor.
-func (s *ProfileList) SetNextCursor(val OptNilString) {
-	s.NextCursor = val
 }
 
 func (*ProfileList) getBotProfilesRes() {}

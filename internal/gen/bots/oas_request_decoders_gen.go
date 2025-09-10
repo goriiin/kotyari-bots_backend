@@ -14,7 +14,7 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func (s *Server) decodeCreateMyBotRequest(r *http.Request) (
+func (s *Server) decodeCreateBotRequest(r *http.Request) (
 	req *BotInput,
 	rawBody []byte,
 	close func() error,

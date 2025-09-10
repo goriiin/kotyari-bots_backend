@@ -36,13 +36,13 @@ func findAuthorization(h http.Header, prefix string) (string, bool) {
 
 var operationRolesCookieAuth = map[string][]string{
 	AddProfileToBotOperation:             []string{},
-	CreateMyBotOperation:                 []string{},
+	CreateBotOperation:                   []string{},
 	CreateTaskForBotWithProfileOperation: []string{},
 	DeleteBotByIdOperation:               []string{},
 	GetBotByIdOperation:                  []string{},
 	GetBotProfilesOperation:              []string{},
 	GetTaskByIdOperation:                 []string{},
-	ListMyBotsOperation:                  []string{},
+	ListBotsOperation:                    []string{},
 	RemoveProfileFromBotOperation:        []string{},
 	UpdateBotByIdOperation:               []string{},
 }
@@ -72,13 +72,13 @@ func (s *Server) securityCookieAuth(ctx context.Context, operationName Operation
 
 var operationRolesCsrfAuth = map[string][]string{
 	AddProfileToBotOperation:             []string{},
-	CreateMyBotOperation:                 []string{},
+	CreateBotOperation:                   []string{},
 	CreateTaskForBotWithProfileOperation: []string{},
 	DeleteBotByIdOperation:               []string{},
 	GetBotByIdOperation:                  []string{},
 	GetBotProfilesOperation:              []string{},
 	GetTaskByIdOperation:                 []string{},
-	ListMyBotsOperation:                  []string{},
+	ListBotsOperation:                    []string{},
 	RemoveProfileFromBotOperation:        []string{},
 	UpdateBotByIdOperation:               []string{},
 }

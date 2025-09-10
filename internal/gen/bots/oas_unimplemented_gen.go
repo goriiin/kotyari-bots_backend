@@ -13,7 +13,7 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
-// AddProfileToBot implements addProfileToBot operation.
+// AddProfileToBot implements AddProfileToBot operation.
 //
 // Привязать профиль к боту.
 //
@@ -22,16 +22,16 @@ func (UnimplementedHandler) AddProfileToBot(ctx context.Context, params AddProfi
 	return r, ht.ErrNotImplemented
 }
 
-// CreateMyBot implements createMyBot operation.
+// CreateBot implements CreateBot operation.
 //
 // Создать нового бота.
 //
 // POST /bots
-func (UnimplementedHandler) CreateMyBot(ctx context.Context, req *BotInput) (r CreateMyBotRes, _ error) {
+func (UnimplementedHandler) CreateBot(ctx context.Context, req *BotInput) (r CreateBotRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// CreateTaskForBotWithProfile implements createTaskForBotWithProfile operation.
+// CreateTaskForBotWithProfile implements CreateTaskForBotWithProfile operation.
 //
 // Создать задачу для бота с конкретным профилем.
 //
@@ -40,7 +40,7 @@ func (UnimplementedHandler) CreateTaskForBotWithProfile(ctx context.Context, req
 	return r, ht.ErrNotImplemented
 }
 
-// DeleteBotById implements deleteBotById operation.
+// DeleteBotById implements DeleteBotById operation.
 //
 // Удалить бота по ID.
 //
@@ -49,7 +49,7 @@ func (UnimplementedHandler) DeleteBotById(ctx context.Context, params DeleteBotB
 	return r, ht.ErrNotImplemented
 }
 
-// GetBotById implements getBotById operation.
+// GetBotById implements GetBotById operation.
 //
 // Получить бота по ID.
 //
@@ -58,7 +58,7 @@ func (UnimplementedHandler) GetBotById(ctx context.Context, params GetBotByIdPar
 	return r, ht.ErrNotImplemented
 }
 
-// GetBotProfiles implements getBotProfiles operation.
+// GetBotProfiles implements GetBotProfiles operation.
 //
 // Получить список профилей, привязанных к боту.
 //
@@ -67,7 +67,7 @@ func (UnimplementedHandler) GetBotProfiles(ctx context.Context, params GetBotPro
 	return r, ht.ErrNotImplemented
 }
 
-// GetTaskById implements getTaskById operation.
+// GetTaskById implements GetTaskById operation.
 //
 // Получить статус задачи по ID.
 //
@@ -76,16 +76,16 @@ func (UnimplementedHandler) GetTaskById(ctx context.Context, params GetTaskByIdP
 	return r, ht.ErrNotImplemented
 }
 
-// ListMyBots implements listMyBots operation.
+// ListBots implements ListBots operation.
 //
 // Получить список своих ботов.
 //
 // GET /bots
-func (UnimplementedHandler) ListMyBots(ctx context.Context, params ListMyBotsParams) (r ListMyBotsRes, _ error) {
+func (UnimplementedHandler) ListBots(ctx context.Context, params ListBotsParams) (r ListBotsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// RemoveProfileFromBot implements removeProfileFromBot operation.
+// RemoveProfileFromBot implements RemoveProfileFromBot operation.
 //
 // Отвязать профиль от бота.
 //
@@ -94,7 +94,7 @@ func (UnimplementedHandler) RemoveProfileFromBot(ctx context.Context, params Rem
 	return r, ht.ErrNotImplemented
 }
 
-// UpdateBotById implements updateBotById operation.
+// UpdateBotById implements UpdateBotById operation.
 //
 // Полностью обновить бота по ID.
 //
