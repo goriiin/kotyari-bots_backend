@@ -39,15 +39,13 @@ components:
           readOnly: true
         name:
           type: string
-        email:
-          type: string
-          format: email
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
         systemPrompt:
           type: string
         moderationRequired:
-          type: boolean
-          default: false
-        autoPublish:
           type: boolean
           default: false
         createdAt:
@@ -116,6 +114,8 @@ components:
         email:
           type: string
           format: email
+        systemPrompt:
+          type: string
       required:
         - id
         - name
@@ -187,9 +187,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Profile'
-        nextCursor:
-          type: string
-          nullable: true
 
     Error:
       type: object
@@ -296,22 +293,15 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-# --------------------------------------------------------------
-# Глобальные требования безопасности
-# --------------------------------------------------------------
 security:
   - cookieAuth: []
   - csrfAuth: []
 
-# --------------------------------------------------------------
-# Пути (Эндпоинты) API
-# --------------------------------------------------------------
 paths:
-  #--- Управление ботами ---
   /bots:
     get:
       summary: "Получить список своих ботов"
-      operationId: "listMyBots"
+      operationId: "ListBots"
       tags: ["Bots"]
       parameters:
         - $ref: '#/components/parameters/PaginationCursor'
@@ -329,7 +319,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       summary: "Создать нового бота"
-      operationId: "createMyBot"
+      operationId: "CreateBot"
       tags: ["Bots"]
       requestBody:
         required: true
@@ -356,7 +346,7 @@ paths:
   /bots/{botId}:
     get:
       summary: "Получить бота по ID"
-      operationId: "getBotById"
+      operationId: "GetBotById"
       tags: ["Bots"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -367,6 +357,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Bot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -375,7 +367,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       summary: "Полностью обновить бота по ID"
-      operationId: "updateBotById"
+      operationId: "UpdateBotById"
       tags: ["Bots"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -404,7 +396,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       summary: "Удалить бота по ID"
-      operationId: "deleteBotById"
+      operationId: "DeleteBotById"
       tags: ["Bots"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -422,12 +414,10 @@ paths:
   /bots/{botId}/profiles:
     get:
       summary: "Получить список профилей, привязанных к боту"
-      operationId: "getBotProfiles"
+      operationId: "GetBotProfiles"
       tags: ["Bot-Profile Associations"]
       parameters:
         - $ref: '#/components/parameters/BotID'
-        - $ref: '#/components/parameters/PaginationCursor'
-        - $ref: '#/components/parameters/PaginationLimit'
       responses:
         '200':
           description: "Успешный ответ со списком профилей."
@@ -445,7 +435,7 @@ paths:
   /bots/{botId}/profiles/{profileId}:
     put:
       summary: "Привязать профиль к боту"
-      operationId: "addProfileToBot"
+      operationId: "AddProfileToBot"
       tags: ["Bot-Profile Associations"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -467,7 +457,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       summary: "Отвязать профиль от бота"
-      operationId: "removeProfileFromBot"
+      operationId: "RemoveProfileFromBot"
       tags: ["Bot-Profile Associations"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -482,11 +472,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  #--- Управление задачами ---
   /bots/{botId}/profiles/{profileId}/tasks:
     post:
       summary: "Создать задачу для бота с конкретным профилем"
-      operationId: "createTaskForBotWithProfile"
+      operationId: "CreateTaskForBotWithProfile"
       tags: ["Tasks"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -516,7 +505,7 @@ paths:
   /tasks/{taskId}:
     get:
       summary: "Получить статус задачи по ID"
-      operationId: "getTaskById"
+      operationId: "GetTaskById"
       tags: ["Tasks"]
       parameters:
         - $ref: '#/components/parameters/TaskID'

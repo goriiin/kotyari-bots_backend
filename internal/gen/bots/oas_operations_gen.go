@@ -7,13 +7,13 @@ type OperationName = string
 
 const (
 	AddProfileToBotOperation             OperationName = "AddProfileToBot"
-	CreateMyBotOperation                 OperationName = "CreateMyBot"
+	CreateBotOperation                   OperationName = "CreateBot"
 	CreateTaskForBotWithProfileOperation OperationName = "CreateTaskForBotWithProfile"
 	DeleteBotByIdOperation               OperationName = "DeleteBotById"
 	GetBotByIdOperation                  OperationName = "GetBotById"
 	GetBotProfilesOperation              OperationName = "GetBotProfiles"
 	GetTaskByIdOperation                 OperationName = "GetTaskById"
-	ListMyBotsOperation                  OperationName = "ListMyBots"
+	ListBotsOperation                    OperationName = "ListBots"
 	RemoveProfileFromBotOperation        OperationName = "RemoveProfileFromBot"
 	UpdateBotByIdOperation               OperationName = "UpdateBotById"
 )

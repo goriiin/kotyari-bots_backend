@@ -8,61 +8,61 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
-	// AddProfileToBot implements addProfileToBot operation.
+	// AddProfileToBot implements AddProfileToBot operation.
 	//
 	// Привязать профиль к боту.
 	//
 	// PUT /bots/{botId}/profiles/{profileId}
 	AddProfileToBot(ctx context.Context, params AddProfileToBotParams) (AddProfileToBotRes, error)
-	// CreateMyBot implements createMyBot operation.
+	// CreateBot implements CreateBot operation.
 	//
 	// Создать нового бота.
 	//
 	// POST /bots
-	CreateMyBot(ctx context.Context, req *BotInput) (CreateMyBotRes, error)
-	// CreateTaskForBotWithProfile implements createTaskForBotWithProfile operation.
+	CreateBot(ctx context.Context, req *BotInput) (CreateBotRes, error)
+	// CreateTaskForBotWithProfile implements CreateTaskForBotWithProfile operation.
 	//
 	// Создать задачу для бота с конкретным профилем.
 	//
 	// POST /bots/{botId}/profiles/{profileId}/tasks
 	CreateTaskForBotWithProfile(ctx context.Context, req *TaskInput, params CreateTaskForBotWithProfileParams) (CreateTaskForBotWithProfileRes, error)
-	// DeleteBotById implements deleteBotById operation.
+	// DeleteBotById implements DeleteBotById operation.
 	//
 	// Удалить бота по ID.
 	//
 	// DELETE /bots/{botId}
 	DeleteBotById(ctx context.Context, params DeleteBotByIdParams) (DeleteBotByIdRes, error)
-	// GetBotById implements getBotById operation.
+	// GetBotById implements GetBotById operation.
 	//
 	// Получить бота по ID.
 	//
 	// GET /bots/{botId}
 	GetBotById(ctx context.Context, params GetBotByIdParams) (GetBotByIdRes, error)
-	// GetBotProfiles implements getBotProfiles operation.
+	// GetBotProfiles implements GetBotProfiles operation.
 	//
 	// Получить список профилей, привязанных к боту.
 	//
 	// GET /bots/{botId}/profiles
 	GetBotProfiles(ctx context.Context, params GetBotProfilesParams) (GetBotProfilesRes, error)
-	// GetTaskById implements getTaskById operation.
+	// GetTaskById implements GetTaskById operation.
 	//
 	// Получить статус задачи по ID.
 	//
 	// GET /tasks/{taskId}
 	GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error)
-	// ListMyBots implements listMyBots operation.
+	// ListBots implements ListBots operation.
 	//
 	// Получить список своих ботов.
 	//
 	// GET /bots
-	ListMyBots(ctx context.Context, params ListMyBotsParams) (ListMyBotsRes, error)
-	// RemoveProfileFromBot implements removeProfileFromBot operation.
+	ListBots(ctx context.Context, params ListBotsParams) (ListBotsRes, error)
+	// RemoveProfileFromBot implements RemoveProfileFromBot operation.
 	//
 	// Отвязать профиль от бота.
 	//
 	// DELETE /bots/{botId}/profiles/{profileId}
 	RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (RemoveProfileFromBotRes, error)
-	// UpdateBotById implements updateBotById operation.
+	// UpdateBotById implements UpdateBotById operation.
 	//
 	// Полностью обновить бота по ID.
 	//

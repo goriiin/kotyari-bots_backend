@@ -16,7 +16,7 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-// AddProfileToBotParams is parameters of addProfileToBot operation.
+// AddProfileToBotParams is parameters of AddProfileToBot operation.
 type AddProfileToBotParams struct {
 	BotId     uuid.UUID
 	ProfileId uuid.UUID
@@ -134,7 +134,7 @@ func decodeAddProfileToBotParams(args [2]string, argsEscaped bool, r *http.Reque
 	return params, nil
 }
 
-// CreateTaskForBotWithProfileParams is parameters of createTaskForBotWithProfile operation.
+// CreateTaskForBotWithProfileParams is parameters of CreateTaskForBotWithProfile operation.
 type CreateTaskForBotWithProfileParams struct {
 	BotId     uuid.UUID
 	ProfileId uuid.UUID
@@ -252,7 +252,7 @@ func decodeCreateTaskForBotWithProfileParams(args [2]string, argsEscaped bool, r
 	return params, nil
 }
 
-// DeleteBotByIdParams is parameters of deleteBotById operation.
+// DeleteBotByIdParams is parameters of DeleteBotById operation.
 type DeleteBotByIdParams struct {
 	BotId uuid.UUID
 }
@@ -317,7 +317,7 @@ func decodeDeleteBotByIdParams(args [1]string, argsEscaped bool, r *http.Request
 	return params, nil
 }
 
-// GetBotByIdParams is parameters of getBotById operation.
+// GetBotByIdParams is parameters of GetBotById operation.
 type GetBotByIdParams struct {
 	BotId uuid.UUID
 }
@@ -382,13 +382,9 @@ func decodeGetBotByIdParams(args [1]string, argsEscaped bool, r *http.Request) (
 	return params, nil
 }
 
-// GetBotProfilesParams is parameters of getBotProfiles operation.
+// GetBotProfilesParams is parameters of GetBotProfiles operation.
 type GetBotProfilesParams struct {
 	BotId uuid.UUID
-	// Курсор для получения следующей страницы результатов.
-	Cursor OptString
-	// Максимальное количество результатов на странице.
-	Limit OptInt
 }
 
 func unpackGetBotProfilesParams(packed middleware.Parameters) (params GetBotProfilesParams) {
@@ -399,29 +395,10 @@ func unpackGetBotProfilesParams(packed middleware.Parameters) (params GetBotProf
 		}
 		params.BotId = packed[key].(uuid.UUID)
 	}
-	{
-		key := middleware.ParameterKey{
-			Name: "cursor",
-			In:   "query",
-		}
-		if v, ok := packed[key]; ok {
-			params.Cursor = v.(OptString)
-		}
-	}
-	{
-		key := middleware.ParameterKey{
-			Name: "limit",
-			In:   "query",
-		}
-		if v, ok := packed[key]; ok {
-			params.Limit = v.(OptInt)
-		}
-	}
 	return params
 }
 
 func decodeGetBotProfilesParams(args [1]string, argsEscaped bool, r *http.Request) (params GetBotProfilesParams, _ error) {
-	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode path: botId.
 	if err := func() error {
 		param := args[0]
@@ -467,121 +444,10 @@ func decodeGetBotProfilesParams(args [1]string, argsEscaped bool, r *http.Reques
 			Err:  err,
 		}
 	}
-	// Decode query: cursor.
-	if err := func() error {
-		cfg := uri.QueryParameterDecodingConfig{
-			Name:    "cursor",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.HasParam(cfg); err == nil {
-			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
-				var paramsDotCursorVal string
-				if err := func() error {
-					val, err := d.DecodeValue()
-					if err != nil {
-						return err
-					}
-
-					c, err := conv.ToString(val)
-					if err != nil {
-						return err
-					}
-
-					paramsDotCursorVal = c
-					return nil
-				}(); err != nil {
-					return err
-				}
-				params.Cursor.SetTo(paramsDotCursorVal)
-				return nil
-			}); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "cursor",
-			In:   "query",
-			Err:  err,
-		}
-	}
-	// Set default value for query: limit.
-	{
-		val := int(20)
-		params.Limit.SetTo(val)
-	}
-	// Decode query: limit.
-	if err := func() error {
-		cfg := uri.QueryParameterDecodingConfig{
-			Name:    "limit",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.HasParam(cfg); err == nil {
-			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
-				var paramsDotLimitVal int
-				if err := func() error {
-					val, err := d.DecodeValue()
-					if err != nil {
-						return err
-					}
-
-					c, err := conv.ToInt(val)
-					if err != nil {
-						return err
-					}
-
-					paramsDotLimitVal = c
-					return nil
-				}(); err != nil {
-					return err
-				}
-				params.Limit.SetTo(paramsDotLimitVal)
-				return nil
-			}); err != nil {
-				return err
-			}
-			if err := func() error {
-				if value, ok := params.Limit.Get(); ok {
-					if err := func() error {
-						if err := (validate.Int{
-							MinSet:        true,
-							Min:           1,
-							MaxSet:        true,
-							Max:           100,
-							MinExclusive:  false,
-							MaxExclusive:  false,
-							MultipleOfSet: false,
-							MultipleOf:    0,
-						}).Validate(int64(value)); err != nil {
-							return errors.Wrap(err, "int")
-						}
-						return nil
-					}(); err != nil {
-						return err
-					}
-				}
-				return nil
-			}(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "limit",
-			In:   "query",
-			Err:  err,
-		}
-	}
 	return params, nil
 }
 
-// GetTaskByIdParams is parameters of getTaskById operation.
+// GetTaskByIdParams is parameters of GetTaskById operation.
 type GetTaskByIdParams struct {
 	TaskId uuid.UUID
 }
@@ -646,15 +512,15 @@ func decodeGetTaskByIdParams(args [1]string, argsEscaped bool, r *http.Request) 
 	return params, nil
 }
 
-// ListMyBotsParams is parameters of listMyBots operation.
-type ListMyBotsParams struct {
+// ListBotsParams is parameters of ListBots operation.
+type ListBotsParams struct {
 	// Курсор для получения следующей страницы результатов.
 	Cursor OptString
 	// Максимальное количество результатов на странице.
 	Limit OptInt
 }
 
-func unpackListMyBotsParams(packed middleware.Parameters) (params ListMyBotsParams) {
+func unpackListBotsParams(packed middleware.Parameters) (params ListBotsParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "cursor",
@@ -676,7 +542,7 @@ func unpackListMyBotsParams(packed middleware.Parameters) (params ListMyBotsPara
 	return params
 }
 
-func decodeListMyBotsParams(args [0]string, argsEscaped bool, r *http.Request) (params ListMyBotsParams, _ error) {
+func decodeListBotsParams(args [0]string, argsEscaped bool, r *http.Request) (params ListBotsParams, _ error) {
 	q := uri.NewQueryDecoder(r.URL.Query())
 	// Decode query: cursor.
 	if err := func() error {
@@ -792,7 +658,7 @@ func decodeListMyBotsParams(args [0]string, argsEscaped bool, r *http.Request) (
 	return params, nil
 }
 
-// RemoveProfileFromBotParams is parameters of removeProfileFromBot operation.
+// RemoveProfileFromBotParams is parameters of RemoveProfileFromBot operation.
 type RemoveProfileFromBotParams struct {
 	BotId     uuid.UUID
 	ProfileId uuid.UUID
@@ -910,7 +776,7 @@ func decodeRemoveProfileFromBotParams(args [2]string, argsEscaped bool, r *http.
 	return params, nil
 }
 
-// UpdateBotByIdParams is parameters of updateBotById operation.
+// UpdateBotByIdParams is parameters of UpdateBotById operation.
 type UpdateBotByIdParams struct {
 	BotId uuid.UUID
 }

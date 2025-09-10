@@ -47,7 +47,6 @@ $(ENTITIES):
 
 proto-build: $(ENTITIES)
 
-
 api: install-ogen
 	@echo "Начинаю генерацию кода для сервисов: $(SERVICES)"
 	$(foreach service,$(SERVICES),$(call generate-service,$(service)))
@@ -100,6 +99,19 @@ format-check:
 	@gci diff . --skip-generated --skip-vendor < /dev/null
 
 check: lint format-check
+
+bots-up:
+	@echo "Starting bots service and dependencies..."
+	docker-compose -f docker-compose.bots.yml up -d --build
+
+bots-down:
+	@echo "Stopping bots service and dependencies..."
+	docker-compose -f docker-compose.bots.yml down
+
+bots-reboot:
+	@echo "Rebooting bots service and dependencies..."
+	$(MAKE) bots-down
+	$(MAKE) bots-up
 
 example-run:
 	@go run cmd/main/main.go

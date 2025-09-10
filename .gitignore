@@ -33,5 +33,11 @@ go.work.sum
 
 # configs
 
-configs/local-config.yaml
 configs/docker-config.yaml
+
+bin/
+dist/
+build/
+tmp/
+.DS_Store
+*.log

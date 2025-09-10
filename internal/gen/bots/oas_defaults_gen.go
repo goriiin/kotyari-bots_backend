@@ -8,10 +8,6 @@ func (s *Bot) setDefaults() {
 		val := bool(false)
 		s.ModerationRequired = val
 	}
-	{
-		val := bool(false)
-		s.AutoPublish = val
-	}
 }
 
 // setDefaults set default value of fields.

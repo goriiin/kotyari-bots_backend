@@ -30,7 +30,7 @@ func (c *codeRecorder) WriteHeader(status int) {
 	c.ResponseWriter.WriteHeader(status)
 }
 
-// handleAddProfileToBotRequest handles addProfileToBot operation.
+// handleAddProfileToBotRequest handles AddProfileToBot operation.
 //
 // Привязать профиль к боту.
 //
@@ -39,7 +39,7 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("addProfileToBot"),
+		otelogen.OperationID("AddProfileToBot"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
 		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}"),
 	}
@@ -101,7 +101,7 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: AddProfileToBotOperation,
-			ID:   "addProfileToBot",
+			ID:   "AddProfileToBot",
 		}
 	)
 	{
@@ -183,7 +183,7 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 			Context:          ctx,
 			OperationName:    AddProfileToBotOperation,
 			OperationSummary: "Привязать профиль к боту",
-			OperationID:      "addProfileToBot",
+			OperationID:      "AddProfileToBot",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -234,22 +234,22 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 	}
 }
 
-// handleCreateMyBotRequest handles createMyBot operation.
+// handleCreateBotRequest handles CreateBot operation.
 //
 // Создать нового бота.
 //
 // POST /bots
-func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleCreateBotRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createMyBot"),
+		otelogen.OperationID("CreateBot"),
 		semconv.HTTPRequestMethodKey.String("POST"),
 		semconv.HTTPRouteKey.String("/bots"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), CreateMyBotOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), CreateBotOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -304,15 +304,15 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: CreateMyBotOperation,
-			ID:   "createMyBot",
+			Name: CreateBotOperation,
+			ID:   "CreateBot",
 		}
 	)
 	{
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityCookieAuth(ctx, CreateMyBotOperation, r)
+			sctx, ok, err := s.securityCookieAuth(ctx, CreateBotOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -329,7 +329,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 			}
 		}
 		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, CreateMyBotOperation, r)
+			sctx, ok, err := s.securityCsrfAuth(ctx, CreateBotOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -370,7 +370,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 			return
 		}
 	}
-	request, close, err := s.decodeCreateMyBotRequest(r)
+	request, close, err := s.decodeCreateBotRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -386,13 +386,13 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		}
 	}()
 
-	var response CreateMyBotRes
+	var response CreateBotRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    CreateMyBotOperation,
+			OperationName:    CreateBotOperation,
 			OperationSummary: "Создать нового бота",
-			OperationID:      "createMyBot",
+			OperationID:      "CreateBot",
 			Body:             request,
 			Params:           middleware.Parameters{},
 			Raw:              r,
@@ -401,7 +401,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		type (
 			Request  = *BotInput
 			Params   = struct{}
-			Response = CreateMyBotRes
+			Response = CreateBotRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -412,12 +412,12 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.CreateMyBot(ctx, request)
+				response, err = s.h.CreateBot(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.CreateMyBot(ctx, request)
+		response, err = s.h.CreateBot(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -425,7 +425,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		return
 	}
 
-	if err := encodeCreateMyBotResponse(response, w, span); err != nil {
+	if err := encodeCreateBotResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -434,7 +434,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 	}
 }
 
-// handleCreateTaskForBotWithProfileRequest handles createTaskForBotWithProfile operation.
+// handleCreateTaskForBotWithProfileRequest handles CreateTaskForBotWithProfile operation.
 //
 // Создать задачу для бота с конкретным профилем.
 //
@@ -443,7 +443,7 @@ func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEs
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createTaskForBotWithProfile"),
+		otelogen.OperationID("CreateTaskForBotWithProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
 		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}/tasks"),
 	}
@@ -505,7 +505,7 @@ func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEs
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: CreateTaskForBotWithProfileOperation,
-			ID:   "createTaskForBotWithProfile",
+			ID:   "CreateTaskForBotWithProfile",
 		}
 	)
 	{
@@ -602,7 +602,7 @@ func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEs
 			Context:          ctx,
 			OperationName:    CreateTaskForBotWithProfileOperation,
 			OperationSummary: "Создать задачу для бота с конкретным профилем",
-			OperationID:      "createTaskForBotWithProfile",
+			OperationID:      "CreateTaskForBotWithProfile",
 			Body:             request,
 			Params: middleware.Parameters{
 				{
@@ -653,7 +653,7 @@ func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEs
 	}
 }
 
-// handleDeleteBotByIdRequest handles deleteBotById operation.
+// handleDeleteBotByIdRequest handles DeleteBotById operation.
 //
 // Удалить бота по ID.
 //
@@ -662,7 +662,7 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("deleteBotById"),
+		otelogen.OperationID("DeleteBotById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
 		semconv.HTTPRouteKey.String("/bots/{botId}"),
 	}
@@ -724,7 +724,7 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: DeleteBotByIdOperation,
-			ID:   "deleteBotById",
+			ID:   "DeleteBotById",
 		}
 	)
 	{
@@ -806,7 +806,7 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 			Context:          ctx,
 			OperationName:    DeleteBotByIdOperation,
 			OperationSummary: "Удалить бота по ID",
-			OperationID:      "deleteBotById",
+			OperationID:      "DeleteBotById",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -853,7 +853,7 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 	}
 }
 
-// handleGetBotByIdRequest handles getBotById operation.
+// handleGetBotByIdRequest handles GetBotById operation.
 //
 // Получить бота по ID.
 //
@@ -862,7 +862,7 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getBotById"),
+		otelogen.OperationID("GetBotById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/bots/{botId}"),
 	}
@@ -924,7 +924,7 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: GetBotByIdOperation,
-			ID:   "getBotById",
+			ID:   "GetBotById",
 		}
 	)
 	{
@@ -1006,7 +1006,7 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 			Context:          ctx,
 			OperationName:    GetBotByIdOperation,
 			OperationSummary: "Получить бота по ID",
-			OperationID:      "getBotById",
+			OperationID:      "GetBotById",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -1053,7 +1053,7 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 	}
 }
 
-// handleGetBotProfilesRequest handles getBotProfiles operation.
+// handleGetBotProfilesRequest handles GetBotProfiles operation.
 //
 // Получить список профилей, привязанных к боту.
 //
@@ -1062,7 +1062,7 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getBotProfiles"),
+		otelogen.OperationID("GetBotProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/bots/{botId}/profiles"),
 	}
@@ -1124,7 +1124,7 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: GetBotProfilesOperation,
-			ID:   "getBotProfiles",
+			ID:   "GetBotProfiles",
 		}
 	)
 	{
@@ -1206,21 +1206,13 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 			Context:          ctx,
 			OperationName:    GetBotProfilesOperation,
 			OperationSummary: "Получить список профилей, привязанных к боту",
-			OperationID:      "getBotProfiles",
+			OperationID:      "GetBotProfiles",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
 					In:   "path",
 				}: params.BotId,
-				{
-					Name: "cursor",
-					In:   "query",
-				}: params.Cursor,
-				{
-					Name: "limit",
-					In:   "query",
-				}: params.Limit,
 			},
 			Raw: r,
 		}
@@ -1261,7 +1253,7 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 	}
 }
 
-// handleGetTaskByIdRequest handles getTaskById operation.
+// handleGetTaskByIdRequest handles GetTaskById operation.
 //
 // Получить статус задачи по ID.
 //
@@ -1270,7 +1262,7 @@ func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w ht
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getTaskById"),
+		otelogen.OperationID("GetTaskById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
 	}
@@ -1332,7 +1324,7 @@ func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w ht
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: GetTaskByIdOperation,
-			ID:   "getTaskById",
+			ID:   "GetTaskById",
 		}
 	)
 	{
@@ -1414,7 +1406,7 @@ func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w ht
 			Context:          ctx,
 			OperationName:    GetTaskByIdOperation,
 			OperationSummary: "Получить статус задачи по ID",
-			OperationID:      "getTaskById",
+			OperationID:      "GetTaskById",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -1461,22 +1453,22 @@ func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w ht
 	}
 }
 
-// handleListMyBotsRequest handles listMyBots operation.
+// handleListBotsRequest handles ListBots operation.
 //
 // Получить список своих ботов.
 //
 // GET /bots
-func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleListBotsRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("listMyBots"),
+		otelogen.OperationID("ListBots"),
 		semconv.HTTPRequestMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/bots"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), ListMyBotsOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), ListBotsOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -1531,15 +1523,15 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: ListMyBotsOperation,
-			ID:   "listMyBots",
+			Name: ListBotsOperation,
+			ID:   "ListBots",
 		}
 	)
 	{
 		type bitset = [1]uint8
 		var satisfied bitset
 		{
-			sctx, ok, err := s.securityCookieAuth(ctx, ListMyBotsOperation, r)
+			sctx, ok, err := s.securityCookieAuth(ctx, ListBotsOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -1556,7 +1548,7 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 			}
 		}
 		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, ListMyBotsOperation, r)
+			sctx, ok, err := s.securityCsrfAuth(ctx, ListBotsOperation, r)
 			if err != nil {
 				err = &ogenerrors.SecurityError{
 					OperationContext: opErrContext,
@@ -1597,7 +1589,7 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 			return
 		}
 	}
-	params, err := decodeListMyBotsParams(args, argsEscaped, r)
+	params, err := decodeListBotsParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -1608,13 +1600,13 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 		return
 	}
 
-	var response ListMyBotsRes
+	var response ListBotsRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    ListMyBotsOperation,
+			OperationName:    ListBotsOperation,
 			OperationSummary: "Получить список своих ботов",
-			OperationID:      "listMyBots",
+			OperationID:      "ListBots",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -1631,8 +1623,8 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 
 		type (
 			Request  = struct{}
-			Params   = ListMyBotsParams
-			Response = ListMyBotsRes
+			Params   = ListBotsParams
+			Response = ListBotsRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1641,14 +1633,14 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 		](
 			m,
 			mreq,
-			unpackListMyBotsParams,
+			unpackListBotsParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.ListMyBots(ctx, params)
+				response, err = s.h.ListBots(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.ListMyBots(ctx, params)
+		response, err = s.h.ListBots(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1656,7 +1648,7 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 		return
 	}
 
-	if err := encodeListMyBotsResponse(response, w, span); err != nil {
+	if err := encodeListBotsResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1665,7 +1657,7 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 	}
 }
 
-// handleRemoveProfileFromBotRequest handles removeProfileFromBot operation.
+// handleRemoveProfileFromBotRequest handles RemoveProfileFromBot operation.
 //
 // Отвязать профиль от бота.
 //
@@ -1674,7 +1666,7 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("removeProfileFromBot"),
+		otelogen.OperationID("RemoveProfileFromBot"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
 		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}"),
 	}
@@ -1736,7 +1728,7 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: RemoveProfileFromBotOperation,
-			ID:   "removeProfileFromBot",
+			ID:   "RemoveProfileFromBot",
 		}
 	)
 	{
@@ -1818,7 +1810,7 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 			Context:          ctx,
 			OperationName:    RemoveProfileFromBotOperation,
 			OperationSummary: "Отвязать профиль от бота",
-			OperationID:      "removeProfileFromBot",
+			OperationID:      "RemoveProfileFromBot",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -1869,7 +1861,7 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 	}
 }
 
-// handleUpdateBotByIdRequest handles updateBotById operation.
+// handleUpdateBotByIdRequest handles UpdateBotById operation.
 //
 // Полностью обновить бота по ID.
 //
@@ -1878,7 +1870,7 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("updateBotById"),
+		otelogen.OperationID("UpdateBotById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
 		semconv.HTTPRouteKey.String("/bots/{botId}"),
 	}
@@ -1940,7 +1932,7 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: UpdateBotByIdOperation,
-			ID:   "updateBotById",
+			ID:   "UpdateBotById",
 		}
 	)
 	{
@@ -2037,7 +2029,7 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 			Context:          ctx,
 			OperationName:    UpdateBotByIdOperation,
 			OperationSummary: "Полностью обновить бота по ID",
-			OperationID:      "updateBotById",
+			OperationID:      "UpdateBotById",
 			Body:             request,
 			Params: middleware.Parameters{
 				{
