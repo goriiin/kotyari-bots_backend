@@ -1,41 +1,32 @@
-version: '3.8'
-
 services:
   bots_db:
     image: postgres:16-alpine
     container_name: bots_db
     environment:
-      POSTGRES_USER: ${BOTS_DB_USER}
-      POSTGRES_PASSWORD: ${BOTS_DB_PASSWORD}
-      POSTGRES_DB: ${BOTS_DB_NAME}
+      POSTGRES_USER: ${LOCAL_BOTS_DATABASE_USER}
+      POSTGRES_PASSWORD: ${LOCAL_BOTS_DATABASE_PASSWORD}
+      POSTGRES_DB: ${LOCAL_BOTS_DATABASE_NAME}
     ports:
       - "5433:5432"
     volumes:
       - bots_pgdata:/var/lib/postgresql/data
     networks:
       - kotyari-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${BOTS_DB_USER} -d ${BOTS_DB_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
-  bots_svc:
+  bots_go:
     build:
       context: .
       dockerfile: ./cmd/bots/Dockerfile
-    container_name: bots_svc
+    container_name: bots_go
+    image: bots_go_image
     env_file: .env
     ports:
       - "8001:8001"
     networks:
       - kotyari-network
     depends_on:
-      bots_db:
-        condition: service_healthy
-      profiles_svc:
-        condition: service_started # gRPC healthcheck требует дополнительной настройки
+      - bots_db
     restart: unless-stopped
 
 networks:
