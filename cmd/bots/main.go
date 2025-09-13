@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/goriiin/kotyari-bots_backend/internal/apps/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
-	"log"
 )
 
 var Config = "bots-config"

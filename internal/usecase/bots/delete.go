@@ -2,6 +2,7 @@ package bots
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 )
 

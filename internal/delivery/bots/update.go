@@ -2,10 +2,11 @@ package bots
 
 import (
 	"context"
+	"log"
+
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
-	"log"
 )
 
 func (h *Handler) UpdateBotById(ctx context.Context, req *gen.BotInput, params gen.UpdateBotByIdParams) (gen.UpdateBotByIdRes, error) {

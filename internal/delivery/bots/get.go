@@ -2,6 +2,7 @@ package bots
 
 import (
 	"context"
+
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
