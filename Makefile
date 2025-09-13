@@ -112,12 +112,12 @@ bots-reboot:
 	$(MAKE) bots-up
 
 example-run:
-	@go run cmd/main/main.go
+	@go run cmd/example/main.go
 example-run-local:  ## Запустить в local режиме
-	@go run cmd/main/main.go --env=local --config="./configs/local-config.yaml"
+	@go run cmd/example/main.go --env=local --config="./configs/local-config.yaml"
 
 example-run-prod:  ## Запустить в production режиме
-	@go run cmd/main/main.go --env=prod
+	@go run cmd/example/main.go --env=prod
 
 
 .PHONY: download-lint download-gci lint format format-check check help api

@@ -7,13 +7,15 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-var Config = "bots-config"
+var Config = "bots-local"
 
 func main() {
 	cfg, err := config.New[bots.BotsAppConfig]()
 	if err != nil {
 		log.Fatalf("config load: %v", err)
 	}
+
+	log.Println("main.cfg: ", cfg)
 
 	app := bots.NewApp(cfg)
 	if err = app.Run(); err != nil {

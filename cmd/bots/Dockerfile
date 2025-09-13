@@ -21,4 +21,4 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 EXPOSE 8001
 
-ENTRYPOINT ["./bots-server"]
+ENTRYPOINT ["./bots-server", "--env=local", "--config=./configs/bots-local.yaml"]

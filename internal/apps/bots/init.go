@@ -3,6 +3,7 @@ package bots
 import (
 	"context"
 	"fmt"
+	"github.com/goriiin/kotyari-bots_backend/internal/middleware/security"
 	"log"
 	"net/http"
 	"os"
@@ -10,14 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	delivery "github.com/goriiin/kotyari-bots_backend/internal/delivery/bots"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/bots"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type BotsApp struct {
@@ -35,6 +33,8 @@ func (b *BotsApp) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	log.Printf("info config: %v", b.config.Database)
+
 	// Init DB
 	pool, err := postgres.GetPool(ctx, b.config.Database)
 	if err != nil {
@@ -43,20 +43,20 @@ func (b *BotsApp) Run() error {
 	defer pool.Close()
 
 	// Init gRPC client for Profiles service
-	conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return fmt.Errorf("grpc.NewClient: %w", err)
-	}
-	defer conn.Close()
-	profilesClient := profiles.NewProfilesServiceClient(conn)
+	//conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	//if err != nil {
+	//	return fmt.Errorf("grpc.NewClient: %w", err)
+	//}
+	//defer conn.Close()
+	//profilesClient := profiles.NewProfilesServiceClient(conn)
 
 	// Init dependencies
 	botsRepo := repo.NewPGRepo(pool)
 	botsUsecase := usecase.NewService(botsRepo)
-	botsHandler := delivery.NewHandler(botsUsecase, profilesClient)
+	botsHandler := delivery.NewHandler(botsUsecase, nil)
 
 	// Init HTTP server
-	svr, err := gen.NewServer(botsHandler)
+	svr, err := gen.NewServer(botsHandler, &security.NotImplemented{})
 	if err != nil {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}
