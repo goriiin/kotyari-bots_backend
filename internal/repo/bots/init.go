@@ -4,8 +4,10 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
 )
 
-type PGRepo struct {
-	pool pool.DBPool
+type BotsRepository struct {
+	db pool.DBPool
 }
 
-func NewPGRepo(pool pool.DBPool) *PGRepo { return &PGRepo{pool: pool} }
+func NewBotsRepository(db pool.DBPool) *BotsRepository {
+	return &BotsRepository{db: db}
+}
