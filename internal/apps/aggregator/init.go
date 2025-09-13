@@ -3,7 +3,7 @@ package aggregator
 import (
 	"context"
 
-	aggregatorDelivery "github.com/goriiin/kotyari-bots_backend/internal/delivery/aggregator"
+	aggregatorDelivery "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/aggregator"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/repo/aggregator"
 	aggregatorService "github.com/goriiin/kotyari-bots_backend/internal/usecase/aggregator"

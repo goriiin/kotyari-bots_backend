@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/goriiin/kotyari-bots_backend/internal/delivery/api_integrations/reddit"
+	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/api_integrations/reddit"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
 	"github.com/goriiin/kotyari-bots_backend/internal/repo/api_integrations"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
