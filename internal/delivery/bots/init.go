@@ -3,6 +3,7 @@ package bots
 import (
 	"context"
 	"fmt"
+
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"

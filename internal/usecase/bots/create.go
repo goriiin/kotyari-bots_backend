@@ -3,11 +3,12 @@ package bots
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/constants"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	"strings"
 )
 
 func (s *Service) Create(ctx context.Context, name string, systemPromt string) (model.Bot, error) {
