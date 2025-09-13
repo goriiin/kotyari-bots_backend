@@ -2,6 +2,7 @@ package security
 
 import (
 	"context"
+
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 )
 

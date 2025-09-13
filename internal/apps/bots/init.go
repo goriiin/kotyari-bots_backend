@@ -3,7 +3,6 @@ package bots
 import (
 	"context"
 	"fmt"
-	"github.com/goriiin/kotyari-bots_backend/internal/middleware/security"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +12,7 @@ import (
 
 	delivery "github.com/goriiin/kotyari-bots_backend/internal/delivery/bots"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
+	"github.com/goriiin/kotyari-bots_backend/internal/middleware/security"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/bots"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
@@ -43,15 +43,15 @@ func (b *BotsApp) Run() error {
 	defer pool.Close()
 
 	// Init gRPC client for Profiles service
-	//conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	//if err != nil {
+	// conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// if err != nil {
 	//	return fmt.Errorf("grpc.NewClient: %w", err)
-	//}
-	//defer conn.Close()
-	//profilesClient := profiles.NewProfilesServiceClient(conn)
+	// }
+	// defer conn.Close()
+	// profilesClient := profiles.NewProfilesServiceClient(conn)
 
 	// Init dependencies
-	botsRepo := repo.NewPGRepo(pool)
+	botsRepo := repo.NewBotsRepository(pool)
 	botsUsecase := usecase.NewService(botsRepo)
 	botsHandler := delivery.NewHandler(botsUsecase, nil)
 
