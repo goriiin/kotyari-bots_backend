@@ -1,23 +1,24 @@
-WORKDIR /var/backend
-
-COPY cmd/profiles/main.go main.go
-COPY . .
-
-RUN go mod tidy
-RUN go build -o main main.go
-
-FROM alpine:edge as prod
-
-RUN apk add bash
-
-COPY --from=build /var/backend/main /app/main
-COPY --from=build /var/backend/.env /app/.env
-
-
-RUN mkdir -p /app/configs
-COPY configs app/configs
+FROM golang:1.24-alpine AS build
 
 WORKDIR /app
-EXPOSE 8002
 
-ENTRYPOINT exec ./main --env=local --config="./configs/bots-local-config.yaml"
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o /app/bots-server ./cmd/bots
+
+FROM alpine:3.20 AS prod
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+WORKDIR /app
+COPY --from=build /app/bots-server .
+COPY configs/ ./configs/
+
+RUN chown -R appuser:appgroup /app
+USER appuser
+EXPOSE 8001
+
+ENTRYPOINT ["./bots-server"]
