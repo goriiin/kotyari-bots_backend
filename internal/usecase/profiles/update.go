@@ -3,11 +3,12 @@ package profiles
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/constants"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	"strings"
-	"time"
 )
 
 func (s *Service) Update(ctx context.Context, profile model.Profile) (model.Profile, error) {

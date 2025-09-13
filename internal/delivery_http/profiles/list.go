@@ -2,6 +2,7 @@ package profiles
 
 import (
 	"context"
+
 	"github.com/goriiin/kotyari-bots_backend/internal/constants"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/profiles"
 )

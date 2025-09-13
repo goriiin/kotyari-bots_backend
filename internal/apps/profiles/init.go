@@ -11,9 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
-
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	deliverygrpc "github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles"
 	deliveryhttp "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/profiles"
@@ -21,6 +18,8 @@ import (
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/profiles"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/profiles"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 )
 
 type ProfilesApp struct {

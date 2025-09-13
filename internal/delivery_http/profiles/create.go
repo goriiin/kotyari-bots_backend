@@ -2,6 +2,7 @@ package profiles
 
 import (
 	"context"
+
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/constants"
