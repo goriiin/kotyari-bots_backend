@@ -6,7 +6,7 @@ import (
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 )
 
-func (h *Handler) ListBots(ctx context.Context, _ gen.ListBotsParams) (gen.ListBotsRes, error) {
+func (h *Handler) ListBots(ctx context.Context) (gen.ListBotsRes, error) {
 	bots, err := h.u.List(ctx)
 	if err != nil {
 		return nil, err

@@ -10,23 +10,21 @@ tags:
     description: "Операции над ботами, принадлежащими аккаунту."
   - name: "Bot-Profile Associations"
     description: "Управление связями между ботами и профилями."
-  - name: "Tasks"
-    description: "Создание и отслеживание асинхронных задач для ботов."
 
 # --------------------------------------------------------------
 # Компоненты API
 # --------------------------------------------------------------
 components:
   # -------------------- Безопасность --------------------
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: session_id
-    csrfAuth:
-      type: apiKey
-      in: header
-      name: X-CSRF-Token
+#  securitySchemes:
+#    cookieAuth:
+#      type: apiKey
+#      in: cookie
+#      name: session_id
+#    csrfAuth:
+#      type: apiKey
+#      in: header
+#      name: X-CSRF-Token
 
   # -------------------- Схемы данных --------------------
   schemas:
@@ -121,54 +119,6 @@ components:
         - name
         - email
 
-    Task:
-      type: object
-      description: "Асинхронная задача и её текущий статус."
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        botId:
-          type: string
-          format: uuid
-          readOnly: true
-        profileId:
-          type: string
-          format: uuid
-          readOnly: true
-        status:
-          type: string
-          enum: [pending, running, completed, failed]
-        errorMessage:
-          type: string
-          nullable: true
-        createdAt:
-          type: string
-          format: date-time
-          readOnly: true
-        updatedAt:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-        - id
-        - botId
-        - profileId
-        - status
-        - createdAt
-        - updatedAt
-
-    TaskInput:
-      type: object
-      description: "Данные для создания новой задачи."
-      properties:
-        description:
-          type: string
-          description: "Описание задачи, которое будет скомбинировано с промптами."
-      required:
-        - description
-
     BotList:
       type: object
       properties:
@@ -227,39 +177,9 @@ components:
       schema:
         type: string
         format: uuid
-    TaskID:
-      name: taskId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    PaginationCursor:
-      name: cursor
-      in: query
-      description: "Курсор для получения следующей страницы результатов."
-      schema:
-        type: string
-    PaginationLimit:
-      name: limit
-      in: query
-      description: "Максимальное количество результатов на странице."
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
 
   # -------------------- Ответы --------------------
   responses:
-    AcceptedTask:
-      description: "Задача принята в обработку. Заголовок 'Location' содержит URL для отслеживания статуса задачи."
-      headers:
-        Location:
-          description: "Путь для получения статуса созданной задачи."
-          schema:
-            type: string
-            example: "/api/v1/tasks/123e4567-e89b-12d3-a456-426614174000"
     NoContent:
       description: "Операция успешна, тело ответа отсутствует."
     BadRequest:
@@ -293,19 +213,16 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-security:
-  - cookieAuth: []
-  - csrfAuth: []
+#security:
+#  - cookieAuth: []
+#  - csrfAuth: []
 
 paths:
-  /bots:
+  /api/v1/bots:
     get:
       summary: "Получить список своих ботов"
       operationId: "ListBots"
       tags: ["Bots"]
-      parameters:
-        - $ref: '#/components/parameters/PaginationCursor'
-        - $ref: '#/components/parameters/PaginationLimit'
       responses:
         '200':
           description: "Успешный ответ со списком ботов."
@@ -343,7 +260,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /bots/{botId}:
+  /api/v1/bots/{botId}:
     get:
       summary: "Получить бота по ID"
       operationId: "GetBotById"
@@ -411,7 +328,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   #--- Управление связями ботов и профилей ---
-  /bots/{botId}/profiles:
+  /api/v1/bots/{botId}/profiles:
     get:
       summary: "Получить список профилей, привязанных к боту"
       operationId: "GetBotProfiles"
@@ -432,7 +349,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /bots/{botId}/profiles/{profileId}:
+  /api/v1/bots/{botId}/profiles/{profileId}:
     put:
       summary: "Привязать профиль к боту"
       operationId: "AddProfileToBot"
@@ -472,53 +389,3 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /bots/{botId}/profiles/{profileId}/tasks:
-    post:
-      summary: "Создать задачу для бота с конкретным профилем"
-      operationId: "CreateTaskForBotWithProfile"
-      tags: ["Tasks"]
-      parameters:
-        - $ref: '#/components/parameters/BotID'
-        - $ref: '#/components/parameters/ProfileID'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TaskInput'
-      responses:
-        '202':
-          $ref: '#/components/responses/AcceptedTask'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          description: "Не найден бот или профиль."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/{taskId}:
-    get:
-      summary: "Получить статус задачи по ID"
-      operationId: "GetTaskById"
-      tags: ["Tasks"]
-      parameters:
-        - $ref: '#/components/parameters/TaskID'
-      responses:
-        '200':
-          description: "Успешный ответ со статусом задачи."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'

@@ -10,9 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	delivery "github.com/goriiin/kotyari-bots_backend/internal/delivery/bots"
+	delivery "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/bots"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
-	"github.com/goriiin/kotyari-bots_backend/internal/middleware/security"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/bots"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
@@ -56,7 +55,7 @@ func (b *BotsApp) Run() error {
 	botsHandler := delivery.NewHandler(botsUsecase, nil)
 
 	// Init HTTP server
-	svr, err := gen.NewServer(botsHandler, &security.NotImplemented{})
+	svr, err := gen.NewServer(botsHandler)
 	if err != nil {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}

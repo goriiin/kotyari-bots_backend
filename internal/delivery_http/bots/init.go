@@ -34,15 +34,7 @@ func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBo
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (h *Handler) CreateTaskForBotWithProfile(ctx context.Context, req *gen.TaskInput, params gen.CreateTaskForBotWithProfileParams) (gen.CreateTaskForBotWithProfileRes, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
 func (h *Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesParams) (gen.GetBotProfilesRes, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (h *Handler) GetTaskById(ctx context.Context, params gen.GetTaskByIdParams) (gen.GetTaskByIdRes, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
