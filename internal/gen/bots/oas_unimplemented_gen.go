@@ -17,7 +17,7 @@ var _ Handler = UnimplementedHandler{}
 //
 // Привязать профиль к боту.
 //
-// PUT /bots/{botId}/profiles/{profileId}
+// PUT /api/v1/bots/{botId}/profiles/{profileId}
 func (UnimplementedHandler) AddProfileToBot(ctx context.Context, params AddProfileToBotParams) (r AddProfileToBotRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -26,17 +26,8 @@ func (UnimplementedHandler) AddProfileToBot(ctx context.Context, params AddProfi
 //
 // Создать нового бота.
 //
-// POST /bots
+// POST /api/v1/bots
 func (UnimplementedHandler) CreateBot(ctx context.Context, req *BotInput) (r CreateBotRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// CreateTaskForBotWithProfile implements CreateTaskForBotWithProfile operation.
-//
-// Создать задачу для бота с конкретным профилем.
-//
-// POST /bots/{botId}/profiles/{profileId}/tasks
-func (UnimplementedHandler) CreateTaskForBotWithProfile(ctx context.Context, req *TaskInput, params CreateTaskForBotWithProfileParams) (r CreateTaskForBotWithProfileRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -44,7 +35,7 @@ func (UnimplementedHandler) CreateTaskForBotWithProfile(ctx context.Context, req
 //
 // Удалить бота по ID.
 //
-// DELETE /bots/{botId}
+// DELETE /api/v1/bots/{botId}
 func (UnimplementedHandler) DeleteBotById(ctx context.Context, params DeleteBotByIdParams) (r DeleteBotByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -53,7 +44,7 @@ func (UnimplementedHandler) DeleteBotById(ctx context.Context, params DeleteBotB
 //
 // Получить бота по ID.
 //
-// GET /bots/{botId}
+// GET /api/v1/bots/{botId}
 func (UnimplementedHandler) GetBotById(ctx context.Context, params GetBotByIdParams) (r GetBotByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -62,17 +53,8 @@ func (UnimplementedHandler) GetBotById(ctx context.Context, params GetBotByIdPar
 //
 // Получить список профилей, привязанных к боту.
 //
-// GET /bots/{botId}/profiles
+// GET /api/v1/bots/{botId}/profiles
 func (UnimplementedHandler) GetBotProfiles(ctx context.Context, params GetBotProfilesParams) (r GetBotProfilesRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetTaskById implements GetTaskById operation.
-//
-// Получить статус задачи по ID.
-//
-// GET /tasks/{taskId}
-func (UnimplementedHandler) GetTaskById(ctx context.Context, params GetTaskByIdParams) (r GetTaskByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -80,8 +62,8 @@ func (UnimplementedHandler) GetTaskById(ctx context.Context, params GetTaskByIdP
 //
 // Получить список своих ботов.
 //
-// GET /bots
-func (UnimplementedHandler) ListBots(ctx context.Context, params ListBotsParams) (r ListBotsRes, _ error) {
+// GET /api/v1/bots
+func (UnimplementedHandler) ListBots(ctx context.Context) (r ListBotsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -89,7 +71,7 @@ func (UnimplementedHandler) ListBots(ctx context.Context, params ListBotsParams)
 //
 // Отвязать профиль от бота.
 //
-// DELETE /bots/{botId}/profiles/{profileId}
+// DELETE /api/v1/bots/{botId}/profiles/{profileId}
 func (UnimplementedHandler) RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (r RemoveProfileFromBotRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -98,7 +80,7 @@ func (UnimplementedHandler) RemoveProfileFromBot(ctx context.Context, params Rem
 //
 // Полностью обновить бота по ID.
 //
-// PUT /bots/{botId}
+// PUT /api/v1/bots/{botId}
 func (UnimplementedHandler) UpdateBotById(ctx context.Context, req *BotInput, params UpdateBotByIdParams) (r UpdateBotByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

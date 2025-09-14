@@ -5,26 +5,8 @@ package bots
 import (
 	"time"
 
-	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 )
-
-// Ref: #/components/responses/AcceptedTask
-type AcceptedTask struct {
-	Location OptString
-}
-
-// GetLocation returns the value of Location.
-func (s *AcceptedTask) GetLocation() OptString {
-	return s.Location
-}
-
-// SetLocation sets the value of Location.
-func (s *AcceptedTask) SetLocation(val OptString) {
-	s.Location = val
-}
-
-func (*AcceptedTask) createTaskForBotWithProfileRes() {}
 
 type AddProfileToBotBadRequest Error
 
@@ -215,31 +197,6 @@ func (s *BotList) SetNextCursor(val OptNilString) {
 
 func (*BotList) listBotsRes() {}
 
-type CookieAuth struct {
-	APIKey string
-	Roles  []string
-}
-
-// GetAPIKey returns the value of APIKey.
-func (s *CookieAuth) GetAPIKey() string {
-	return s.APIKey
-}
-
-// GetRoles returns the value of Roles.
-func (s *CookieAuth) GetRoles() []string {
-	return s.Roles
-}
-
-// SetAPIKey sets the value of APIKey.
-func (s *CookieAuth) SetAPIKey(val string) {
-	s.APIKey = val
-}
-
-// SetRoles sets the value of Roles.
-func (s *CookieAuth) SetRoles(val []string) {
-	s.Roles = val
-}
-
 type CreateBotBadRequest Error
 
 func (*CreateBotBadRequest) createBotRes() {}
@@ -255,47 +212,6 @@ func (*CreateBotInternalServerError) createBotRes() {}
 type CreateBotUnauthorized Error
 
 func (*CreateBotUnauthorized) createBotRes() {}
-
-type CreateTaskForBotWithProfileBadRequest Error
-
-func (*CreateTaskForBotWithProfileBadRequest) createTaskForBotWithProfileRes() {}
-
-type CreateTaskForBotWithProfileInternalServerError Error
-
-func (*CreateTaskForBotWithProfileInternalServerError) createTaskForBotWithProfileRes() {}
-
-type CreateTaskForBotWithProfileNotFound Error
-
-func (*CreateTaskForBotWithProfileNotFound) createTaskForBotWithProfileRes() {}
-
-type CreateTaskForBotWithProfileUnauthorized Error
-
-func (*CreateTaskForBotWithProfileUnauthorized) createTaskForBotWithProfileRes() {}
-
-type CsrfAuth struct {
-	APIKey string
-	Roles  []string
-}
-
-// GetAPIKey returns the value of APIKey.
-func (s *CsrfAuth) GetAPIKey() string {
-	return s.APIKey
-}
-
-// GetRoles returns the value of Roles.
-func (s *CsrfAuth) GetRoles() []string {
-	return s.Roles
-}
-
-// SetAPIKey sets the value of APIKey.
-func (s *CsrfAuth) SetAPIKey(val string) {
-	s.APIKey = val
-}
-
-// SetRoles sets the value of Roles.
-func (s *CsrfAuth) SetRoles(val []string) {
-	s.Roles = val
-}
 
 type DeleteBotByIdInternalServerError Error
 
@@ -389,18 +305,6 @@ func (*GetBotProfilesNotFound) getBotProfilesRes() {}
 type GetBotProfilesUnauthorized Error
 
 func (*GetBotProfilesUnauthorized) getBotProfilesRes() {}
-
-type GetTaskByIdInternalServerError Error
-
-func (*GetTaskByIdInternalServerError) getTaskByIdRes() {}
-
-type GetTaskByIdNotFound Error
-
-func (*GetTaskByIdNotFound) getTaskByIdRes() {}
-
-type GetTaskByIdUnauthorized Error
-
-func (*GetTaskByIdUnauthorized) getTaskByIdRes() {}
 
 type ListBotsInternalServerError Error
 
@@ -503,52 +407,6 @@ func (o OptErrorDetails) Get() (v ErrorDetails, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptErrorDetails) Or(d ErrorDetails) ErrorDetails {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptInt returns new OptInt with value set to v.
-func NewOptInt(v int) OptInt {
-	return OptInt{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptInt is optional int.
-type OptInt struct {
-	Value int
-	Set   bool
-}
-
-// IsSet returns true if OptInt was set.
-func (o OptInt) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptInt) Reset() {
-	var v int
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptInt) SetTo(v int) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptInt) Get() (v int, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptInt) Or(d int) int {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -741,163 +599,6 @@ func (*RemoveProfileFromBotNotFound) removeProfileFromBotRes() {}
 type RemoveProfileFromBotUnauthorized Error
 
 func (*RemoveProfileFromBotUnauthorized) removeProfileFromBotRes() {}
-
-// Асинхронная задача и её текущий статус.
-// Ref: #/components/schemas/Task
-type Task struct {
-	ID           uuid.UUID    `json:"id"`
-	BotId        uuid.UUID    `json:"botId"`
-	ProfileId    uuid.UUID    `json:"profileId"`
-	Status       TaskStatus   `json:"status"`
-	ErrorMessage OptNilString `json:"errorMessage"`
-	CreatedAt    time.Time    `json:"createdAt"`
-	UpdatedAt    time.Time    `json:"updatedAt"`
-}
-
-// GetID returns the value of ID.
-func (s *Task) GetID() uuid.UUID {
-	return s.ID
-}
-
-// GetBotId returns the value of BotId.
-func (s *Task) GetBotId() uuid.UUID {
-	return s.BotId
-}
-
-// GetProfileId returns the value of ProfileId.
-func (s *Task) GetProfileId() uuid.UUID {
-	return s.ProfileId
-}
-
-// GetStatus returns the value of Status.
-func (s *Task) GetStatus() TaskStatus {
-	return s.Status
-}
-
-// GetErrorMessage returns the value of ErrorMessage.
-func (s *Task) GetErrorMessage() OptNilString {
-	return s.ErrorMessage
-}
-
-// GetCreatedAt returns the value of CreatedAt.
-func (s *Task) GetCreatedAt() time.Time {
-	return s.CreatedAt
-}
-
-// GetUpdatedAt returns the value of UpdatedAt.
-func (s *Task) GetUpdatedAt() time.Time {
-	return s.UpdatedAt
-}
-
-// SetID sets the value of ID.
-func (s *Task) SetID(val uuid.UUID) {
-	s.ID = val
-}
-
-// SetBotId sets the value of BotId.
-func (s *Task) SetBotId(val uuid.UUID) {
-	s.BotId = val
-}
-
-// SetProfileId sets the value of ProfileId.
-func (s *Task) SetProfileId(val uuid.UUID) {
-	s.ProfileId = val
-}
-
-// SetStatus sets the value of Status.
-func (s *Task) SetStatus(val TaskStatus) {
-	s.Status = val
-}
-
-// SetErrorMessage sets the value of ErrorMessage.
-func (s *Task) SetErrorMessage(val OptNilString) {
-	s.ErrorMessage = val
-}
-
-// SetCreatedAt sets the value of CreatedAt.
-func (s *Task) SetCreatedAt(val time.Time) {
-	s.CreatedAt = val
-}
-
-// SetUpdatedAt sets the value of UpdatedAt.
-func (s *Task) SetUpdatedAt(val time.Time) {
-	s.UpdatedAt = val
-}
-
-func (*Task) getTaskByIdRes() {}
-
-// Данные для создания новой задачи.
-// Ref: #/components/schemas/TaskInput
-type TaskInput struct {
-	// Описание задачи, которое будет скомбинировано с
-	// промптами.
-	Description string `json:"description"`
-}
-
-// GetDescription returns the value of Description.
-func (s *TaskInput) GetDescription() string {
-	return s.Description
-}
-
-// SetDescription sets the value of Description.
-func (s *TaskInput) SetDescription(val string) {
-	s.Description = val
-}
-
-type TaskStatus string
-
-const (
-	TaskStatusPending   TaskStatus = "pending"
-	TaskStatusRunning   TaskStatus = "running"
-	TaskStatusCompleted TaskStatus = "completed"
-	TaskStatusFailed    TaskStatus = "failed"
-)
-
-// AllValues returns all TaskStatus values.
-func (TaskStatus) AllValues() []TaskStatus {
-	return []TaskStatus{
-		TaskStatusPending,
-		TaskStatusRunning,
-		TaskStatusCompleted,
-		TaskStatusFailed,
-	}
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (s TaskStatus) MarshalText() ([]byte, error) {
-	switch s {
-	case TaskStatusPending:
-		return []byte(s), nil
-	case TaskStatusRunning:
-		return []byte(s), nil
-	case TaskStatusCompleted:
-		return []byte(s), nil
-	case TaskStatusFailed:
-		return []byte(s), nil
-	default:
-		return nil, errors.Errorf("invalid value: %q", s)
-	}
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *TaskStatus) UnmarshalText(data []byte) error {
-	switch TaskStatus(data) {
-	case TaskStatusPending:
-		*s = TaskStatusPending
-		return nil
-	case TaskStatusRunning:
-		*s = TaskStatusRunning
-		return nil
-	case TaskStatusCompleted:
-		*s = TaskStatusCompleted
-		return nil
-	case TaskStatusFailed:
-		*s = TaskStatusFailed
-		return nil
-	default:
-		return errors.Errorf("invalid value: %q", data)
-	}
-}
 
 type UpdateBotByIdBadRequest Error
 

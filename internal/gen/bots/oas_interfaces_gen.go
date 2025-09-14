@@ -9,10 +9,6 @@ type CreateBotRes interface {
 	createBotRes()
 }
 
-type CreateTaskForBotWithProfileRes interface {
-	createTaskForBotWithProfileRes()
-}
-
 type DeleteBotByIdRes interface {
 	deleteBotByIdRes()
 }
@@ -23,10 +19,6 @@ type GetBotByIdRes interface {
 
 type GetBotProfilesRes interface {
 	getBotProfilesRes()
-}
-
-type GetTaskByIdRes interface {
-	getTaskByIdRes()
 }
 
 type ListBotsRes interface {
