@@ -1,24 +1,38 @@
 FROM golang:1.24-alpine AS build
 
-WORKDIR /app
+WORKDIR /var/backend
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN go build -o /app/bots-server ./cmd/bots
+RUN go build -o migrate ./cmd/bots/migrate/main.go
+RUN go build -o main ./cmd/bots/main.go
 
-FROM alpine:3.20 AS prod
+
+FROM alpine:edge AS migrator
+RUN apk add --no-cache postgresql-client
+WORKDIR /app
+COPY --from=build /var/backend/migrate /app/migrate
+COPY --from=build /var/backend/assets/migrations/bots /app/migrations
+COPY ./configs/bots-local.yaml /app/configs/bots-local.yaml
+COPY .env /app/.env
+CMD ["./migrate","--env=local", "--config=./configs/bots-local.yaml", "up"]
+
+FROM alpine:edge AS prod
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
-COPY --from=build /app/bots-server .
-COPY configs/ ./configs/
+
+COPY --from=build /var/backend/main /app/main
+COPY ./configs/bots-local.yaml /app/configs/bots-local.yaml
+COPY .env /app/.env
 
 RUN chown -R appuser:appgroup /app
+
 USER appuser
 EXPOSE 8001
 
-ENTRYPOINT ["./bots-server", "--env=local", "--config=./configs/bots-local.yaml"]
+ENTRYPOINT ["/app/main", "--env=local", "--config=./configs/bots-local.yaml"]

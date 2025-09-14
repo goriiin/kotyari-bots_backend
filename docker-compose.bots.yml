@@ -12,12 +12,33 @@ services:
       - bots_pgdata:/var/lib/postgresql/data
     networks:
       - kotyari-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_BOTS_DATABASE_USER} -d ${LOCAL_BOTS_DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
+
+  bots_migrate:
+    build:
+      context: .
+      dockerfile: ./cmd/bots/Dockerfile
+      target: migrator
+    container_name: bots_migrate
+    image: bots_migrate_image
+    env_file: .env
+    networks:
+      - kotyari-network
+    depends_on:
+      bots_db:
+        condition: service_healthy
+    restart: on-failure
 
   bots_go:
     build:
       context: .
       dockerfile: ./cmd/bots/Dockerfile
+      target: prod
     container_name: bots_go
     image: bots_go_image
     env_file: .env
@@ -26,7 +47,8 @@ services:
     networks:
       - kotyari-network
     depends_on:
-      - bots_db
+      bots_migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
 
 networks:
@@ -35,4 +57,3 @@ networks:
 
 volumes:
   bots_pgdata:
-  profiles_pgdata:
