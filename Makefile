@@ -116,9 +116,24 @@ example-run:
 example-run-local:  ## Запустить в local режиме
 	@go run cmd/example/main.go --env=local --config="./configs/local-config.yaml"
 
-example-run-prod:  ## Запустить в production режиме
+example-run-prod:
 	@go run cmd/example/main.go --env=prod
 
+bots-migrate-create: install-migrate
+	@read -p "Enter migration name: " name; \
+	migrate create -ext sql -dir assets/migrations/bots -seq $$name
+
+bots-migrate-up: ## Применить миграции для сервиса bots
+	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local-config.yaml" up
+
+bots-migrate-down: ## Откатить миграции для сервиса bots
+	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local-config.yaml" down
+
+install-migrate:
+	@if ! command -v migrate &> /dev/null; then \
+		echo "migrate CLI not found. Installing..."; \
+		go install -tags 'pgx5' github.com/golang-migrate/migrate/v4/cmd/migrate@latest; \
+	fi
 
 .PHONY: download-lint download-gci lint format format-check check help api
 
