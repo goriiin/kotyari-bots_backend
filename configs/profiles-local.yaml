@@ -1,0 +1,12 @@
+profiles_api:
+  host: "0.0.0.0"
+  port: 8003
+  grpc_port: 8002
+
+profiles_database:
+  host: "profiles_db"
+  port: 5432
+  user: "profiles_user"
+  password: "profiles_password"
+  name: "profiles_db"
+  sslmode: "disable"
