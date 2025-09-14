@@ -70,7 +70,7 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 		defer close(redditAPIResponses)
 		if err := g.Wait(); err != nil {
 			// TODO: add error behaviour
-			r.log.Error().Err(err).Msg("failed wait")
+			r.log.Error(err, false, "failed wait")
 		}
 	}()
 

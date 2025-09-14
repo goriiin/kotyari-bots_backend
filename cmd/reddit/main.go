@@ -30,6 +30,6 @@ func main() {
 	}
 
 	if err := app.Run(); err != nil {
-		app.Log.Fatal().Stack().Err(err).Msg("reddit app exited with error")
+		app.Log.Fatal(err, true, "reddit app exited with error")
 	}
 }

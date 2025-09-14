@@ -12,7 +12,6 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
 
-// TODO: вроде кринж
 const serviceName = "reddit-app"
 
 type RedditAPIDelivery interface {

@@ -13,7 +13,7 @@ func (a *AggregatorDelivery) Run() error {
 	for batch := range messageBatches {
 		err := a.manager.AddTopics(ctx, batch)
 		if err != nil {
-			a.log.Error().Stack().Err(err).Msg("error happened while reading kafka messages")
+			a.log.Error(err, true, "error happened while reading kafka messages")
 		}
 	}
 

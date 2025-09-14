@@ -51,11 +51,11 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 					}
 
 					if errors.Is(err, context.Canceled) {
-						k.log.Warn().Err(err).Msg("kafka is shutting down")
+						k.log.Warn("kafka is shutting down", err)
 						return
 					}
 
-					k.log.Error().Err(err).Msg("unexpected error happened")
+					k.log.Error(err, false, "unexpected error happened")
 					return
 				}
 

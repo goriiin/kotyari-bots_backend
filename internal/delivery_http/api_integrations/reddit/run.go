@@ -22,7 +22,7 @@ func (r *RedditAPIDelivery) Run() error {
 	}
 
 	if err := runRequest(); err != nil {
-		r.log.Error().Stack().Err(err).Msg("error happened while performing request")
+		r.log.Error(err, true, "error happened while performing request")
 	}
 
 	ticker := time.NewTicker(r.interval)
@@ -30,7 +30,7 @@ func (r *RedditAPIDelivery) Run() error {
 
 	for range ticker.C {
 		if err := runRequest(); err != nil {
-			r.log.Error().Stack().Err(err).Msg("error happened while performing request")
+			r.log.Error(err, true, "error happened while performing request")
 		}
 	}
 

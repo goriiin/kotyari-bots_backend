@@ -27,6 +27,6 @@ func main() {
 	}
 
 	if err := app.Run(); err != nil {
-		app.Log.Fatal().Stack().Err(err).Msg("aggregator app exited with error")
+		app.Log.Fatal(err, true, "aggregator app exited with error")
 	}
 }
