@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package bots;
+
+option go_package = "github.com/goriiin/kotyari-bots_backend/gen/grpc/bots_profiles";
+
+service BotProfileService {
+  rpc GetBotWithProfiles(GetBotWithProfilesRequest) returns (Bot);
+
+  rpc GetProfileWithBot(GetProfileWithBotRequest) returns (GetProfileWithBotResponse);
+}
+
+message Bot {
+  string id = 1;
+  string bot_prompt = 2;
+  repeated Profile profiles = 3;
+}
+
+message Profile {
+  string id = 1;
+  string bot_id = 2;
+  string name = 3;
+  string email = 4;
+  string profile_prompt = 5;
+}
+
+
+message GetBotWithProfilesRequest {
+  string bot_id = 1;
+}
+
+message GetProfileWithBotRequest {
+  string profile_id = 1;
+}
+
+message GetProfileWithBotResponse {
+  Profile profile = 1;
+  Bot bot = 2;
+}
