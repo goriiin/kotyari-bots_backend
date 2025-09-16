@@ -20,6 +20,34 @@ help:
 	@echo "install-ogen - Установить или обновить генератор кода ogen."
 
 
+PROTO_DIR := ./api/protos
+
+GEN_DIR := gen
+
+PROTOC := protoc
+
+ENTITIES := $(shell find $(PROTO_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+
+# export PATH=$PATH:$(go env GOPATH)/bin
+
+$(ENTITIES):
+	@echo "Генерация кода для сущности $@..."
+	@mkdir -p $(PROTO_DIR)/$@/$(GEN_DIR)
+	@$(PROTOC) \
+		--proto_path=$(PROTO_DIR)/$@/proto \
+		--go_out=$(PROTO_DIR)/$@/$(GEN_DIR) \
+		--go_opt=paths=source_relative \
+		--go-grpc_out=$(PROTO_DIR)/$@/$(GEN_DIR) \
+		--go-grpc_opt=paths=source_relative \
+		$(PROTO_DIR)/$@/proto/*.proto
+	@echo "Генерация для $@ завершена."
+
+#proto-build:
+#	@echo "Entities: $(ENTITIES)"
+
+proto-build: $(ENTITIES)
+
+
 api: install-ogen
 	@echo "Начинаю генерацию кода для сервисов: $(SERVICES)"
 	$(foreach service,$(SERVICES),$(call generate-service,$(service)))

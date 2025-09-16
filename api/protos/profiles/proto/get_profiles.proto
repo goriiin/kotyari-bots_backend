@@ -12,10 +12,7 @@ service ProfileService {
 
 message Profile {
   string id = 1;
-  string bot_id = 2; // ?
-  string name = 3;
-  string email = 4;
-  string profile_prompt = 5;
+  string profile_prompt = 2;
 }
 
 message GetProfileRequest {
