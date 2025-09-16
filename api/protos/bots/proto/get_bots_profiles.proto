@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package bots;
 
-option go_package = "github.com/goriiin/kotyari-bots_backend/gen/grpc/bots_profiles";
+option go_package = "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen";
 
 service BotProfileService {
   rpc GetBotWithProfiles(GetBotWithProfilesRequest) returns (Bot);

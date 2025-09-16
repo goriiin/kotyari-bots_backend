@@ -34,7 +34,7 @@ install-ogen:
 define generate-service
 	@echo "--- Генерирую код для сервиса: $(1) ---"
 	@# Определяем пути
-	$(eval INPUT_FILE := ./api/$(1)/openapi.yaml)
+	$(eval INPUT_FILE := ./docs/$(1)/openapi.yaml)
 	$(eval OUTPUT_DIR := ./internal/gen/$(1))
 
 	@# Проверяем наличие исходного файла
