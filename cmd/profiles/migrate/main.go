@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/goriiin/kotyari-bots_backend/internal/apps/profiles"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 	"github.com/goriiin/kotyari-bots_backend/pkg/migrate"
-	"log"
 )
 
 func main() {
