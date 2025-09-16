@@ -1,6 +1,6 @@
 defalut: help
 
-SERVICES := $(shell find ./api -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+SERVICES := $(shell find ./docs -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 
 help:
 	@echo ''
