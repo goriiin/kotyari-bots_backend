@@ -7,7 +7,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-var Config = "profiles-config"
+var Config = "profiles-local"
 
 func main() {
 	cfg, err := config.New[profiles.ProfilesAppConfig]()
