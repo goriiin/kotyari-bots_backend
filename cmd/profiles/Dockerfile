@@ -1,32 +1,38 @@
-FROM golang:1.25-alpine3.22 AS build
+FROM golang:1.24-alpine AS build
 
 WORKDIR /var/backend
 
-COPY cmd/aggregator/main.go main.go
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
 
-#RUN apk add git
-#RUN --mount=type=cache,target=/go/pkg/mod/ \
-#    --mount=type=bind,source=go.sum,target=go.sum \
-#    --mount=type=bind,source=go.mod,target=go.mod \
-#    go mod download -x
+RUN go build -o migrate ./cmd/profiles/migrate/main.go
+RUN go build -o main ./cmd/profiles/main.go
 
+FROM alpine:edge AS migrator
+RUN apk add --no-cache postgresql-client
+WORKDIR /app
+COPY --from=build /var/backend/migrate /app/migrate
+COPY --from=build /var/backend/assets/migrations/profiles /app/migrations
+COPY ./configs/profiles-local.yaml /app/configs/profiles-local.yaml
+COPY .env /app/.env
+CMD ["./migrate", "--env=local", "--config=./configs/profiles-local.yaml", "up"]
 
-RUN go mod tidy
-RUN go build -o main main.go
+FROM alpine:edge AS prod
 
-FROM alpine:edge as prod
-
-RUN apk add bash
-
-COPY --from=build /var/backend/main /app/main
-COPY --from=build /var/backend/.env /app/.env
-
-
-RUN mkdir -p /app/internal/configs
-COPY configs app/configs
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
-EXPOSE 8000
 
-ENTRYPOINT exec ./main --env=local --config="./configs/docker-config.yaml"
+COPY --from=build /var/backend/main /app/main
+COPY ./configs/profiles-local.yaml /app/configs/profiles-local.yaml
+COPY .env /app/.env
+
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+EXPOSE 8003
+EXPOSE 8002
+
+ENTRYPOINT ["/app/main", "--env=local", "--config=./configs/profiles-local.yaml"]

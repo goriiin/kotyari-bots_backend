@@ -1,13 +1,11 @@
-version: '3.8'
-
 services:
   profiles_db:
     image: postgres:16-alpine
     container_name: profiles_db
     environment:
-      POSTGRES_USER: ${PROFILES_DB_USER}
-      POSTGRES_PASSWORD: ${PROFILES_DB_PASSWORD}
-      POSTGRES_DB: ${PROFILES_DB_NAME}
+      POSTGRES_USER: ${LOCAL_PROFILES_DATABASE_USER}
+      POSTGRES_PASSWORD: ${LOCAL_PROFILES_DATABASE_PASSWORD}
+      POSTGRES_DB: ${LOCAL_PROFILES_DATABASE_NAME}
     ports:
       - "5434:5432"
     volumes:
@@ -15,25 +13,42 @@ services:
     networks:
       - kotyari-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PROFILES_DB_USER} -d ${PROFILES_DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_PROFILES_DATABASE_USER} -d ${LOCAL_PROFILES_DATABASE_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
 
-  profiles_svc:
+  profiles_migrate:
     build:
       context: .
       dockerfile: ./cmd/profiles/Dockerfile
-    container_name: profiles_svc
+      target: migrator
+    container_name: profiles_migrate
+    image: profiles_migrate_image
     env_file: .env
-    ports:
-      - "8002:8002"
     networks:
       - kotyari-network
     depends_on:
       profiles_db:
         condition: service_healthy
+    restart: on-failure
+
+  profiles_go:
+    build:
+      context: .
+      dockerfile: ./cmd/profiles/Dockerfile
+      target: prod
+    container_name: profiles_go
+    env_file: .env
+    ports:
+      - "8003:8003"
+      - "8002:8002"
+    networks:
+      - kotyari-network
+    depends_on:
+      profiles_migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
 
 networks:
