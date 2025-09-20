@@ -19,6 +19,7 @@ func modelToDTO(bot *model.Bot, profiles []gen.Profile) *gen.Bot {
 		Name:               bot.Name,
 		SystemPrompt:       gen.NewOptString(bot.SystemPrompt),
 		ModerationRequired: bot.ModerationRequired,
+		AutoPublish:        bot.AutoPublish,
 		Profiles:           profiles,
 		CreatedAt:          bot.CreatedAt,
 		UpdatedAt:          bot.UpdateAt,

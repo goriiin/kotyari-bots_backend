@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS bots (
                                     moderation_required BOOLEAN NOT NULL DEFAULT FALSE,
                                     auto_publish BOOLEAN NOT NULL DEFAULT FALSE,
                                     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
-                                    profile_ids UUID[] NOT NULL DEFAULT '{}',
+                                    profile_ids UUID[] DEFAULT '{}',
                                     profiles_count INTEGER NOT NULL DEFAULT 0,
                                     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                                     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
