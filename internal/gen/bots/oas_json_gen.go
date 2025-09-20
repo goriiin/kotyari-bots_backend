@@ -202,6 +202,10 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 		e.Bool(s.ModerationRequired)
 	}
 	{
+		e.FieldStart("autoPublish")
+		e.Bool(s.AutoPublish)
+	}
+	{
 		e.FieldStart("createdAt")
 		json.EncodeDateTime(e, s.CreatedAt)
 	}
@@ -211,14 +215,15 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfBot = [7]string{
+var jsonFieldsNameOfBot = [8]string{
 	0: "id",
 	1: "name",
 	2: "profiles",
 	3: "systemPrompt",
 	4: "moderationRequired",
-	5: "createdAt",
-	6: "updatedAt",
+	5: "autoPublish",
+	6: "createdAt",
+	7: "updatedAt",
 }
 
 // Decode decodes Bot from json.
@@ -294,8 +299,20 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"moderationRequired\"")
 			}
-		case "createdAt":
+		case "autoPublish":
 			requiredBitSet[0] |= 1 << 5
+			if err := func() error {
+				v, err := d.Bool()
+				s.AutoPublish = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"autoPublish\"")
+			}
+		case "createdAt":
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -307,7 +324,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"createdAt\"")
 			}
 		case "updatedAt":
-			requiredBitSet[0] |= 1 << 6
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.UpdatedAt = v
@@ -328,7 +345,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b01110011,
+		0b11110011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

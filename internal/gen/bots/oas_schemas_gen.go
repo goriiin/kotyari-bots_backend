@@ -31,6 +31,7 @@ type Bot struct {
 	Profiles           []Profile `json:"profiles"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired bool      `json:"moderationRequired"`
+	AutoPublish        bool      `json:"autoPublish"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -58,6 +59,11 @@ func (s *Bot) GetSystemPrompt() OptString {
 // GetModerationRequired returns the value of ModerationRequired.
 func (s *Bot) GetModerationRequired() bool {
 	return s.ModerationRequired
+}
+
+// GetAutoPublish returns the value of AutoPublish.
+func (s *Bot) GetAutoPublish() bool {
+	return s.AutoPublish
 }
 
 // GetCreatedAt returns the value of CreatedAt.
@@ -93,6 +99,11 @@ func (s *Bot) SetSystemPrompt(val OptString) {
 // SetModerationRequired sets the value of ModerationRequired.
 func (s *Bot) SetModerationRequired(val bool) {
 	s.ModerationRequired = val
+}
+
+// SetAutoPublish sets the value of AutoPublish.
+func (s *Bot) SetAutoPublish(val bool) {
+	s.AutoPublish = val
 }
 
 // SetCreatedAt sets the value of CreatedAt.

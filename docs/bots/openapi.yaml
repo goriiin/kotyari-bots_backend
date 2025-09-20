@@ -4,7 +4,7 @@ info:
   description: "API для управления ботами, их профилями и задачами в рамках аккаунта."
   version: "1.0.0"
 servers:
-  - url: /api/v1
+  - url: http://localhost:8001
 tags:
   - name: "Bots"
     description: "Операции над ботами, принадлежащими аккаунту."
@@ -44,6 +44,9 @@ components:
         systemPrompt:
           type: string
         moderationRequired:
+          type: boolean
+          default: false
+        autoPublish:
           type: boolean
           default: false
         createdAt:

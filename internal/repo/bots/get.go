@@ -11,8 +11,8 @@ import (
 
 func (r *BotsRepository) Get(ctx context.Context, id uuid.UUID) (model.Bot, error) {
 	var out model.Bot
-	err := r.db.QueryRow(ctx, `select id, bot_name, system_prompt, moderation_required, profile_ids from bots where id=$1`, id).
-		Scan(&out.ID, &out.Name, &out.SystemPrompt, &out.ModerationRequired, &out.ProfileIDs)
+	err := r.db.QueryRow(ctx, `select id, bot_name, system_prompt, moderation_required, profile_ids,auto_publish from bots where id=$1`, id).
+		Scan(&out.ID, &out.Name, &out.SystemPrompt, &out.ModerationRequired, &out.ProfileIDs, &out.AutoPublish)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return model.Bot{}, constants.ErrNotFound
