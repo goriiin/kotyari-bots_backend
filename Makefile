@@ -99,6 +99,23 @@ format-check:
 
 check: lint format-check
 
+# параллельно
+up: copy-env network-up
+	@echo "Starting services in parallel..."
+	@$(MAKE) bots-up & \
+	$(MAKE) profiles-up & \
+	wait
+	@echo "All services are up and running."
+
+
+copy-env:
+	@if [ ! -f .env ]; then \
+		echo "Creating .env file from .env.example..."; \
+		cp .env.example .env; \
+	else \
+		echo ".env file already exists. Skipping."; \
+	fi
+
 bots-up: network-up
 	@echo "Starting bots service and dependencies..."
 	docker-compose -f docker-compose.bots.yml up -d --build

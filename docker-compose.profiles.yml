@@ -40,6 +40,7 @@ services:
       dockerfile: ./cmd/profiles/Dockerfile
       target: prod
     container_name: profiles_go
+    image: profiles_go_image
     env_file: .env
     ports:
       - "8003:8003"
