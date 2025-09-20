@@ -9,31 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type CookieAuth struct {
-	APIKey string
-	Roles  []string
-}
-
-// GetAPIKey returns the value of APIKey.
-func (s *CookieAuth) GetAPIKey() string {
-	return s.APIKey
-}
-
-// GetRoles returns the value of Roles.
-func (s *CookieAuth) GetRoles() []string {
-	return s.Roles
-}
-
-// SetAPIKey sets the value of APIKey.
-func (s *CookieAuth) SetAPIKey(val string) {
-	s.APIKey = val
-}
-
-// SetRoles sets the value of Roles.
-func (s *CookieAuth) SetRoles(val []string) {
-	s.Roles = val
-}
-
 type CreateMyProfileBadRequest Error
 
 func (*CreateMyProfileBadRequest) createMyProfileRes() {}
@@ -49,31 +24,6 @@ func (*CreateMyProfileInternalServerError) createMyProfileRes() {}
 type CreateMyProfileUnauthorized Error
 
 func (*CreateMyProfileUnauthorized) createMyProfileRes() {}
-
-type CsrfAuth struct {
-	APIKey string
-	Roles  []string
-}
-
-// GetAPIKey returns the value of APIKey.
-func (s *CsrfAuth) GetAPIKey() string {
-	return s.APIKey
-}
-
-// GetRoles returns the value of Roles.
-func (s *CsrfAuth) GetRoles() []string {
-	return s.Roles
-}
-
-// SetAPIKey sets the value of APIKey.
-func (s *CsrfAuth) SetAPIKey(val string) {
-	s.APIKey = val
-}
-
-// SetRoles sets the value of Roles.
-func (s *CsrfAuth) SetRoles(val []string) {
-	s.Roles = val
-}
 
 type DeleteProfileByIdInternalServerError Error
 

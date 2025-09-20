@@ -10,15 +10,15 @@ tags:
     description: "Операции, связанные с профилями пользователей."
 
 components:
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: session_id
-    csrfAuth:
-      type: apiKey
-      in: header
-      name: X-CSRF-Token
+#  securitySchemes:
+#    cookieAuth:
+#      type: apiKey
+#      in: cookie
+#      name: session_id
+#    csrfAuth:
+#      type: apiKey
+#      in: header
+#      name: X-CSRF-Token
 
   schemas:
     Profile:
@@ -215,9 +215,9 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-security:
-  - cookieAuth: []
-  - csrfAuth: []
+#security:
+#  - cookieAuth: []
+#  - csrfAuth: []
 
 paths:
   /profiles:
