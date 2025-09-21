@@ -14,17 +14,17 @@ func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBo
 		switch {
 		case errors.Is(err, constants.ErrNotFound):
 			return &gen.AddProfileToBotNotFound{
-				ErrorCode: constants.ErrNotFoundMsg,
+				ErrorCode: constants.NotFoundMsg,
 				Message:   err.Error(),
 			}, nil
 		case errors.Is(err, constants.ErrValidation):
 			return &gen.AddProfileToBotBadRequest{
-				ErrorCode: constants.ErrValidationMsg,
+				ErrorCode: constants.ValidationMsg,
 				Message:   err.Error(),
 			}, nil
 		case errors.Is(err, constants.ErrServiceUnavailable):
 			return &gen.AddProfileToBotInternalServerError{
-				ErrorCode: constants.ErrServiceUnavailableMsg,
+				ErrorCode: constants.ServiceUnavailableMsg,
 				Message:   err.Error(),
 			}, nil
 		default:
@@ -36,7 +36,7 @@ func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBo
 
 func (h *Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesParams) (gen.GetBotProfilesRes, error) {
 	return &gen.GetBotProfilesNotFound{
-		ErrorCode: constants.ErrNotImplementedMsg,
+		ErrorCode: constants.NotImplementedMsg,
 		Message:   "not implemented",
 	}, nil
 }
@@ -47,12 +47,12 @@ func (h *Handler) RemoveProfileFromBot(ctx context.Context, params gen.RemovePro
 		switch {
 		case errors.Is(err, constants.ErrNotFound):
 			return &gen.RemoveProfileFromBotNotFound{
-				ErrorCode: constants.ErrNotFoundMsg,
+				ErrorCode: constants.NotFoundMsg,
 				Message:   err.Error(),
 			}, nil
 		case errors.Is(err, constants.ErrServiceUnavailable):
 			return &gen.RemoveProfileFromBotInternalServerError{
-				ErrorCode: constants.ErrServiceUnavailableMsg,
+				ErrorCode: constants.ServiceUnavailableMsg,
 				Message:   err.Error(),
 			}, nil
 		default:

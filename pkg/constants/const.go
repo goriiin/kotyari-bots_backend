@@ -15,13 +15,13 @@ const (
 )
 
 const (
-	ErrValidationMsg         = "VALIDATION_ERROR"
-	ErrNotFoundMsg           = "NOT_FOUND"
-	ErrConflictMsg           = "CONFLICT"
-	ErrInternalMsg           = "INTERNAL_ERROR"
-	ErrNotImplementedMsg     = "NOT_IMPLEMENTED"
-	ErrServiceUnavailableMsg = "SERVICE_UNAVAILABLE"
-	ErrUnauthorizedMsg       = "UNAUTHORIZED"
-	ErrInvalidMsg            = "INVALID_ERROR"
-	ErrRequiredMsg           = "REQUIRED_ERROR"
+	ValidationMsg         = "VALIDATION_ERROR"
+	NotFoundMsg           = "NOT_FOUND"
+	ConflictMsg           = "CONFLICT"
+	InternalMsg           = "INTERNAL_ERROR"
+	NotImplementedMsg     = "NOT_IMPLEMENTED"
+	ServiceUnavailableMsg = "SERVICE_UNAVAILABLE"
+	UnauthorizedMsg       = "UNAUTHORIZED"
+	InvalidMsg            = "INVALID_ERROR"
+	RequiredMsg           = "REQUIRED_ERROR"
 )

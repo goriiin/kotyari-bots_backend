@@ -3,12 +3,12 @@ package constants
 import "errors"
 
 var (
-	ErrNotFound           = errors.New(ErrNotFoundMsg)
-	ErrInvalid            = errors.New(ErrInvalidMsg)
-	ErrRequired           = errors.New(ErrRequiredMsg)
-	ErrValidation         = errors.New(ErrValidationMsg)
-	ErrServiceUnavailable = errors.New(ErrServiceUnavailableMsg)
-	ErrConflict           = errors.New(ErrConflictMsg)
-	ErrInternal           = errors.New(ErrInternalMsg)
-	ErrUnauthorized       = errors.New(ErrUnauthorizedMsg)
+	ErrNotFound           = errors.New(NotFoundMsg)
+	ErrInvalid            = errors.New(InvalidMsg)
+	ErrRequired           = errors.New(RequiredMsg)
+	ErrValidation         = errors.New(ValidationMsg)
+	ErrServiceUnavailable = errors.New(ServiceUnavailableMsg)
+	ErrConflict           = errors.New(ConflictMsg)
+	ErrInternal           = errors.New(InternalMsg)
+	ErrUnauthorized       = errors.New(UnauthorizedMsg)
 )

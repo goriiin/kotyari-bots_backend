@@ -78,6 +78,66 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case 's': // Prefix: "s"
+					origElem := elem
+					if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						break
+					}
+					switch elem[0] {
+					case 'e': // Prefix: "earch"
+
+						if l := len("earch"); len(elem) >= l && elem[0:l] == "earch" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "GET":
+								s.handleSearchBotsRequest([0]string{}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "GET")
+							}
+
+							return
+						}
+
+					case 'u': // Prefix: "ummary"
+
+						if l := len("ummary"); len(elem) >= l && elem[0:l] == "ummary" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "GET":
+								s.handleSummaryBotsRequest([0]string{}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "GET")
+							}
+
+							return
+						}
+
+					}
+
+					elem = origElem
+				}
 				// Param: "botId"
 				// Match until "/"
 				idx := strings.IndexByte(elem, '/')
@@ -291,6 +351,74 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case 's': // Prefix: "s"
+					origElem := elem
+					if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						break
+					}
+					switch elem[0] {
+					case 'e': // Prefix: "earch"
+
+						if l := len("earch"); len(elem) >= l && elem[0:l] == "earch" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "GET":
+								r.name = SearchBotsOperation
+								r.summary = "Поиск ботов по названию или системному промпту"
+								r.operationID = "SearchBots"
+								r.pathPattern = "/api/v1/bots/search"
+								r.args = args
+								r.count = 0
+								return r, true
+							default:
+								return
+							}
+						}
+
+					case 'u': // Prefix: "ummary"
+
+						if l := len("ummary"); len(elem) >= l && elem[0:l] == "ummary" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "GET":
+								r.name = SummaryBotsOperation
+								r.summary = "Получить сводную информацию по ботам"
+								r.operationID = "SummaryBots"
+								r.pathPattern = "/api/v1/bots/summary"
+								r.args = args
+								r.count = 0
+								return r, true
+							default:
+								return
+							}
+						}
+
+					}
+
+					elem = origElem
+				}
 				// Param: "botId"
 				// Match until "/"
 				idx := strings.IndexByte(elem, '/')

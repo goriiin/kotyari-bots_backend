@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
+	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
 )
 
 func (h *Handler) UpdateBotById(ctx context.Context, req *gen.BotInput, params gen.UpdateBotByIdParams) (gen.UpdateBotByIdRes, error) {
@@ -22,11 +23,11 @@ func (h *Handler) UpdateBotById(ctx context.Context, req *gen.BotInput, params g
 			profileIDsStr[i] = pid.String()
 		}
 
-		grpcResp, err := h.client.GetProfilesByIDs(ctx, &profiles.GetProfilesByIDsRequest{
+		grpcResp, err := h.client.GetProfiles(ctx, &profiles.GetProfilesRequest{
 			ProfileIds: profileIDsStr,
 		})
 		if err != nil {
-			log.Printf("failed to get profiles for bot %s: %v", bot.ID, err)
+			log.Printf("failed to get profiles for bot %s: %v", bot.ID, ierrors.GRPCToDomainError(err))
 		} else {
 			genProfiles = make([]gen.Profile, len(grpcResp.Profiles))
 			for i, p := range grpcResp.Profiles {

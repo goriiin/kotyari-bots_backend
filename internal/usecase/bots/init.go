@@ -15,6 +15,8 @@ type repository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	AddProfileID(ctx context.Context, botID, profileID uuid.UUID) error
 	RemoveProfileID(ctx context.Context, botID, profileID uuid.UUID) error
+	Search(ctx context.Context, query string) ([]model.Bot, error)
+	GetSummary(ctx context.Context) (model.BotsSummary, error)
 }
 
 type profileValidator interface {

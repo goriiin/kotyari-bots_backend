@@ -13,5 +13,7 @@ const (
 	GetBotProfilesOperation       OperationName = "GetBotProfiles"
 	ListBotsOperation             OperationName = "ListBots"
 	RemoveProfileFromBotOperation OperationName = "RemoveProfileFromBot"
+	SearchBotsOperation           OperationName = "SearchBots"
+	SummaryBotsOperation          OperationName = "SummaryBots"
 	UpdateBotByIdOperation        OperationName = "UpdateBotById"
 )

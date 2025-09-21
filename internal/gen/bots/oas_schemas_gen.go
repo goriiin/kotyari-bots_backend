@@ -218,7 +218,39 @@ func (s *BotList) SetNextCursor(val OptNilString) {
 	s.NextCursor = val
 }
 
-func (*BotList) listBotsRes() {}
+func (*BotList) listBotsRes()   {}
+func (*BotList) searchBotsRes() {}
+
+// Агрегированная информация о ботах.
+// Ref: #/components/schemas/BotsSummary
+type BotsSummary struct {
+	// Общее количество ботов в системе.
+	TotalBots int64 `json:"totalBots"`
+	// Общее количество привязанных профилей ко всем ботам.
+	TotalProfilesAttached int64 `json:"totalProfilesAttached"`
+}
+
+// GetTotalBots returns the value of TotalBots.
+func (s *BotsSummary) GetTotalBots() int64 {
+	return s.TotalBots
+}
+
+// GetTotalProfilesAttached returns the value of TotalProfilesAttached.
+func (s *BotsSummary) GetTotalProfilesAttached() int64 {
+	return s.TotalProfilesAttached
+}
+
+// SetTotalBots sets the value of TotalBots.
+func (s *BotsSummary) SetTotalBots(val int64) {
+	s.TotalBots = val
+}
+
+// SetTotalProfilesAttached sets the value of TotalProfilesAttached.
+func (s *BotsSummary) SetTotalProfilesAttached(val int64) {
+	s.TotalProfilesAttached = val
+}
+
+func (*BotsSummary) summaryBotsRes() {}
 
 type CreateBotBadRequest Error
 
@@ -288,6 +320,8 @@ func (s *Error) SetMessage(val string) {
 func (s *Error) SetDetails(val OptErrorDetails) {
 	s.Details = val
 }
+
+func (*Error) summaryBotsRes() {}
 
 // Дополнительные детали об ошибке, например, по полям.
 type ErrorDetails map[string]string
@@ -622,6 +656,14 @@ func (*RemoveProfileFromBotNotFound) removeProfileFromBotRes() {}
 type RemoveProfileFromBotUnauthorized Error
 
 func (*RemoveProfileFromBotUnauthorized) removeProfileFromBotRes() {}
+
+type SearchBotsBadRequest Error
+
+func (*SearchBotsBadRequest) searchBotsRes() {}
+
+type SearchBotsInternalServerError Error
+
+func (*SearchBotsInternalServerError) searchBotsRes() {}
 
 type UpdateBotByIdBadRequest Error
 

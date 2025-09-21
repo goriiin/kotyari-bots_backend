@@ -447,6 +447,64 @@ func decodeRemoveProfileFromBotParams(args [2]string, argsEscaped bool, r *http.
 	return params, nil
 }
 
+// SearchBotsParams is parameters of SearchBots operation.
+type SearchBotsParams struct {
+	// Строка для поиска.
+	Q string
+}
+
+func unpackSearchBotsParams(packed middleware.Parameters) (params SearchBotsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "q",
+			In:   "query",
+		}
+		params.Q = packed[key].(string)
+	}
+	return params
+}
+
+func decodeSearchBotsParams(args [0]string, argsEscaped bool, r *http.Request) (params SearchBotsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode query: q.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "q",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Q = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "q",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // UpdateBotByIdParams is parameters of UpdateBotById operation.
 type UpdateBotByIdParams struct {
 	BotId uuid.UUID
