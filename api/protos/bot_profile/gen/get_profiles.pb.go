@@ -89,27 +89,28 @@ func (x *Profile) GetPrompt() string {
 	return ""
 }
 
-type GetProfilesByIDsRequest struct {
+// --- Новые сообщения для GetProfiles ---
+type GetProfilesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProfileIds    []string               `protobuf:"bytes,1,rep,name=profile_ids,json=profileIds,proto3" json:"profile_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetProfilesByIDsRequest) Reset() {
-	*x = GetProfilesByIDsRequest{}
+func (x *GetProfilesRequest) Reset() {
+	*x = GetProfilesRequest{}
 	mi := &file_get_profiles_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetProfilesByIDsRequest) String() string {
+func (x *GetProfilesRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetProfilesByIDsRequest) ProtoMessage() {}
+func (*GetProfilesRequest) ProtoMessage() {}
 
-func (x *GetProfilesByIDsRequest) ProtoReflect() protoreflect.Message {
+func (x *GetProfilesRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_get_profiles_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -121,39 +122,39 @@ func (x *GetProfilesByIDsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetProfilesByIDsRequest.ProtoReflect.Descriptor instead.
-func (*GetProfilesByIDsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetProfilesRequest.ProtoReflect.Descriptor instead.
+func (*GetProfilesRequest) Descriptor() ([]byte, []int) {
 	return file_get_profiles_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetProfilesByIDsRequest) GetProfileIds() []string {
+func (x *GetProfilesRequest) GetProfileIds() []string {
 	if x != nil {
 		return x.ProfileIds
 	}
 	return nil
 }
 
-type GetProfilesByIDsResponse struct {
+type GetProfilesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Profiles      []*Profile             `protobuf:"bytes,1,rep,name=profiles,proto3" json:"profiles,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetProfilesByIDsResponse) Reset() {
-	*x = GetProfilesByIDsResponse{}
+func (x *GetProfilesResponse) Reset() {
+	*x = GetProfilesResponse{}
 	mi := &file_get_profiles_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetProfilesByIDsResponse) String() string {
+func (x *GetProfilesResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetProfilesByIDsResponse) ProtoMessage() {}
+func (*GetProfilesResponse) ProtoMessage() {}
 
-func (x *GetProfilesByIDsResponse) ProtoReflect() protoreflect.Message {
+func (x *GetProfilesResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_get_profiles_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -165,39 +166,40 @@ func (x *GetProfilesByIDsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetProfilesByIDsResponse.ProtoReflect.Descriptor instead.
-func (*GetProfilesByIDsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetProfilesResponse.ProtoReflect.Descriptor instead.
+func (*GetProfilesResponse) Descriptor() ([]byte, []int) {
 	return file_get_profiles_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *GetProfilesByIDsResponse) GetProfiles() []*Profile {
+func (x *GetProfilesResponse) GetProfiles() []*Profile {
 	if x != nil {
 		return x.Profiles
 	}
 	return nil
 }
 
-type GetPromptByIDRequest struct {
+// --- Новые сообщения для ProfilesExist ---
+type ProfilesExistRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProfileId     string                 `protobuf:"bytes,1,opt,name=profile_id,json=profileId,proto3" json:"profile_id,omitempty"`
+	ProfileIds    []string               `protobuf:"bytes,1,rep,name=profile_ids,json=profileIds,proto3" json:"profile_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetPromptByIDRequest) Reset() {
-	*x = GetPromptByIDRequest{}
+func (x *ProfilesExistRequest) Reset() {
+	*x = ProfilesExistRequest{}
 	mi := &file_get_profiles_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetPromptByIDRequest) String() string {
+func (x *ProfilesExistRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetPromptByIDRequest) ProtoMessage() {}
+func (*ProfilesExistRequest) ProtoMessage() {}
 
-func (x *GetPromptByIDRequest) ProtoReflect() protoreflect.Message {
+func (x *ProfilesExistRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_get_profiles_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -209,39 +211,39 @@ func (x *GetPromptByIDRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetPromptByIDRequest.ProtoReflect.Descriptor instead.
-func (*GetPromptByIDRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProfilesExistRequest.ProtoReflect.Descriptor instead.
+func (*ProfilesExistRequest) Descriptor() ([]byte, []int) {
 	return file_get_profiles_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *GetPromptByIDRequest) GetProfileId() string {
+func (x *ProfilesExistRequest) GetProfileIds() []string {
 	if x != nil {
-		return x.ProfileId
+		return x.ProfileIds
 	}
-	return ""
+	return nil
 }
 
-type GetPromptByIDResponse struct {
+type ProfilesExistResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Prompt        string                 `protobuf:"bytes,1,opt,name=prompt,proto3" json:"prompt,omitempty"`
+	ExistenceMap  map[string]bool        `protobuf:"bytes,1,rep,name=existence_map,json=existenceMap,proto3" json:"existence_map,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetPromptByIDResponse) Reset() {
-	*x = GetPromptByIDResponse{}
+func (x *ProfilesExistResponse) Reset() {
+	*x = ProfilesExistResponse{}
 	mi := &file_get_profiles_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetPromptByIDResponse) String() string {
+func (x *ProfilesExistResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetPromptByIDResponse) ProtoMessage() {}
+func (*ProfilesExistResponse) ProtoMessage() {}
 
-func (x *GetPromptByIDResponse) ProtoReflect() protoreflect.Message {
+func (x *ProfilesExistResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_get_profiles_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -253,16 +255,16 @@ func (x *GetPromptByIDResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetPromptByIDResponse.ProtoReflect.Descriptor instead.
-func (*GetPromptByIDResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProfilesExistResponse.ProtoReflect.Descriptor instead.
+func (*ProfilesExistResponse) Descriptor() ([]byte, []int) {
 	return file_get_profiles_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *GetPromptByIDResponse) GetPrompt() string {
+func (x *ProfilesExistResponse) GetExistenceMap() map[string]bool {
 	if x != nil {
-		return x.Prompt
+		return x.ExistenceMap
 	}
-	return ""
+	return nil
 }
 
 var File_get_profiles_proto protoreflect.FileDescriptor
@@ -274,20 +276,23 @@ const file_get_profiles_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x16\n" +
-	"\x06prompt\x18\x04 \x01(\tR\x06prompt\":\n" +
-	"\x17GetProfilesByIDsRequest\x12\x1f\n" +
+	"\x06prompt\x18\x04 \x01(\tR\x06prompt\"5\n" +
+	"\x12GetProfilesRequest\x12\x1f\n" +
 	"\vprofile_ids\x18\x01 \x03(\tR\n" +
-	"profileIds\"I\n" +
-	"\x18GetProfilesByIDsResponse\x12-\n" +
-	"\bprofiles\x18\x01 \x03(\v2\x11.profiles.ProfileR\bprofiles\"5\n" +
-	"\x14GetPromptByIDRequest\x12\x1d\n" +
-	"\n" +
-	"profile_id\x18\x01 \x01(\tR\tprofileId\"/\n" +
-	"\x15GetPromptByIDResponse\x12\x16\n" +
-	"\x06prompt\x18\x01 \x01(\tR\x06prompt2\xbe\x01\n" +
-	"\x0fProfilesService\x12Y\n" +
-	"\x10GetProfilesByIDs\x12!.profiles.GetProfilesByIDsRequest\x1a\".profiles.GetProfilesByIDsResponse\x12P\n" +
-	"\rGetPromptByID\x12\x1e.profiles.GetPromptByIDRequest\x1a\x1f.profiles.GetPromptByIDResponseB;Z9github.com/goriiin/kotyari-bots_backend/gen/grpc/profilesb\x06proto3"
+	"profileIds\"D\n" +
+	"\x13GetProfilesResponse\x12-\n" +
+	"\bprofiles\x18\x01 \x03(\v2\x11.profiles.ProfileR\bprofiles\"7\n" +
+	"\x14ProfilesExistRequest\x12\x1f\n" +
+	"\vprofile_ids\x18\x01 \x03(\tR\n" +
+	"profileIds\"\xb0\x01\n" +
+	"\x15ProfilesExistResponse\x12V\n" +
+	"\rexistence_map\x18\x01 \x03(\v21.profiles.ProfilesExistResponse.ExistenceMapEntryR\fexistenceMap\x1a?\n" +
+	"\x11ExistenceMapEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x012\xaf\x01\n" +
+	"\x0fProfilesService\x12J\n" +
+	"\vGetProfiles\x12\x1c.profiles.GetProfilesRequest\x1a\x1d.profiles.GetProfilesResponse\x12P\n" +
+	"\rProfilesExist\x12\x1e.profiles.ProfilesExistRequest\x1a\x1f.profiles.ProfilesExistResponseB?Z=github.com/goriiin/kotyari-bots_backend/api/gen/grpc/profilesb\x06proto3"
 
 var (
 	file_get_profiles_proto_rawDescOnce sync.Once
@@ -301,25 +306,27 @@ func file_get_profiles_proto_rawDescGZIP() []byte {
 	return file_get_profiles_proto_rawDescData
 }
 
-var file_get_profiles_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_get_profiles_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_get_profiles_proto_goTypes = []any{
-	(*Profile)(nil),                  // 0: profiles.Profile
-	(*GetProfilesByIDsRequest)(nil),  // 1: profiles.GetProfilesByIDsRequest
-	(*GetProfilesByIDsResponse)(nil), // 2: profiles.GetProfilesByIDsResponse
-	(*GetPromptByIDRequest)(nil),     // 3: profiles.GetPromptByIDRequest
-	(*GetPromptByIDResponse)(nil),    // 4: profiles.GetPromptByIDResponse
+	(*Profile)(nil),               // 0: profiles.Profile
+	(*GetProfilesRequest)(nil),    // 1: profiles.GetProfilesRequest
+	(*GetProfilesResponse)(nil),   // 2: profiles.GetProfilesResponse
+	(*ProfilesExistRequest)(nil),  // 3: profiles.ProfilesExistRequest
+	(*ProfilesExistResponse)(nil), // 4: profiles.ProfilesExistResponse
+	nil,                           // 5: profiles.ProfilesExistResponse.ExistenceMapEntry
 }
 var file_get_profiles_proto_depIdxs = []int32{
-	0, // 0: profiles.GetProfilesByIDsResponse.profiles:type_name -> profiles.Profile
-	1, // 1: profiles.ProfilesService.GetProfilesByIDs:input_type -> profiles.GetProfilesByIDsRequest
-	3, // 2: profiles.ProfilesService.GetPromptByID:input_type -> profiles.GetPromptByIDRequest
-	2, // 3: profiles.ProfilesService.GetProfilesByIDs:output_type -> profiles.GetProfilesByIDsResponse
-	4, // 4: profiles.ProfilesService.GetPromptByID:output_type -> profiles.GetPromptByIDResponse
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 0: profiles.GetProfilesResponse.profiles:type_name -> profiles.Profile
+	5, // 1: profiles.ProfilesExistResponse.existence_map:type_name -> profiles.ProfilesExistResponse.ExistenceMapEntry
+	1, // 2: profiles.ProfilesService.GetProfiles:input_type -> profiles.GetProfilesRequest
+	3, // 3: profiles.ProfilesService.ProfilesExist:input_type -> profiles.ProfilesExistRequest
+	2, // 4: profiles.ProfilesService.GetProfiles:output_type -> profiles.GetProfilesResponse
+	4, // 5: profiles.ProfilesService.ProfilesExist:output_type -> profiles.ProfilesExistResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_get_profiles_proto_init() }
@@ -333,7 +340,7 @@ func file_get_profiles_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_get_profiles_proto_rawDesc), len(file_get_profiles_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

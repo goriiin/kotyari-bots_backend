@@ -19,16 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProfilesService_GetProfilesByIDs_FullMethodName = "/profiles.ProfilesService/GetProfilesByIDs"
-	ProfilesService_GetPromptByID_FullMethodName    = "/profiles.ProfilesService/GetPromptByID"
+	ProfilesService_GetProfiles_FullMethodName   = "/profiles.ProfilesService/GetProfiles"
+	ProfilesService_ProfilesExist_FullMethodName = "/profiles.ProfilesService/ProfilesExist"
 )
 
 // ProfilesServiceClient is the client API for ProfilesService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProfilesServiceClient interface {
-	GetProfilesByIDs(ctx context.Context, in *GetProfilesByIDsRequest, opts ...grpc.CallOption) (*GetProfilesByIDsResponse, error)
-	GetPromptByID(ctx context.Context, in *GetPromptByIDRequest, opts ...grpc.CallOption) (*GetPromptByIDResponse, error)
+	// Получает полную информацию о профилях по их ID.
+	GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error)
+	// Проверяет существование профилей по их ID.
+	// Возвращает карту, где ключ - ID профиля, а значение - true, если он существует.
+	// Отсутствующие в ответе ID следует считать несуществующими.
+	ProfilesExist(ctx context.Context, in *ProfilesExistRequest, opts ...grpc.CallOption) (*ProfilesExistResponse, error)
 }
 
 type profilesServiceClient struct {
@@ -39,20 +43,20 @@ func NewProfilesServiceClient(cc grpc.ClientConnInterface) ProfilesServiceClient
 	return &profilesServiceClient{cc}
 }
 
-func (c *profilesServiceClient) GetProfilesByIDs(ctx context.Context, in *GetProfilesByIDsRequest, opts ...grpc.CallOption) (*GetProfilesByIDsResponse, error) {
+func (c *profilesServiceClient) GetProfiles(ctx context.Context, in *GetProfilesRequest, opts ...grpc.CallOption) (*GetProfilesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetProfilesByIDsResponse)
-	err := c.cc.Invoke(ctx, ProfilesService_GetProfilesByIDs_FullMethodName, in, out, cOpts...)
+	out := new(GetProfilesResponse)
+	err := c.cc.Invoke(ctx, ProfilesService_GetProfiles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *profilesServiceClient) GetPromptByID(ctx context.Context, in *GetPromptByIDRequest, opts ...grpc.CallOption) (*GetPromptByIDResponse, error) {
+func (c *profilesServiceClient) ProfilesExist(ctx context.Context, in *ProfilesExistRequest, opts ...grpc.CallOption) (*ProfilesExistResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetPromptByIDResponse)
-	err := c.cc.Invoke(ctx, ProfilesService_GetPromptByID_FullMethodName, in, out, cOpts...)
+	out := new(ProfilesExistResponse)
+	err := c.cc.Invoke(ctx, ProfilesService_ProfilesExist_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +67,12 @@ func (c *profilesServiceClient) GetPromptByID(ctx context.Context, in *GetPrompt
 // All implementations must embed UnimplementedProfilesServiceServer
 // for forward compatibility.
 type ProfilesServiceServer interface {
-	GetProfilesByIDs(context.Context, *GetProfilesByIDsRequest) (*GetProfilesByIDsResponse, error)
-	GetPromptByID(context.Context, *GetPromptByIDRequest) (*GetPromptByIDResponse, error)
+	// Получает полную информацию о профилях по их ID.
+	GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error)
+	// Проверяет существование профилей по их ID.
+	// Возвращает карту, где ключ - ID профиля, а значение - true, если он существует.
+	// Отсутствующие в ответе ID следует считать несуществующими.
+	ProfilesExist(context.Context, *ProfilesExistRequest) (*ProfilesExistResponse, error)
 	mustEmbedUnimplementedProfilesServiceServer()
 }
 
@@ -75,11 +83,11 @@ type ProfilesServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProfilesServiceServer struct{}
 
-func (UnimplementedProfilesServiceServer) GetProfilesByIDs(context.Context, *GetProfilesByIDsRequest) (*GetProfilesByIDsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProfilesByIDs not implemented")
+func (UnimplementedProfilesServiceServer) GetProfiles(context.Context, *GetProfilesRequest) (*GetProfilesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProfiles not implemented")
 }
-func (UnimplementedProfilesServiceServer) GetPromptByID(context.Context, *GetPromptByIDRequest) (*GetPromptByIDResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPromptByID not implemented")
+func (UnimplementedProfilesServiceServer) ProfilesExist(context.Context, *ProfilesExistRequest) (*ProfilesExistResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ProfilesExist not implemented")
 }
 func (UnimplementedProfilesServiceServer) mustEmbedUnimplementedProfilesServiceServer() {}
 func (UnimplementedProfilesServiceServer) testEmbeddedByValue()                         {}
@@ -102,38 +110,38 @@ func RegisterProfilesServiceServer(s grpc.ServiceRegistrar, srv ProfilesServiceS
 	s.RegisterService(&ProfilesService_ServiceDesc, srv)
 }
 
-func _ProfilesService_GetProfilesByIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProfilesByIDsRequest)
+func _ProfilesService_GetProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProfilesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProfilesServiceServer).GetProfilesByIDs(ctx, in)
+		return srv.(ProfilesServiceServer).GetProfiles(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProfilesService_GetProfilesByIDs_FullMethodName,
+		FullMethod: ProfilesService_GetProfiles_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfilesServiceServer).GetProfilesByIDs(ctx, req.(*GetProfilesByIDsRequest))
+		return srv.(ProfilesServiceServer).GetProfiles(ctx, req.(*GetProfilesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ProfilesService_GetPromptByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPromptByIDRequest)
+func _ProfilesService_ProfilesExist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProfilesExistRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProfilesServiceServer).GetPromptByID(ctx, in)
+		return srv.(ProfilesServiceServer).ProfilesExist(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProfilesService_GetPromptByID_FullMethodName,
+		FullMethod: ProfilesService_ProfilesExist_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfilesServiceServer).GetPromptByID(ctx, req.(*GetPromptByIDRequest))
+		return srv.(ProfilesServiceServer).ProfilesExist(ctx, req.(*ProfilesExistRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -146,12 +154,12 @@ var ProfilesService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ProfilesServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetProfilesByIDs",
-			Handler:    _ProfilesService_GetProfilesByIDs_Handler,
+			MethodName: "GetProfiles",
+			Handler:    _ProfilesService_GetProfiles_Handler,
 		},
 		{
-			MethodName: "GetPromptByID",
-			Handler:    _ProfilesService_GetPromptByID_Handler,
+			MethodName: "ProfilesExist",
+			Handler:    _ProfilesService_ProfilesExist_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

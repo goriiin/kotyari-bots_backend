@@ -2,12 +2,16 @@ syntax = "proto3";
 
 package profiles;
 
-option go_package = "github.com/goriiin/kotyari-bots_backend/gen/grpc/profiles";
+option go_package = "github.com/goriiin/kotyari-bots_backend/api/gen/grpc/profiles";
 
 service ProfilesService {
-  rpc GetProfilesByIDs(GetProfilesByIDsRequest) returns (GetProfilesByIDsResponse);
+  // Получает полную информацию о профилях по их ID.
+  rpc GetProfiles(GetProfilesRequest) returns (GetProfilesResponse);
 
-  rpc GetPromptByID(GetPromptByIDRequest) returns (GetPromptByIDResponse);
+  // Проверяет существование профилей по их ID.
+  // Возвращает карту, где ключ - ID профиля, а значение - true, если он существует.
+  // Отсутствующие в ответе ID следует считать несуществующими.
+  rpc ProfilesExist(ProfilesExistRequest) returns (ProfilesExistResponse);
 }
 
 message Profile {
@@ -17,18 +21,20 @@ message Profile {
   string prompt = 4;
 }
 
-message GetProfilesByIDsRequest {
+// --- Новые сообщения для GetProfiles ---
+message GetProfilesRequest {
   repeated string profile_ids = 1;
 }
 
-message GetProfilesByIDsResponse {
+message GetProfilesResponse {
   repeated Profile profiles = 1;
 }
 
-message GetPromptByIDRequest {
-  string profile_id = 1;
+// --- Новые сообщения для ProfilesExist ---
+message ProfilesExistRequest {
+  repeated string profile_ids = 1;
 }
 
-message GetPromptByIDResponse {
-  string prompt = 1;
+message ProfilesExistResponse {
+  map<string, bool> existence_map = 1;
 }
