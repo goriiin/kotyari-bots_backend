@@ -50,6 +50,18 @@ type Handler interface {
 	//
 	// DELETE /api/v1/bots/{botId}/profiles/{profileId}
 	RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (RemoveProfileFromBotRes, error)
+	// SearchBots implements SearchBots operation.
+	//
+	// Поиск ботов по названию или системному промпту.
+	//
+	// GET /api/v1/bots/search
+	SearchBots(ctx context.Context, params SearchBotsParams) (SearchBotsRes, error)
+	// SummaryBots implements SummaryBots operation.
+	//
+	// Получить сводную информацию по ботам.
+	//
+	// GET /api/v1/bots/summary
+	SummaryBots(ctx context.Context) (SummaryBotsRes, error)
 	// UpdateBotById implements UpdateBotById operation.
 	//
 	// Полностью обновить бота по ID.

@@ -29,6 +29,14 @@ type RemoveProfileFromBotRes interface {
 	removeProfileFromBotRes()
 }
 
+type SearchBotsRes interface {
+	searchBotsRes()
+}
+
+type SummaryBotsRes interface {
+	summaryBotsRes()
+}
+
 type UpdateBotByIdRes interface {
 	updateBotByIdRes()
 }

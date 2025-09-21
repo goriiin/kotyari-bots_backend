@@ -3,7 +3,6 @@ package ierrors
 import (
 	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
-	constants2 "github.com/goriiin/kotyari-bots_backend/pkg/constants"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -16,9 +15,9 @@ func GRPCToDomainError(err error) error {
 
 	switch st.Code() {
 	case codes.NotFound:
-		return constants2.ErrNotFound
+		return constants.ErrNotFound
 	case codes.InvalidArgument:
-		return errors.Wrap(constants2.ErrValidation, st.Message())
+		return errors.Wrap(constants.ErrValidation, st.Message())
 	case codes.AlreadyExists:
 		return errors.Wrap(constants.ErrConflict, st.Message())
 	case codes.Unauthenticated:
@@ -34,13 +33,13 @@ func GRPCToDomainError(err error) error {
 
 func DomainToGRPCError(err error) error {
 	switch {
-	case errors.Is(err, constants2.ErrNotFound):
+	case errors.Is(err, constants.ErrNotFound):
 		return status.Error(codes.NotFound, err.Error())
-	case errors.Is(err, constants2.ErrValidation):
+	case errors.Is(err, constants.ErrValidation):
 		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, constants2.ErrInvalid):
+	case errors.Is(err, constants.ErrInvalid):
 		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, constants2.ErrRequired):
+	case errors.Is(err, constants.ErrRequired):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, constants.ErrConflict):
 		return status.Error(codes.AlreadyExists, err.Error())

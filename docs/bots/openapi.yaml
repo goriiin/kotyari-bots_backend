@@ -106,6 +106,22 @@ components:
         autoPublish:
           type: boolean
 
+    BotsSummary:
+      type: object
+      description: "Агрегированная информация о ботах."
+      properties:
+        totalBots:
+          type: integer
+          format: int64
+          description: "Общее количество ботов в системе."
+        totalProfilesAttached:
+          type: integer
+          format: int64
+          description: "Общее количество привязанных профилей ко всем ботам."
+      required:
+        - totalBots
+        - totalProfilesAttached
+
     Profile:
       type: object
       description: "Представление профиля, связанного с ботом."
@@ -352,6 +368,45 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/bots/summary:
+    get:
+      summary: "Получить сводную информацию по ботам"
+      operationId: "SummaryBots"
+      tags: [ "BotsSummary" ]
+      responses:
+        '200':
+          description: "Успешный ответ со сводной информацией."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotsSummary'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/bots/search:
+    get:
+      summary: "Поиск ботов по названию или системному промпту"
+      operationId: "SearchBots"
+      tags: [ "Bots" ]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: "Строка для поиска."
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Успешный ответ со списком найденных ботов."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalServerError'
 

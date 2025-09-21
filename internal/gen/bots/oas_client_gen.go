@@ -82,6 +82,18 @@ type Invoker interface {
 	//
 	// DELETE /bots/{botId}/profiles/{profileId}
 	RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (RemoveProfileFromBotRes, error)
+	// SearchBots invokes SearchBots operation.
+	//
+	// Поиск ботов по названию или системному промпту.
+	//
+	// GET /api/v1/bots/search
+	SearchBots(ctx context.Context, params SearchBotsParams) (SearchBotsRes, error)
+	// SummaryBots invokes SummaryBots operation.
+	//
+	// Получить сводную информацию по ботам.
+	//
+	// GET /api/v1/bots/summary
+	SummaryBots(ctx context.Context) (SummaryBotsRes, error)
 	// UpdateBotById invokes UpdateBotById operation.
 	//
 	// Полностью обновить бота по ID.
@@ -1419,6 +1431,168 @@ func (c *Client) sendRemoveProfileFromBot(ctx context.Context, params RemoveProf
 
 	stage = "DecodeResponse"
 	result, err := decodeRemoveProfileFromBotResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// SearchBots invokes SearchBots operation.
+//
+// Поиск ботов по названию или системному промпту.
+//
+// GET /api/v1/bots/search
+func (c *Client) SearchBots(ctx context.Context, params SearchBotsParams) (SearchBotsRes, error) {
+	res, err := c.sendSearchBots(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendSearchBots(ctx context.Context, params SearchBotsParams) (res SearchBotsRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("SearchBots"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/search"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, SearchBotsOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/api/v1/bots/search"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeQueryParams"
+	q := uri.NewQueryEncoder()
+	{
+		// Encode "q" parameter.
+		cfg := uri.QueryParameterEncodingConfig{
+			Name:    "q",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.StringToString(params.Q))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode query")
+		}
+	}
+	u.RawQuery = q.Values().Encode()
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeSearchBotsResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// SummaryBots invokes SummaryBots operation.
+//
+// Получить сводную информацию по ботам.
+//
+// GET /api/v1/bots/summary
+func (c *Client) SummaryBots(ctx context.Context) (SummaryBotsRes, error) {
+	res, err := c.sendSummaryBots(ctx)
+	return res, err
+}
+
+func (c *Client) sendSummaryBots(ctx context.Context) (res SummaryBotsRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("SummaryBots"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/summary"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, SummaryBotsOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/api/v1/bots/summary"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeSummaryBotsResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

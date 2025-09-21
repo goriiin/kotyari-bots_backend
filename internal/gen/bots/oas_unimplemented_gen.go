@@ -76,6 +76,24 @@ func (UnimplementedHandler) RemoveProfileFromBot(ctx context.Context, params Rem
 	return r, ht.ErrNotImplemented
 }
 
+// SearchBots implements SearchBots operation.
+//
+// Поиск ботов по названию или системному промпту.
+//
+// GET /api/v1/bots/search
+func (UnimplementedHandler) SearchBots(ctx context.Context, params SearchBotsParams) (r SearchBotsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// SummaryBots implements SummaryBots operation.
+//
+// Получить сводную информацию по ботам.
+//
+// GET /api/v1/bots/summary
+func (UnimplementedHandler) SummaryBots(ctx context.Context) (r SummaryBotsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // UpdateBotById implements UpdateBotById operation.
 //
 // Полностью обновить бота по ID.

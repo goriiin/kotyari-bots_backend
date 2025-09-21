@@ -16,6 +16,8 @@ type usecase interface {
 	Update(ctx context.Context, bot model.Bot) (model.Bot, error)
 	AddProfileToBot(ctx context.Context, botID, profileID uuid.UUID) error
 	RemoveProfileFromBot(ctx context.Context, botID, profileID uuid.UUID) error
+	Search(ctx context.Context, query string) ([]model.Bot, error)
+	GetSummary(ctx context.Context) (model.BotsSummary, error)
 }
 
 type Handler struct {
