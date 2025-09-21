@@ -26,12 +26,14 @@ func (*AddProfileToBotUnauthorized) addProfileToBotRes() {}
 
 // Ref: #/components/schemas/Bot
 type Bot struct {
-	ID                 uuid.UUID `json:"id"`
-	Name               string    `json:"name"`
-	Profiles           []Profile `json:"profiles"`
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	Profiles []Profile `json:"profiles"`
+	// Количество привязанных профилей.
+	ProfilesCount      int       `json:"profilesCount"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired bool      `json:"moderationRequired"`
-	AutoPublish        bool      `json:"autoPublish"`
+	AutoPublish        OptBool   `json:"autoPublish"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -51,6 +53,11 @@ func (s *Bot) GetProfiles() []Profile {
 	return s.Profiles
 }
 
+// GetProfilesCount returns the value of ProfilesCount.
+func (s *Bot) GetProfilesCount() int {
+	return s.ProfilesCount
+}
+
 // GetSystemPrompt returns the value of SystemPrompt.
 func (s *Bot) GetSystemPrompt() OptString {
 	return s.SystemPrompt
@@ -62,7 +69,7 @@ func (s *Bot) GetModerationRequired() bool {
 }
 
 // GetAutoPublish returns the value of AutoPublish.
-func (s *Bot) GetAutoPublish() bool {
+func (s *Bot) GetAutoPublish() OptBool {
 	return s.AutoPublish
 }
 
@@ -91,6 +98,11 @@ func (s *Bot) SetProfiles(val []Profile) {
 	s.Profiles = val
 }
 
+// SetProfilesCount sets the value of ProfilesCount.
+func (s *Bot) SetProfilesCount(val int) {
+	s.ProfilesCount = val
+}
+
 // SetSystemPrompt sets the value of SystemPrompt.
 func (s *Bot) SetSystemPrompt(val OptString) {
 	s.SystemPrompt = val
@@ -102,7 +114,7 @@ func (s *Bot) SetModerationRequired(val bool) {
 }
 
 // SetAutoPublish sets the value of AutoPublish.
-func (s *Bot) SetAutoPublish(val bool) {
+func (s *Bot) SetAutoPublish(val OptBool) {
 	s.AutoPublish = val
 }
 

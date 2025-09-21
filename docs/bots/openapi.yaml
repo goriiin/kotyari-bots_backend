@@ -41,6 +41,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Profile'
+        profilesCount:
+          type: integer
+          description: "Количество привязанных профилей."
+          readOnly: true
         systemPrompt:
           type: string
         moderationRequired:
@@ -60,9 +64,8 @@ components:
       required:
         - id
         - name
-        - email
+        - profilesCount
         - moderationRequired
-        - autoPublish
         - createdAt
         - updatedAt
 
@@ -391,4 +394,3 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-

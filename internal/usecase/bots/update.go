@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/goriiin/kotyari-bots_backend/internal/constants"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
 func (s *Service) Update(ctx context.Context, bot model.Bot) (model.Bot, error) {
