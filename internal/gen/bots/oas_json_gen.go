@@ -192,6 +192,10 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
+		e.FieldStart("profilesCount")
+		e.Int(s.ProfilesCount)
+	}
+	{
 		if s.SystemPrompt.Set {
 			e.FieldStart("systemPrompt")
 			s.SystemPrompt.Encode(e)
@@ -202,8 +206,10 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 		e.Bool(s.ModerationRequired)
 	}
 	{
-		e.FieldStart("autoPublish")
-		e.Bool(s.AutoPublish)
+		if s.AutoPublish.Set {
+			e.FieldStart("autoPublish")
+			s.AutoPublish.Encode(e)
+		}
 	}
 	{
 		e.FieldStart("createdAt")
@@ -215,15 +221,16 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfBot = [8]string{
+var jsonFieldsNameOfBot = [9]string{
 	0: "id",
 	1: "name",
 	2: "profiles",
-	3: "systemPrompt",
-	4: "moderationRequired",
-	5: "autoPublish",
-	6: "createdAt",
-	7: "updatedAt",
+	3: "profilesCount",
+	4: "systemPrompt",
+	5: "moderationRequired",
+	6: "autoPublish",
+	7: "createdAt",
+	8: "updatedAt",
 }
 
 // Decode decodes Bot from json.
@@ -231,7 +238,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode Bot to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 	s.setDefaults()
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
@@ -277,6 +284,18 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"profiles\"")
 			}
+		case "profilesCount":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Int()
+				s.ProfilesCount = int(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"profilesCount\"")
+			}
 		case "systemPrompt":
 			if err := func() error {
 				s.SystemPrompt.Reset()
@@ -288,7 +307,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"systemPrompt\"")
 			}
 		case "moderationRequired":
-			requiredBitSet[0] |= 1 << 4
+			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
 				v, err := d.Bool()
 				s.ModerationRequired = bool(v)
@@ -300,11 +319,9 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"moderationRequired\"")
 			}
 		case "autoPublish":
-			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
-				v, err := d.Bool()
-				s.AutoPublish = bool(v)
-				if err != nil {
+				s.AutoPublish.Reset()
+				if err := s.AutoPublish.Decode(d); err != nil {
 					return err
 				}
 				return nil
@@ -312,7 +329,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"autoPublish\"")
 			}
 		case "createdAt":
-			requiredBitSet[0] |= 1 << 6
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -324,7 +341,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"createdAt\"")
 			}
 		case "updatedAt":
-			requiredBitSet[0] |= 1 << 7
+			requiredBitSet[1] |= 1 << 0
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.UpdatedAt = v
@@ -344,8 +361,9 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
-		0b11110011,
+	for i, mask := range [2]uint8{
+		0b10101011,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

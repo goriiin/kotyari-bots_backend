@@ -2,12 +2,13 @@ package migrate
 
 import (
 	"flag"
+	"log"
+	"strings"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
-	"log"
-	"strings"
 )
 
 func Run(cfg postgres.Config) {

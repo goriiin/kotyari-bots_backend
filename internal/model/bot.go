@@ -13,7 +13,7 @@ type Bot struct {
 	SystemPrompt       string
 	ModerationRequired bool
 	ProfileIDs         []uuid.UUID
-	AutoPublish        bool
+	ProfilesCount      int
 	CreatedAt          time.Time
 	UpdateAt           time.Time
 }

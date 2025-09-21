@@ -6,16 +6,16 @@ import (
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
-	"github.com/goriiin/kotyari-bots_backend/internal/constants"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
+	constants2 "github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
 func (h *Handler) GetBotById(ctx context.Context, params gen.GetBotByIdParams) (gen.GetBotByIdRes, error) {
 	b, err := h.u.Get(ctx, params.BotId)
 	if err != nil {
-		if errors.Is(err, constants.ErrNotFound) {
+		if errors.Is(err, constants2.ErrNotFound) {
 			return &gen.GetBotByIdNotFound{
-				ErrorCode: constants.ErrNotFoundMsg,
+				ErrorCode: constants2.ErrNotFoundMsg,
 				Message:   "bot not found",
 			}, nil
 		}

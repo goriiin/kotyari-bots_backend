@@ -19,8 +19,8 @@ func modelToDTO(bot *model.Bot, profiles []gen.Profile) *gen.Bot {
 		Name:               bot.Name,
 		SystemPrompt:       gen.NewOptString(bot.SystemPrompt),
 		ModerationRequired: bot.ModerationRequired,
-		AutoPublish:        bot.AutoPublish,
 		Profiles:           profiles,
+		ProfilesCount:      bot.ProfilesCount,
 		CreatedAt:          bot.CreatedAt,
 		UpdatedAt:          bot.UpdateAt,
 	}
@@ -33,6 +33,5 @@ func dtoToModel(req *gen.BotInput, id uuid.UUID) model.Bot {
 		Email:              req.Email,
 		SystemPrompt:       req.SystemPrompt.Value,
 		ModerationRequired: req.ModerationRequired.Value,
-		AutoPublish:        req.AutoPublish.Value,
 	}
 }
