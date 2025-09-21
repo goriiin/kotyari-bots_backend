@@ -10,8 +10,9 @@ services:
       - "5433:5432"
     volumes:
       - bots_pgdata:/var/lib/postgresql/data
+    # База данных подключена только к внутренней сети
     networks:
-      - kotyari-network
+      - bots-internal-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${LOCAL_BOTS_DATABASE_USER} -d ${LOCAL_BOTS_DATABASE_NAME}"]
       interval: 10s
@@ -28,7 +29,7 @@ services:
     image: bots_migrate_image
     env_file: .env
     networks:
-      - kotyari-network
+      - bots-internal-network
     depends_on:
       bots_db:
         condition: service_healthy
@@ -44,16 +45,22 @@ services:
     env_file: .env
     ports:
       - "8001:8001"
+    # Сервис подклчен к двум сетям:
+    # 1. Внутренней, для связи со своей БД.
+    # 2. Общей, для связи с другими сервисами (profiles_go).
     networks:
-      - kotyari-network
+      - bots-internal-network
+      - public-gateway-network
     depends_on:
       bots_migrate:
         condition: service_completed_successfully
     restart: unless-stopped
 
 networks:
-  kotyari-network:
+  bots-internal-network:
     driver: bridge
+  public-gateway-network:
+    external: true
 
 volumes:
   bots_pgdata:

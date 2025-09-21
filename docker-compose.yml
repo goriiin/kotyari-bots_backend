@@ -151,3 +151,9 @@ volumes:
 networks:
   app-network:
     driver: bridge
+  public-gateway-network:
+    driver: bridge
+
+include:
+  - docker-compose.bots.yml
+  - docker-compose.profiles.yml
