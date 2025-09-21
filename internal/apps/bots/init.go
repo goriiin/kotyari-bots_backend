@@ -42,21 +42,21 @@ func (b *BotsApp) Run() error {
 	}
 	defer pool.Close()
 
-	//conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	//if err != nil {
+	// conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// if err != nil {
 	//	return fmt.Errorf("grpc.NewClient: %w", err)
-	//}
-	//defer conn.Close()
-	//profilesClient := profiles.NewProfilesServiceClient(conn)
+	// }
+	// defer conn.Close()
+	// profilesClient := profiles.NewProfilesServiceClient(conn)
 	//
 	//// Init dependencies
-	//botsRepo := repo.NewBotsRepository(pool)
+	// botsRepo := repo.NewBotsRepository(pool)
 	//// Создаем валидатор профилей, который использует gRPC клиент
-	//profileValidator := profiles_adapter.NewGrpcValidator(profilesClient)
+	// profileValidator := profiles_adapter.NewGrpcValidator(profilesClient)
 	//// Передаем валидатор в usecase
-	//botsUsecase := usecase.NewService(botsRepo, profileValidator)
+	// botsUsecase := usecase.NewService(botsRepo, profileValidator)
 	//// Передаем usecase и gRPC клиент в http хендлер
-	//botsHandler := delivery.NewHandler(botsUsecase, profilesClient)
+	// botsHandler := delivery.NewHandler(botsUsecase, profilesClient)
 
 	// Init dependencies
 	botsRepo := repo.NewBotsRepository(pool)

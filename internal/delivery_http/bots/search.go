@@ -2,6 +2,7 @@ package bots
 
 import (
 	"context"
+
 	"github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )

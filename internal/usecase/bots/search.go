@@ -2,8 +2,9 @@ package bots
 
 import (
 	"context"
-	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"strings"
+
+	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
 func (s *Service) Search(ctx context.Context, query string) ([]model.Bot, error) {
