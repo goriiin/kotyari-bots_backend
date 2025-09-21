@@ -53,8 +53,10 @@ services:
     restart: unless-stopped
 
 networks:
-  kotyari-network:
+  profiles-internal-network:
     driver: bridge
+  public-gateway-network:
+    external: true
 
 volumes:
   profiles_pgdata:
