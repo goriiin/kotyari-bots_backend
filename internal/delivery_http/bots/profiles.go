@@ -2,14 +2,14 @@ package bots
 
 import (
 	"context"
-	"github.com/google/uuid"
-	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
-	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
 	"log"
 
 	"github.com/go-faster/errors"
+	"github.com/google/uuid"
+	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
 )
 
 func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBotParams) (gen.AddProfileToBotRes, error) {
