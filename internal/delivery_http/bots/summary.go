@@ -6,7 +6,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
-func (h *Handler) GetBotsSummary(ctx context.Context) (bots.SummaryBotsRes, error) {
+func (h *Handler) SummaryBots(ctx context.Context) (bots.SummaryBotsRes, error) {
 	summary, err := h.u.GetSummary(ctx)
 	if err != nil {
 		return &bots.Error{

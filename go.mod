@@ -42,6 +42,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.16 // indirect
+	github.com/rs/cors v1.11.1 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect

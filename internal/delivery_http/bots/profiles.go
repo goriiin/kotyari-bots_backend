@@ -2,6 +2,10 @@ package bots
 
 import (
 	"context"
+	"github.com/google/uuid"
+	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
+	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
+	"log"
 
 	"github.com/go-faster/errors"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
@@ -35,9 +39,64 @@ func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBo
 }
 
 func (h *Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesParams) (gen.GetBotProfilesRes, error) {
-	return &gen.GetBotProfilesNotFound{
-		ErrorCode: constants.NotImplementedMsg,
-		Message:   "not implemented",
+	bot, err := h.u.Get(ctx, params.BotId)
+	if err != nil {
+		if errors.Is(err, constants.ErrNotFound) {
+			return &gen.GetBotProfilesNotFound{
+				ErrorCode: constants.NotFoundMsg,
+				Message:   "bot not found",
+			}, nil
+		}
+		return &gen.GetBotProfilesInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   err.Error(),
+		}, nil
+	}
+
+	if len(bot.ProfileIDs) == 0 {
+		return &gen.ProfileList{
+			Data: []gen.Profile{},
+		}, nil
+	}
+
+	profileIDsStr := make([]string, len(bot.ProfileIDs))
+	for i, pid := range bot.ProfileIDs {
+		profileIDsStr[i] = pid.String()
+	}
+
+	grpcResp, err := h.client.GetProfiles(ctx, &profiles.GetProfilesRequest{
+		ProfileIds: profileIDsStr,
+	})
+	if err != nil {
+		domainErr := ierrors.GRPCToDomainError(err)
+		log.Printf("failed to get profiles for bot %s: %v", bot.ID, domainErr)
+
+		if errors.Is(domainErr, constants.ErrServiceUnavailable) {
+			return &gen.GetBotProfilesInternalServerError{
+				ErrorCode: constants.ServiceUnavailableMsg,
+				Message:   "profiles service is unavailable",
+			}, nil
+		}
+		return nil, domainErr
+	}
+
+	genProfiles := make([]gen.Profile, len(grpcResp.Profiles))
+	for i, p := range grpcResp.Profiles {
+		profileUUID, err := uuid.Parse(p.Id)
+		if err != nil {
+			log.Printf("error parsing profile UUID from gRPC response: %v", err)
+			continue
+		}
+		genProfiles[i] = gen.Profile{
+			ID:           profileUUID,
+			Name:         p.Name,
+			Email:        p.Email,
+			SystemPrompt: gen.NewOptString(p.Prompt),
+		}
+	}
+
+	return &gen.ProfileList{
+		Data: genProfiles,
 	}, nil
 }
 
