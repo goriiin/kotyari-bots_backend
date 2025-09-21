@@ -1,7 +1,7 @@
 package reddit
 
 import (
-	"context"
+	"fmt"
 	"time"
 )
 
@@ -14,7 +14,8 @@ func (r *RedditAPIDelivery) Run() error {
 		}
 
 		for post := range postChan {
-			err := r.producer.Publish(context.Background(), []byte(post.Title))
+			// err := r.producer.Publish(context.Background(), []byte(post.Title))
+			fmt.Println(post.Comments)
 			if err != nil {
 				return err
 			}
