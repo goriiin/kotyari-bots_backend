@@ -13,9 +13,9 @@ type postsGRPCClientApiCfg struct {
 }
 type PostsGRPCClientAppConfig struct {
 	config.ConfigBase
-	API          postsGRPCClientApiCfg `mapstructure:"posts_grpc_api"`
-	BotsAddr     string                `mapstructure:"bots_grpc_addr"`
-	ProfilesAddr string                `mapstructure:"bots_grpc_addr"`
+	API          postsGRPCClientApiCfg `mapstructure:"posts_api"`
+	BotsAddr     string                `mapstructure:"bots_addr"`
+	ProfilesAddr string                `mapstructure:"profiles_addr"`
 	Timeout      time.Duration         `mapstructure:"dial_timeout"`
 }
 
