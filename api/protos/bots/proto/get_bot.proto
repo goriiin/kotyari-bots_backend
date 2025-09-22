@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package bots;
+
+option go_package = "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen";
+
+service BotService {
+  rpc GetBot(GetBotRequest) returns (Bot);
+}
+
+message Bot {
+  string id = 1;
+  string bot_prompt = 2;
+}
+
+message GetBotRequest {
+  string id = 1;
+}
