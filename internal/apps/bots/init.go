@@ -78,7 +78,7 @@ func (b *BotsApp) Run() error {
 	httpAddr := fmt.Sprintf("%s:%d", b.config.API.Host, b.config.API.Port)
 	b.server = &http.Server{
 		Addr:    httpAddr,
-		Handler: c.Handler(svr), // <-- 3. Примените CORS middleware
+		Handler: c.Handler(svr),
 	}
 
 	// Run server
