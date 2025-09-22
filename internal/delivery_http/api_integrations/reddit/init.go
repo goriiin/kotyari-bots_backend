@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
@@ -21,13 +22,15 @@ type RedditAPIDelivery struct {
 	integration IntegrationsRepo
 	interval    time.Duration
 	producer    MessageProducer
+	log         logger.Logger
 }
 
-func NewRedditApiIntegration(client *http.Client, repo IntegrationsRepo, interval time.Duration, producer MessageProducer) *RedditAPIDelivery {
+func NewRedditApiIntegration(client *http.Client, repo IntegrationsRepo, interval time.Duration, producer MessageProducer, log logger.Logger) *RedditAPIDelivery {
 	return &RedditAPIDelivery{
 		client:      client,
 		integration: repo,
 		interval:    interval,
 		producer:    producer,
+		log:         log,
 	}
 }

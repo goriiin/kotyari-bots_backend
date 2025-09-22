@@ -1,6 +1,8 @@
 package aggregator
 
-import "context"
+import (
+	"context"
+)
 
 func (a *AggregatorDelivery) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -11,8 +13,7 @@ func (a *AggregatorDelivery) Run() error {
 	for batch := range messageBatches {
 		err := a.manager.AddTopics(ctx, batch)
 		if err != nil {
-			// TODO: log
-			return err
+			a.log.Error(err, true, "error happened while reading kafka messages")
 		}
 	}
 

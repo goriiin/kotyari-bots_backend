@@ -6,6 +6,7 @@ import (
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/utils"
+	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -39,7 +40,7 @@ func (s *AggregatorService) AddTopics(ctx context.Context, messages []kafka.Mess
 	}
 
 	if err := s.topicsCreator.AddTopics(ctx, topics); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil
