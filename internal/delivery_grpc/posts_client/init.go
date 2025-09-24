@@ -54,21 +54,21 @@ func (c *PostsGRPCClient) Close() error {
 
 func (c *PostsGRPCClient) GetBot(ctx context.Context, id string, opts ...grpc.CallOption) (*botsgen.Bot, error) {
 	if c == nil || c.Bots == nil {
-		return nil, fmt.Errorf("client not initialized")
+		return nil, errors.New("client not initialized")
 	}
 	return c.Bots.GetBot(ctx, &botsgen.GetBotRequest{Id: id}, opts...)
 }
 
 func (c *PostsGRPCClient) GetProfile(ctx context.Context, id string, opts ...grpc.CallOption) (*profilesgen.Profile, error) {
 	if c == nil || c.Profiles == nil {
-		return nil, fmt.Errorf("client not initialized")
+		return nil, errors.New("client not initialized")
 	}
 	return c.Profiles.GetProfile(ctx, &profilesgen.GetProfileRequest{Id: id}, opts...)
 }
 
 func (c *PostsGRPCClient) BatchGetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.BatchGetProfilesResponse, error) {
 	if c == nil || c.Profiles == nil {
-		return nil, fmt.Errorf("client not initialized")
+		return nil, errors.New("client not initialized")
 	}
 	return c.Profiles.BatchGetProfiles(ctx, &profilesgen.BatchGetProfilesRequest{Id: ids}, opts...)
 }

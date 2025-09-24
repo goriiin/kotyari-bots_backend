@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_client"
+	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/grok_client"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
@@ -16,10 +17,14 @@ type PostsAppCfg struct {
 	config.ConfigBase
 	API        PostsApiCfg                           `mapstructure:"posts_api"`
 	GrpcClient posts_client.PostsGRPCClientAppConfig `mapstructure:"posts_grpc"`
+	GrokCfg    grok_client.GrokClientConfig          `mapstructure:"posts_grok"`
 }
 
 func (p *PostsAppCfg) Validate() error {
 	if err := p.GrpcClient.Validate(); err != nil {
+		return err
+	}
+	if err := p.GrokCfg.Validate(); err != nil {
 		return err
 	}
 

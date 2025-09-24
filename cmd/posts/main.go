@@ -5,6 +5,14 @@ import (
 
 	"github.com/goriiin/kotyari-bots_backend/internal/apps/posts"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
+
+	_ "github.com/xtls/xray-core/proxy/socks"
+	_ "github.com/xtls/xray-core/proxy/vless"
+	_ "github.com/xtls/xray-core/proxy/vless/inbound"
+	_ "github.com/xtls/xray-core/proxy/vless/outbound"
+	_ "github.com/xtls/xray-core/transport/internet/reality"
+	_ "github.com/xtls/xray-core/transport/internet/tcp"
+	_ "github.com/xtls/xray-core/transport/internet/tls"
 )
 
 const local = "local-config"
@@ -22,5 +30,8 @@ func main() {
 		cfg = newCfg
 	})
 
-	_, _ = posts.NewPostsApp(cfg)
+	_, err := posts.NewPostsApp(cfg)
+	if err != nil {
+		log.Fatalf("%s", err.Error())
+	}
 }

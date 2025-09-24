@@ -2,10 +2,12 @@ package posts
 
 import (
 	"context"
+	"fmt"
 
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
 	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_client"
+	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/grok_client"
 	"google.golang.org/grpc"
 )
 
@@ -17,7 +19,6 @@ type BotsProfilesFetcher interface {
 
 type PostsApp struct {
 	fetcher BotsProfilesFetcher
-	grpcCfg posts_client.PostsGRPCClientAppConfig
 	appCfg  *PostsAppCfg
 }
 
@@ -27,9 +28,20 @@ func NewPostsApp(appCfg *PostsAppCfg) (*PostsApp, error) {
 		return nil, err
 	}
 
+	client, err := grok_client.NewGrokClient(&appCfg.GrokCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Тестовый запрос, будет убран в будущем
+	post, err := client.GeneratePost(context.Background(), "You are a test assistant.", "Testing. Just say hi and hello world and nothing else.")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(post)
+
 	return &PostsApp{
 		fetcher: grpcClient,
-		grpcCfg: appCfg.GrpcClient,
 		appCfg:  appCfg,
 	}, nil
 }
