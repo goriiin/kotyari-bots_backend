@@ -2,8 +2,6 @@ package grok_client
 
 import (
 	"context"
-	"io"
-	"log"
 	"net"
 	"net/http"
 
@@ -13,7 +11,7 @@ import (
 
 type GrokClient struct {
 	config *GrokClientConfig
-	//log
+	// log
 	httpClient *http.Client
 	xray       *utils.XrayCoreInstance
 }
@@ -51,23 +49,4 @@ func (c *GrokClient) Close() error {
 	}
 
 	return nil
-}
-
-func (c *GrokClient) TestRequest() {
-	targetURL := "https://ipinfo.io/ip"
-	log.Printf("Making test request to %s via VLESS proxy...", targetURL)
-
-	resp, err := c.httpClient.Get(targetURL)
-	if err != nil {
-		log.Fatalf("HTTP request failed: %v", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf("Failed to read response body: %v", err)
-	}
-
-	log.Printf("Request successful! Status: %s", resp.Status)
-	log.Printf("Proxy IP Address: %s", string(body))
 }

@@ -31,16 +31,21 @@ func (c *GrokClient) GeneratePost(ctx context.Context, botPrompt, profilePrompt 
 		return "", errors.Wrap(err, "failed to create request")
 	}
 
-	authHeader := fmt.Sprint("Bearer " + c.config.ApiKey)
-
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Authorization", authHeader)
+	httpReq.Header.Set("Authorization", "Bearer "+c.config.ApiKey)
 
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to perform request")
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			// log err (линтер ругается)
+			fmt.Println("failed to close body")
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.Errorf("grok returned non-200 response status: %v", resp.StatusCode)

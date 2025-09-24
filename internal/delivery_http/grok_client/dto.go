@@ -25,9 +25,7 @@ func messageFromPrompt(role, prompt string) GrokMessage {
 
 func messagesFromGrokMessage(messages ...GrokMessage) []GrokMessage {
 	messagesSlice := make([]GrokMessage, 0, len(messages))
-	for _, message := range messages {
-		messagesSlice = append(messagesSlice, message)
-	}
+	messagesSlice = append(messagesSlice, messages...)
 
 	return messagesSlice
 }
