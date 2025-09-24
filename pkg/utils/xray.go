@@ -8,9 +8,8 @@ import (
 	xnet "github.com/xtls/xray-core/common/net"
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/infra/conf"
-	"golang.org/x/net/proxy"
-
 	_ "github.com/xtls/xray-core/main/distro/all"
+	"golang.org/x/net/proxy"
 )
 
 // Не уверен, нужно ли это (как минимум порт и адрес) выносить в конфиг, или оставить константами
@@ -115,7 +114,10 @@ func NewXrayCoreInstance(vlessParams *VlessConfig) (*XrayCoreInstance, error) {
 
 	dialer, err := proxy.SOCKS5("tcp", fmt.Sprintf("%s:%d", localSocksAddress, localSocksPort), nil, proxy.Direct)
 	if err != nil {
-		xrayInstance.Close()
+		err := xrayInstance.Close()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to close xray instance")
+		}
 		return nil, errors.Wrap(err, "failed to create socks5 dialer")
 	}
 
