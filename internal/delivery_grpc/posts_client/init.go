@@ -2,7 +2,6 @@ package posts_client
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-faster/errors"
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
@@ -10,6 +9,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var clientNotInitializedErr = errors.New("client not initialized")
 
 type PostsGRPCClient struct {
 	botsConn     *grpc.ClientConn
@@ -25,13 +26,13 @@ func NewPostsGRPCClient(config *PostsGRPCClientAppConfig) (*PostsGRPCClient, err
 
 	botsConn, err := grpc.NewClient(config.BotsAddr, creds)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create bots service client: %w", err)
+		return nil, errors.Wrap(err, "failed to create bots service client")
 	}
 
 	profilesConn, err := grpc.NewClient(config.ProfilesAddr, creds)
 	if err != nil {
 		_ = botsConn.Close()
-		return nil, fmt.Errorf("failed to create profiles service client: %w", err)
+		return nil, errors.Wrap(err, "failed to create profiles service client")
 	}
 
 	c := &PostsGRPCClient{
@@ -54,21 +55,21 @@ func (c *PostsGRPCClient) Close() error {
 
 func (c *PostsGRPCClient) GetBot(ctx context.Context, id string, opts ...grpc.CallOption) (*botsgen.Bot, error) {
 	if c == nil || c.Bots == nil {
-		return nil, errors.New("client not initialized")
+		return nil, clientNotInitializedErr
 	}
 	return c.Bots.GetBot(ctx, &botsgen.GetBotRequest{Id: id}, opts...)
 }
 
 func (c *PostsGRPCClient) GetProfile(ctx context.Context, id string, opts ...grpc.CallOption) (*profilesgen.Profile, error) {
 	if c == nil || c.Profiles == nil {
-		return nil, errors.New("client not initialized")
+		return nil, clientNotInitializedErr
 	}
 	return c.Profiles.GetProfile(ctx, &profilesgen.GetProfileRequest{Id: id}, opts...)
 }
 
 func (c *PostsGRPCClient) BatchGetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.BatchGetProfilesResponse, error) {
 	if c == nil || c.Profiles == nil {
-		return nil, errors.New("client not initialized")
+		return nil, clientNotInitializedErr
 	}
 	return c.Profiles.BatchGetProfiles(ctx, &profilesgen.BatchGetProfilesRequest{Id: ids}, opts...)
 }
