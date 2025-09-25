@@ -6,23 +6,24 @@ import (
 	"net/http"
 
 	"github.com/go-faster/errors"
-	"github.com/goriiin/kotyari-bots_backend/pkg/utils"
+	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
+	"github.com/goriiin/kotyari-bots_backend/pkg/proxy"
 )
 
 type GrokClient struct {
-	config *GrokClientConfig
+	config *grok.GrokClientConfig
 	// log
 	httpClient *http.Client
-	xray       *utils.XrayCoreInstance
+	xray       *proxy.XrayCoreInstance
 }
 
-func NewGrokClient(config *GrokClientConfig) (*GrokClient, error) {
-	vlessParams, err := utils.ParseVlessConfig(config.ProxyURL)
+func NewGrokClient(config *grok.GrokClientConfig) (*GrokClient, error) {
+	vlessParams, err := proxy.ParseVlessConfig(config.ProxyURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse vless url")
 	}
 
-	xrayInstance, err := utils.NewXrayCoreInstance(vlessParams)
+	xrayInstance, err := proxy.NewXrayCoreInstance(vlessParams)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create xray instance")
 	}

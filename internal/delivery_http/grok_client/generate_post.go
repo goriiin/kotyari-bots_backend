@@ -5,12 +5,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
+	"time"
 
 	"github.com/go-faster/errors"
+	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
 )
 
-const targetUrl = "https://api.x.ai/v1/chat/completions"
+const (
+	defaultRetriesNum = 3
+	defaultRetryDelay = 2 * time.Second
+)
 
 func (c *GrokClient) GeneratePost(ctx context.Context, botPrompt, profilePrompt string) (string, error) {
 	botMessage := messageFromPrompt(systemRole, botPrompt)
@@ -26,7 +32,7 @@ func (c *GrokClient) GeneratePost(ctx context.Context, botPrompt, profilePrompt 
 		return "", errors.Wrap(err, "failed to marshal request")
 	}
 
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, targetUrl, bytes.NewBuffer(body))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, grok.GrokTargetUrl, bytes.NewBuffer(body))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create request")
 	}
@@ -34,9 +40,21 @@ func (c *GrokClient) GeneratePost(ctx context.Context, botPrompt, profilePrompt 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+c.config.ApiKey)
 
-	resp, err := c.httpClient.Do(httpReq)
+	var resp *http.Response
+	for i := 0; i < defaultRetriesNum; i++ {
+		resp, err = c.httpClient.Do(httpReq)
+		if err == nil {
+			break
+		}
+
+		backoff := time.Duration(math.Pow(2, float64(i))) * time.Second
+		// log failed attempt
+		fmt.Printf("Request failed: %v. Retrying in %v... (attempt %d/%d)", err, backoff, i+1, defaultRetriesNum)
+		time.Sleep(defaultRetryDelay)
+	}
+
 	if err != nil {
-		return "", errors.Wrap(err, "failed to perform request")
+		return "", errors.Wrapf(err, "failed to perform request after %d attempts", defaultRetriesNum)
 	}
 
 	defer func() {

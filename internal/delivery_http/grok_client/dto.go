@@ -24,10 +24,7 @@ func messageFromPrompt(role, prompt string) GrokMessage {
 }
 
 func messagesFromGrokMessage(messages ...GrokMessage) []GrokMessage {
-	messagesSlice := make([]GrokMessage, 0, len(messages))
-	messagesSlice = append(messagesSlice, messages...)
-
-	return messagesSlice
+	return append([]GrokMessage(nil), messages...)
 }
 
 type GrokResponse struct {

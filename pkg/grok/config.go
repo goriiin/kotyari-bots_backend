@@ -1,4 +1,4 @@
-package grok_client
+package grok
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
+
+const GrokTargetUrl = "https://api.x.ai/v1/chat/completions"
 
 type grokAPIConfig struct {
 	Host string `mapstructure:"host"`
