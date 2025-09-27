@@ -14,6 +14,7 @@ type repository interface {
 	List(ctx context.Context, limit int, cursor string) ([]model.Profile, error)
 	Update(ctx context.Context, profile model.Profile) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	Exist(ctx context.Context, ids []uuid.UUID) (map[string]bool, error)
 }
 
 type Service struct {

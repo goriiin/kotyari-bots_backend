@@ -5,30 +5,20 @@ import (
 
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
-	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
-type usecase interface {
-	GetByIDs(ctx context.Context, ids []uuid.UUID) ([]model.Profile, error)
-}
-
-type GRPCHandler struct {
-	profiles.UnimplementedProfilesServiceServer
-	u usecase
-}
-
-func NewGRPCHandler(u usecase) *GRPCHandler {
-	return &GRPCHandler{u: u}
-}
-
-func (h *GRPCHandler) GetProfilesByIDs(ctx context.Context, req *profiles.GetProfilesByIDsRequest) (*profiles.GetProfilesByIDsResponse, error) {
+func (h *GRPCHandler) GetProfiles(ctx context.Context, req *profiles.GetProfilesRequest) (*profiles.GetProfilesResponse, error) {
 	profileUUIDs := make([]uuid.UUID, 0, len(req.ProfileIds))
 	for _, idStr := range req.ProfileIds {
 		id, err := uuid.Parse(idStr)
 		if err != nil {
-			continue
+			continue // Игнорируем невалидные UUID
 		}
 		profileUUIDs = append(profileUUIDs, id)
+	}
+
+	if len(profileUUIDs) == 0 {
+		return &profiles.GetProfilesResponse{Profiles: []*profiles.Profile{}}, nil
 	}
 
 	profileModels, err := h.u.GetByIDs(ctx, profileUUIDs)
@@ -41,5 +31,5 @@ func (h *GRPCHandler) GetProfilesByIDs(ctx context.Context, req *profiles.GetPro
 		grpcProfiles[i] = modelToProto(&p)
 	}
 
-	return &profiles.GetProfilesByIDsResponse{Profiles: grpcProfiles}, nil
+	return &profiles.GetProfilesResponse{Profiles: grpcProfiles}, nil
 }
