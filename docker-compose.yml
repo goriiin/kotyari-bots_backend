@@ -106,6 +106,33 @@ services:
       api_integrations:
         condition: service_healthy
 
+  posts_go:
+    build:
+      context: .
+      dockerfile: ./cmd/posts/Dockerfile
+    ports:
+      - "8087:8087"
+    image: posts-go-image
+    container_name: posts_go
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      xray-proxy:
+        condition: service_started
+
+  xray-proxy:
+    image: teddysun/xray:latest
+    container_name: xray-proxy
+    command: [ "xray", "run", "-c", "/etc/xray/config.json" ]
+    volumes:
+      - ./configs/xray-config.json:/etc/xray/config.json:ro
+    expose:
+      - "8100"
+    restart: unless-stopped
+    networks:
+      - app-network
+
   loki:
     image: grafana/loki:latest
     container_name: loki

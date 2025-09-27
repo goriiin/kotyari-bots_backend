@@ -17,9 +17,14 @@ type BotsProfilesFetcher interface {
 	BatchGetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.BatchGetProfilesResponse, error)
 }
 
+type PostGenerator interface {
+	GeneratePost(ctx context.Context, botPrompt, profilePrompt string) (string, error)
+}
+
 type PostsApp struct {
-	fetcher BotsProfilesFetcher
-	appCfg  *PostsAppCfg
+	fetcher   BotsProfilesFetcher
+	appCfg    *PostsAppCfg
+	generator PostGenerator
 }
 
 func NewPostsApp(appCfg *PostsAppCfg) (*PostsApp, error) {
@@ -28,20 +33,21 @@ func NewPostsApp(appCfg *PostsAppCfg) (*PostsApp, error) {
 		return nil, err
 	}
 
-	client, err := grok_client.NewGrokClient(&appCfg.GrokCfg)
+	grokClient, err := grok_client.NewGrokClient(&appCfg.GrokCfg)
 	if err != nil {
 		return nil, err
 	}
 
 	// Тестовый запрос, будет убран в будущем
-	post, err := client.GeneratePost(context.Background(), "You are a test assistant.", "Testing. Just say hi and hello world and nothing else.")
+	post, err := grokClient.GeneratePost(context.Background(), "You are a test assistant.", "Testing. Just say hi and hello world and nothing else.")
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println(post)
 
 	return &PostsApp{
-		fetcher: grpcClient,
-		appCfg:  appCfg,
+		fetcher:   grpcClient,
+		appCfg:    appCfg,
+		generator: grokClient,
 	}, nil
 }
