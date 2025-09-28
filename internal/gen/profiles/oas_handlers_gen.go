@@ -35,14 +35,14 @@ func (c *codeRecorder) WriteHeader(status int) {
 // Создает новый профиль и связывает его с текущим
 // аккаунтом.
 //
-// POST /profiles
+// POST /api/v1/profiles
 func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createMyProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Start a span for this request.
@@ -174,14 +174,14 @@ func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, 
 // Удаляет профиль по его ID. Доступ разрешен только если
 // профиль принадлежит текущему аккаунту.
 //
-// DELETE /profiles/{profileId}
+// DELETE /api/v1/profiles/{profileId}
 func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteProfileById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.
@@ -313,14 +313,14 @@ func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool
 // Получает один профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// GET /profiles/{profileId}
+// GET /api/v1/profiles/{profileId}
 func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getProfileById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.
@@ -453,14 +453,14 @@ func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w
 // принадлежащих текущему аутентифицированному
 // аккаунту.
 //
-// GET /profiles
+// GET /api/v1/profiles
 func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listMyProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Start a span for this request.
@@ -517,22 +517,8 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 
 			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
 		}
-		err          error
-		opErrContext = ogenerrors.OperationContext{
-			Name: ListMyProfilesOperation,
-			ID:   "listMyProfiles",
-		}
+		err error
 	)
-	params, err := decodeListMyProfilesParams(args, argsEscaped, r)
-	if err != nil {
-		err = &ogenerrors.DecodeParamsError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeParams", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
 
 	var response ListMyProfilesRes
 	if m := s.cfg.Middleware; m != nil {
@@ -542,22 +528,13 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 			OperationSummary: "Получить список своих профилей",
 			OperationID:      "listMyProfiles",
 			Body:             nil,
-			Params: middleware.Parameters{
-				{
-					Name: "cursor",
-					In:   "query",
-				}: params.Cursor,
-				{
-					Name: "limit",
-					In:   "query",
-				}: params.Limit,
-			},
-			Raw: r,
+			Params:           middleware.Parameters{},
+			Raw:              r,
 		}
 
 		type (
 			Request  = struct{}
-			Params   = ListMyProfilesParams
+			Params   = struct{}
 			Response = ListMyProfilesRes
 		)
 		response, err = middleware.HookMiddleware[
@@ -567,14 +544,14 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 		](
 			m,
 			mreq,
-			unpackListMyProfilesParams,
+			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.ListMyProfiles(ctx, params)
+				response, err = s.h.ListMyProfiles(ctx)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.ListMyProfiles(ctx, params)
+		response, err = s.h.ListMyProfiles(ctx)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -596,14 +573,14 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 // Полностью обновляет профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// PUT /profiles/{profileId}
+// PUT /api/v1/profiles/{profileId}
 func (s *Server) handleUpdateProfileByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateProfileById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.

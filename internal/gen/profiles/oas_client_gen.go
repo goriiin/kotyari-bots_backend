@@ -33,21 +33,21 @@ type Invoker interface {
 	// Создает новый профиль и связывает его с текущим
 	// аккаунтом.
 	//
-	// POST /profiles
+	// POST /api/v1/profiles
 	CreateMyProfile(ctx context.Context, request *ProfileInput) (CreateMyProfileRes, error)
 	// DeleteProfileById invokes deleteProfileById operation.
 	//
 	// Удаляет профиль по его ID. Доступ разрешен только если
 	// профиль принадлежит текущему аккаунту.
 	//
-	// DELETE /profiles/{profileId}
+	// DELETE /api/v1/profiles/{profileId}
 	DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error)
 	// GetProfileById invokes getProfileById operation.
 	//
 	// Получает один профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// GET /profiles/{profileId}
+	// GET /api/v1/profiles/{profileId}
 	GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error)
 	// ListMyProfiles invokes listMyProfiles operation.
 	//
@@ -55,14 +55,14 @@ type Invoker interface {
 	// принадлежащих текущему аутентифицированному
 	// аккаунту.
 	//
-	// GET /profiles
-	ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error)
+	// GET /api/v1/profiles
+	ListMyProfiles(ctx context.Context) (ListMyProfilesRes, error)
 	// UpdateProfileById invokes updateProfileById operation.
 	//
 	// Полностью обновляет профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// PUT /profiles/{profileId}
+	// PUT /api/v1/profiles/{profileId}
 	UpdateProfileById(ctx context.Context, request *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error)
 }
 
@@ -114,7 +114,7 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // Создает новый профиль и связывает его с текущим
 // аккаунтом.
 //
-// POST /profiles
+// POST /api/v1/profiles
 func (c *Client) CreateMyProfile(ctx context.Context, request *ProfileInput) (CreateMyProfileRes, error) {
 	res, err := c.sendCreateMyProfile(ctx, request)
 	return res, err
@@ -124,7 +124,7 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createMyProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Run stopwatch.
@@ -157,7 +157,7 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/profiles"
+	pathParts[0] = "/api/v1/profiles"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -190,7 +190,7 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 // Удаляет профиль по его ID. Доступ разрешен только если
 // профиль принадлежит текущему аккаунту.
 //
-// DELETE /profiles/{profileId}
+// DELETE /api/v1/profiles/{profileId}
 func (c *Client) DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error) {
 	res, err := c.sendDeleteProfileById(ctx, params)
 	return res, err
@@ -200,7 +200,7 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteProfileById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -233,7 +233,7 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profiles/"
+	pathParts[0] = "/api/v1/profiles/"
 	{
 		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -281,7 +281,7 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 // Получает один профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// GET /profiles/{profileId}
+// GET /api/v1/profiles/{profileId}
 func (c *Client) GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error) {
 	res, err := c.sendGetProfileById(ctx, params)
 	return res, err
@@ -291,7 +291,7 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getProfileById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -324,7 +324,7 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profiles/"
+	pathParts[0] = "/api/v1/profiles/"
 	{
 		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -373,17 +373,17 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 // принадлежащих текущему аутентифицированному
 // аккаунту.
 //
-// GET /profiles
-func (c *Client) ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error) {
-	res, err := c.sendListMyProfiles(ctx, params)
+// GET /api/v1/profiles
+func (c *Client) ListMyProfiles(ctx context.Context) (ListMyProfilesRes, error) {
+	res, err := c.sendListMyProfiles(ctx)
 	return res, err
 }
 
-func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesParams) (res ListMyProfilesRes, err error) {
+func (c *Client) sendListMyProfiles(ctx context.Context) (res ListMyProfilesRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listMyProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Run stopwatch.
@@ -416,46 +416,8 @@ func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesPa
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/profiles"
+	pathParts[0] = "/api/v1/profiles"
 	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeQueryParams"
-	q := uri.NewQueryEncoder()
-	{
-		// Encode "cursor" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "cursor",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Cursor.Get(); ok {
-				return e.EncodeValue(conv.StringToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "limit" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "limit",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Limit.Get(); ok {
-				return e.EncodeValue(conv.IntToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "GET", u)
@@ -484,7 +446,7 @@ func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesPa
 // Полностью обновляет профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// PUT /profiles/{profileId}
+// PUT /api/v1/profiles/{profileId}
 func (c *Client) UpdateProfileById(ctx context.Context, request *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error) {
 	res, err := c.sendUpdateProfileById(ctx, request, params)
 	return res, err
@@ -494,7 +456,7 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateProfileById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -527,7 +489,7 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profiles/"
+	pathParts[0] = "/api/v1/profiles/"
 	{
 		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{

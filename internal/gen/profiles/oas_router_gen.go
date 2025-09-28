@@ -49,9 +49,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/profiles"
+		case '/': // Prefix: "/api/v1/profiles"
 
-			if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
+			if l := len("/api/v1/profiles"); len(elem) >= l && elem[0:l] == "/api/v1/profiles" {
 				elem = elem[l:]
 			} else {
 				break
@@ -191,9 +191,9 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/profiles"
+		case '/': // Prefix: "/api/v1/profiles"
 
-			if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
+			if l := len("/api/v1/profiles"); len(elem) >= l && elem[0:l] == "/api/v1/profiles" {
 				elem = elem[l:]
 			} else {
 				break
@@ -205,7 +205,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					r.name = ListMyProfilesOperation
 					r.summary = "Получить список своих профилей"
 					r.operationID = "listMyProfiles"
-					r.pathPattern = "/profiles"
+					r.pathPattern = "/api/v1/profiles"
 					r.args = args
 					r.count = 0
 					return r, true
@@ -213,7 +213,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					r.name = CreateMyProfileOperation
 					r.summary = "Создать новый профиль"
 					r.operationID = "createMyProfile"
-					r.pathPattern = "/profiles"
+					r.pathPattern = "/api/v1/profiles"
 					r.args = args
 					r.count = 0
 					return r, true
@@ -246,7 +246,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = DeleteProfileByIdOperation
 						r.summary = "Удалить профиль по ID"
 						r.operationID = "deleteProfileById"
-						r.pathPattern = "/profiles/{profileId}"
+						r.pathPattern = "/api/v1/profiles/{profileId}"
 						r.args = args
 						r.count = 1
 						return r, true
@@ -254,7 +254,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = GetProfileByIdOperation
 						r.summary = "Получить профиль по ID"
 						r.operationID = "getProfileById"
-						r.pathPattern = "/profiles/{profileId}"
+						r.pathPattern = "/api/v1/profiles/{profileId}"
 						r.args = args
 						r.count = 1
 						return r, true
@@ -262,7 +262,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = UpdateProfileByIdOperation
 						r.summary = "Обновить профиль по ID"
 						r.operationID = "updateProfileById"
-						r.pathPattern = "/profiles/{profileId}"
+						r.pathPattern = "/api/v1/profiles/{profileId}"
 						r.args = args
 						r.count = 1
 						return r, true
