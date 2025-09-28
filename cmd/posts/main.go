@@ -7,7 +7,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-const local = "local-config"
+const local = "docker-config"
 
 func main() {
 	cfg, _ := config.New[posts.PostsAppCfg]()
@@ -22,5 +22,8 @@ func main() {
 		cfg = newCfg
 	})
 
-	_, _ = posts.NewPostsApp(cfg)
+	_, err := posts.NewPostsApp(cfg)
+	if err != nil {
+		log.Fatalf("%s", err.Error())
+	}
 }
