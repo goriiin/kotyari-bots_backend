@@ -100,18 +100,48 @@ format-check:
 
 check: lint format-check
 
+# параллельно
+up: copy-env
+	@echo "Starting services in parallel..."
+	@$(MAKE) bots-up & \
+	$(MAKE) profiles-up & \
+	wait
+	@echo "All services are up and running."
+
+
+copy-env:
+	@if [ ! -f .env ]; then \
+		echo "Creating .env file from .env.example..."; \
+		cp .env.example .env; \
+	else \
+		echo ".env file already exists. Skipping."; \
+	fi
+
 bots-up:
 	@echo "Starting bots service and dependencies..."
-	docker-compose -f docker-compose.bots.yml up -d --build
+	@docker compose -f docker-compose.bots.yml up -d --build
 
 bots-down:
 	@echo "Stopping bots service and dependencies..."
-	docker-compose -f docker-compose.bots.yml down
+	@docker compose -f docker-compose.bots.yml down
 
 bots-reboot:
 	@echo "Rebooting bots service and dependencies..."
 	$(MAKE) bots-down
 	$(MAKE) bots-up
+
+profiles-up:
+	@echo "Starting profiles service and dependencies..."
+	docker compose -f docker-compose.profiles.yml up -d --build
+
+profiles-down:
+	@echo "Stopping profiles service and dependencies..."
+	@docker compose -f docker-compose.profiles.yml down
+
+profiles-reboot:
+	@echo "Rebooting profiles service and dependencies..."
+	$(MAKE) profiles-down
+	$(MAKE) profiles-up
 
 example-run:
 	@go run cmd/example/main.go
@@ -129,7 +159,17 @@ bots-migrate-up: ## Применить миграции для сервиса bo
 	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local-config.yaml" up
 
 bots-migrate-down: ## Откатить миграции для сервиса bots
-	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local-config.yaml" down
+	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local.yaml" down
+
+profiles-migrate-create: install-migrate
+	@read -p "Enter migration name: " name; \
+	migrate create -ext sql -dir assets/migrations/profiles -seq $$name
+
+profiles-migrate-up:
+	@go run ./cmd/profiles/migrate/main.go --env=local --config="./configs/profiles-local.yaml" up
+
+profiles-migrate-down:
+	@go run ./cmd/profiles/migrate/main.go --env=local --config="./configs/profiles-local.yaml" down
 
 install-migrate:
 	@if ! command -v migrate &> /dev/null; then \

@@ -18,7 +18,7 @@ var _ Handler = UnimplementedHandler{}
 // Создает новый профиль и связывает его с текущим
 // аккаунтом.
 //
-// POST /profiles
+// POST /api/v1/profiles
 func (UnimplementedHandler) CreateMyProfile(ctx context.Context, req *ProfileInput) (r CreateMyProfileRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -28,7 +28,7 @@ func (UnimplementedHandler) CreateMyProfile(ctx context.Context, req *ProfileInp
 // Удаляет профиль по его ID. Доступ разрешен только если
 // профиль принадлежит текущему аккаунту.
 //
-// DELETE /profiles/{profileId}
+// DELETE /api/v1/profiles/{profileId}
 func (UnimplementedHandler) DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (r DeleteProfileByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -38,7 +38,7 @@ func (UnimplementedHandler) DeleteProfileById(ctx context.Context, params Delete
 // Получает один профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// GET /profiles/{profileId}
+// GET /api/v1/profiles/{profileId}
 func (UnimplementedHandler) GetProfileById(ctx context.Context, params GetProfileByIdParams) (r GetProfileByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
@@ -49,8 +49,8 @@ func (UnimplementedHandler) GetProfileById(ctx context.Context, params GetProfil
 // принадлежащих текущему аутентифицированному
 // аккаунту.
 //
-// GET /profiles
-func (UnimplementedHandler) ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (r ListMyProfilesRes, _ error) {
+// GET /api/v1/profiles
+func (UnimplementedHandler) ListMyProfiles(ctx context.Context) (r ListMyProfilesRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -59,7 +59,7 @@ func (UnimplementedHandler) ListMyProfiles(ctx context.Context, params ListMyPro
 // Полностью обновляет профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// PUT /profiles/{profileId}
+// PUT /api/v1/profiles/{profileId}
 func (UnimplementedHandler) UpdateProfileById(ctx context.Context, req *ProfileInput, params UpdateProfileByIdParams) (r UpdateProfileByIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }

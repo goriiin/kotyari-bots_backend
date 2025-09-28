@@ -17,7 +17,6 @@ import (
 
 	"github.com/ogen-go/ogen/conv"
 	ht "github.com/ogen-go/ogen/http"
-	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
 	"github.com/ogen-go/ogen/uri"
 )
@@ -34,21 +33,21 @@ type Invoker interface {
 	// Создает новый профиль и связывает его с текущим
 	// аккаунтом.
 	//
-	// POST /profiles
+	// POST /api/v1/profiles
 	CreateMyProfile(ctx context.Context, request *ProfileInput) (CreateMyProfileRes, error)
 	// DeleteProfileById invokes deleteProfileById operation.
 	//
 	// Удаляет профиль по его ID. Доступ разрешен только если
 	// профиль принадлежит текущему аккаунту.
 	//
-	// DELETE /profiles/{profileId}
+	// DELETE /api/v1/profiles/{profileId}
 	DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error)
 	// GetProfileById invokes getProfileById operation.
 	//
 	// Получает один профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// GET /profiles/{profileId}
+	// GET /api/v1/profiles/{profileId}
 	GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error)
 	// ListMyProfiles invokes listMyProfiles operation.
 	//
@@ -56,21 +55,20 @@ type Invoker interface {
 	// принадлежащих текущему аутентифицированному
 	// аккаунту.
 	//
-	// GET /profiles
-	ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error)
+	// GET /api/v1/profiles
+	ListMyProfiles(ctx context.Context) (ListMyProfilesRes, error)
 	// UpdateProfileById invokes updateProfileById operation.
 	//
 	// Полностью обновляет профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// PUT /profiles/{profileId}
+	// PUT /api/v1/profiles/{profileId}
 	UpdateProfileById(ctx context.Context, request *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error)
 }
 
 // Client implements OAS client.
 type Client struct {
 	serverURL *url.URL
-	sec       SecuritySource
 	baseClient
 }
 
@@ -79,7 +77,7 @@ var _ Handler = struct {
 }{}
 
 // NewClient initializes new Client defined by OAS.
-func NewClient(serverURL string, sec SecuritySource, opts ...ClientOption) (*Client, error) {
+func NewClient(serverURL string, opts ...ClientOption) (*Client, error) {
 	u, err := url.Parse(serverURL)
 	if err != nil {
 		return nil, err
@@ -92,7 +90,6 @@ func NewClient(serverURL string, sec SecuritySource, opts ...ClientOption) (*Cli
 	}
 	return &Client{
 		serverURL:  u,
-		sec:        sec,
 		baseClient: c,
 	}, nil
 }
@@ -117,7 +114,7 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // Создает новый профиль и связывает его с текущим
 // аккаунтом.
 //
-// POST /profiles
+// POST /api/v1/profiles
 func (c *Client) CreateMyProfile(ctx context.Context, request *ProfileInput) (CreateMyProfileRes, error) {
 	res, err := c.sendCreateMyProfile(ctx, request)
 	return res, err
@@ -127,7 +124,7 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createMyProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Run stopwatch.
@@ -160,7 +157,7 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/profiles"
+	pathParts[0] = "/api/v1/profiles"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -170,51 +167,6 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 	}
 	if err := encodeCreateMyProfileRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, CreateMyProfileOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, CreateMyProfileOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"
@@ -238,7 +190,7 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 // Удаляет профиль по его ID. Доступ разрешен только если
 // профиль принадлежит текущему аккаунту.
 //
-// DELETE /profiles/{profileId}
+// DELETE /api/v1/profiles/{profileId}
 func (c *Client) DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error) {
 	res, err := c.sendDeleteProfileById(ctx, params)
 	return res, err
@@ -248,7 +200,7 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteProfileById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -281,7 +233,7 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profiles/"
+	pathParts[0] = "/api/v1/profiles/"
 	{
 		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -308,51 +260,6 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, DeleteProfileByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, DeleteProfileByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -374,7 +281,7 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 // Получает один профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// GET /profiles/{profileId}
+// GET /api/v1/profiles/{profileId}
 func (c *Client) GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error) {
 	res, err := c.sendGetProfileById(ctx, params)
 	return res, err
@@ -384,7 +291,7 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getProfileById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -417,7 +324,7 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profiles/"
+	pathParts[0] = "/api/v1/profiles/"
 	{
 		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -444,51 +351,6 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, GetProfileByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, GetProfileByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -511,17 +373,17 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 // принадлежащих текущему аутентифицированному
 // аккаунту.
 //
-// GET /profiles
-func (c *Client) ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error) {
-	res, err := c.sendListMyProfiles(ctx, params)
+// GET /api/v1/profiles
+func (c *Client) ListMyProfiles(ctx context.Context) (ListMyProfilesRes, error) {
+	res, err := c.sendListMyProfiles(ctx)
 	return res, err
 }
 
-func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesParams) (res ListMyProfilesRes, err error) {
+func (c *Client) sendListMyProfiles(ctx context.Context) (res ListMyProfilesRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listMyProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Run stopwatch.
@@ -554,96 +416,13 @@ func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesPa
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/profiles"
+	pathParts[0] = "/api/v1/profiles"
 	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeQueryParams"
-	q := uri.NewQueryEncoder()
-	{
-		// Encode "cursor" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "cursor",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Cursor.Get(); ok {
-				return e.EncodeValue(conv.StringToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "limit" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "limit",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Limit.Get(); ok {
-				return e.EncodeValue(conv.IntToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, ListMyProfilesOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, ListMyProfilesOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"
@@ -667,7 +446,7 @@ func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesPa
 // Полностью обновляет профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// PUT /profiles/{profileId}
+// PUT /api/v1/profiles/{profileId}
 func (c *Client) UpdateProfileById(ctx context.Context, request *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error) {
 	res, err := c.sendUpdateProfileById(ctx, request, params)
 	return res, err
@@ -677,7 +456,7 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateProfileById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Run stopwatch.
@@ -710,7 +489,7 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/profiles/"
+	pathParts[0] = "/api/v1/profiles/"
 	{
 		// Encode "profileId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -738,51 +517,6 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	}
 	if err := encodeUpdateProfileByIdRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, UpdateProfileByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, UpdateProfileByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"

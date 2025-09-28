@@ -35,14 +35,14 @@ func (c *codeRecorder) WriteHeader(status int) {
 // Создает новый профиль и связывает его с текущим
 // аккаунтом.
 //
-// POST /profiles
+// POST /api/v1/profiles
 func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createMyProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Start a span for this request.
@@ -105,68 +105,6 @@ func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, 
 			ID:   "createMyProfile",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, CreateMyProfileOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, CreateMyProfileOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	request, close, err := s.decodeCreateMyProfileRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
@@ -236,14 +174,14 @@ func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, 
 // Удаляет профиль по его ID. Доступ разрешен только если
 // профиль принадлежит текущему аккаунту.
 //
-// DELETE /profiles/{profileId}
+// DELETE /api/v1/profiles/{profileId}
 func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteProfileById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.
@@ -306,68 +244,6 @@ func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool
 			ID:   "deleteProfileById",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, DeleteProfileByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, DeleteProfileByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeDeleteProfileByIdParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -437,14 +313,14 @@ func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool
 // Получает один профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// GET /profiles/{profileId}
+// GET /api/v1/profiles/{profileId}
 func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getProfileById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.
@@ -507,68 +383,6 @@ func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w
 			ID:   "getProfileById",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, GetProfileByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, GetProfileByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeGetProfileByIdParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -639,14 +453,14 @@ func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w
 // принадлежащих текущему аутентифицированному
 // аккаунту.
 //
-// GET /profiles
+// GET /api/v1/profiles
 func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listMyProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles"),
 	}
 
 	// Start a span for this request.
@@ -703,84 +517,8 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 
 			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
 		}
-		err          error
-		opErrContext = ogenerrors.OperationContext{
-			Name: ListMyProfilesOperation,
-			ID:   "listMyProfiles",
-		}
+		err error
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, ListMyProfilesOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, ListMyProfilesOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
-	params, err := decodeListMyProfilesParams(args, argsEscaped, r)
-	if err != nil {
-		err = &ogenerrors.DecodeParamsError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeParams", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
 
 	var response ListMyProfilesRes
 	if m := s.cfg.Middleware; m != nil {
@@ -790,22 +528,13 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 			OperationSummary: "Получить список своих профилей",
 			OperationID:      "listMyProfiles",
 			Body:             nil,
-			Params: middleware.Parameters{
-				{
-					Name: "cursor",
-					In:   "query",
-				}: params.Cursor,
-				{
-					Name: "limit",
-					In:   "query",
-				}: params.Limit,
-			},
-			Raw: r,
+			Params:           middleware.Parameters{},
+			Raw:              r,
 		}
 
 		type (
 			Request  = struct{}
-			Params   = ListMyProfilesParams
+			Params   = struct{}
 			Response = ListMyProfilesRes
 		)
 		response, err = middleware.HookMiddleware[
@@ -815,14 +544,14 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 		](
 			m,
 			mreq,
-			unpackListMyProfilesParams,
+			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.ListMyProfiles(ctx, params)
+				response, err = s.h.ListMyProfiles(ctx)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.ListMyProfiles(ctx, params)
+		response, err = s.h.ListMyProfiles(ctx)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -844,14 +573,14 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 // Полностью обновляет профиль по его ID. Доступ разрешен
 // только если профиль принадлежит текущему аккаунту.
 //
-// PUT /profiles/{profileId}
+// PUT /api/v1/profiles/{profileId}
 func (s *Server) handleUpdateProfileByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateProfileById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.
@@ -914,68 +643,6 @@ func (s *Server) handleUpdateProfileByIdRequest(args [1]string, argsEscaped bool
 			ID:   "updateProfileById",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, UpdateProfileByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, UpdateProfileByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeUpdateProfileByIdParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{

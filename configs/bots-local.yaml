@@ -5,4 +5,4 @@ local_bots_api:
 local_profiles_api:
   port: 8002
 
-local_profiles_svc_addr: "profiles_svc:8002"
+local_profiles_svc_addr: "profiles_go:8002"
