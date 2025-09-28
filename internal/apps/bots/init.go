@@ -3,6 +3,10 @@ package bots
 import (
 	"context"
 	"fmt"
+	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
+	adapter "github.com/goriiin/kotyari-bots_backend/internal/adapters/profiles"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net/http"
 	"os"
@@ -42,26 +46,17 @@ func (b *BotsApp) Run() error {
 	}
 	defer pool.Close()
 
-	// conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	// if err != nil {
-	//	return fmt.Errorf("grpc.NewClient: %w", err)
-	// }
-	// defer conn.Close()
-	// profilesClient := profiles.NewProfilesServiceClient(conn)
-	//
-	//// Init dependencies
-	// botsRepo := repo.NewBotsRepository(pool)
-	//// Создаем валидатор профилей, который использует gRPC клиент
-	// profileValidator := profiles_adapter.NewGrpcValidator(profilesClient)
-	//// Передаем валидатор в usecase
-	// botsUsecase := usecase.NewService(botsRepo, profileValidator)
-	//// Передаем usecase и gRPC клиент в http хендлер
-	// botsHandler := delivery.NewHandler(botsUsecase, profilesClient)
+	conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return fmt.Errorf("grpc.NewClient: %w", err)
+	}
+	defer conn.Close()
+	profilesClient := profiles.NewProfilesServiceClient(conn)
 
-	// Init dependencies
 	botsRepo := repo.NewBotsRepository(pool)
-	botsUsecase := usecase.NewService(botsRepo, nil) // Передаем nil вместо profileValidator
-	botsHandler := delivery.NewHandler(botsUsecase, nil)
+	profileValidator := adapter.NewGrpcValidator(profilesClient)
+	botsUsecase := usecase.NewService(botsRepo, profileValidator)
+	botsHandler := delivery.NewHandler(botsUsecase, profilesClient)
 
 	svr, err := gen.NewServer(botsHandler)
 	if err != nil {
