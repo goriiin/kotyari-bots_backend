@@ -1,0 +1,294 @@
+openapi: 3.0.0
+info:
+  title: "Posts Service"
+  description: "API для работы с постами."
+  version: "1.0.0"
+servers:
+  - url: /api/v1
+tags:
+  - name: "Posts"
+    description: "Операции для управления постами."
+
+# --------------------------------------------------------------
+# Компоненты API
+# --------------------------------------------------------------
+components:
+  # -------------------- Безопасность --------------------
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+    csrfAuth:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+
+  # -------------------- Схемы данных --------------------
+  schemas:
+    Post:
+      type: object
+      description: "Пост"
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          description: "ID поста"
+        profileId:
+          type: string
+          format: uuid
+          description: "ID профиля, к которому относится пост."
+        text:
+          type: string
+          description: "Текстовое содержимое поста."
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - id
+        - profileId
+        - text
+        - createdAt
+        - updatedAt
+      example:
+        id: "b046aea8-5692-46ab-bc51-7c479584bb36"
+        profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"
+        text: "Sample post text"
+        createdAt: "2023-10-27T10:00:00Z"
+        updatedAt: "2023-10-27T11:30:00Z"
+
+    PostInput:
+      type: object
+      description: "Данные для создания нового поста."
+      properties:
+        botId:
+          type: string
+          format: uuid
+          description: "ID бота, который создает пост"
+        profileIds:
+          type: array
+          description: "Массив ID профилей, от имени которых создаются посты."
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - botId
+        - profileId
+      example:
+        botId: "b046aea8-5692-46ab-bc51-7c479584bb36"
+        profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"
+
+    PostUpdate:
+      type: object
+      description: "Данные для обновления поста."
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          description: "ID поста"
+        text:
+          type: string
+          description: "Новое содержимое поста."
+      required:
+        - text
+
+    PostList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+
+    Error:
+      type: object
+      description: "Стандартизированная структура ошибки."
+      properties:
+        errorCode:
+          type: string
+          description: "Машиночитаемый код ошибки."
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: "Человекочитаемое сообщение об ошибке."
+          example: "Одно или несколько полей не прошли валидацию."
+        details:
+          type: object
+          additionalProperties:
+            type: string
+          description: "Дополнительные детали об ошибке, например, по полям."
+          example:
+            text: "Поле не может быть пустым."
+      required:
+        - errorCode
+        - message
+
+  # -------------------- Параметры --------------------
+  parameters:
+    PostID:
+      name: postId
+      in: path
+      required: true
+      description: "Уникальный идентификатор поста."
+      schema:
+        type: string
+        format: uuid
+
+  # -------------------- Ответы --------------------
+  responses:
+    NoContent:
+      description: "Операция успешна, тело ответа отсутствует."
+    BadRequest:
+      description: "Некорректный запрос (Bad Request)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: "Ошибка аутентификации (Unauthorized)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: "Ресурс не найден (Not Found)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: "Внутренняя ошибка сервера (Internal Server Error)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+# --------------------------------------------------------------
+# Глобальные требования безопасности
+# --------------------------------------------------------------
+security:
+  - cookieAuth: []
+  - csrfAuth: []
+
+# --------------------------------------------------------------
+# Пути (Эндпоинты) API
+# --------------------------------------------------------------
+paths:
+  /posts:
+    get:
+      summary: "Получить список постов"
+      operationId: "listPosts"
+      tags: ["Posts"]
+      responses:
+        '200':
+          description: "Успешный ответ со списком постов."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: "Создать новый пост"
+      operationId: "createPost"
+      tags: ["Posts"]
+      requestBody:
+        required: true
+        description: "Данные для нового поста."
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInput'
+      responses:
+        '201':
+          description: "Пост успешно создан."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: "Указанный пост не найден."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /posts/{postId}:
+    get:
+      summary: "Получить пост по ID"
+      operationId: "getPostById"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '#/components/parameters/PostID'
+      responses:
+        '200':
+          description: "Успешный ответ с данными поста."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: "Обновить пост по ID"
+      operationId: "updatePostById"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '#/components/parameters/PostID'
+      requestBody:
+        required: true
+        description: "Новые данные для поста."
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostUpdate'
+      responses:
+        '200':
+          description: "Пост успешно обновлен."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: "Удалить пост по ID"
+      operationId: "deletePostById"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '#/components/parameters/PostID'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
