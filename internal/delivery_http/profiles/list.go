@@ -7,8 +7,8 @@ import (
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/profiles"
 )
 
-func (h *HTTPHandler) ListMyProfiles(ctx context.Context, params gen.ListMyProfilesParams) (gen.ListMyProfilesRes, error) {
-	profiles, err := h.u.List(ctx, params.Limit.Or(constants.DefaultLimit), params.Cursor.Value)
+func (h *HTTPHandler) ListMyProfiles(ctx context.Context) (gen.ListMyProfilesRes, error) {
+	profiles, err := h.u.List(ctx)
 	if err != nil {
 		return &gen.ListMyProfilesInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: err.Error()}, nil
 	}

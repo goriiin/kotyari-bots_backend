@@ -13,21 +13,21 @@ type Handler interface {
 	// Создает новый профиль и связывает его с текущим
 	// аккаунтом.
 	//
-	// POST /profiles
+	// POST /api/v1/profiles
 	CreateMyProfile(ctx context.Context, req *ProfileInput) (CreateMyProfileRes, error)
 	// DeleteProfileById implements deleteProfileById operation.
 	//
 	// Удаляет профиль по его ID. Доступ разрешен только если
 	// профиль принадлежит текущему аккаунту.
 	//
-	// DELETE /profiles/{profileId}
+	// DELETE /api/v1/profiles/{profileId}
 	DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error)
 	// GetProfileById implements getProfileById operation.
 	//
 	// Получает один профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// GET /profiles/{profileId}
+	// GET /api/v1/profiles/{profileId}
 	GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error)
 	// ListMyProfiles implements listMyProfiles operation.
 	//
@@ -35,14 +35,14 @@ type Handler interface {
 	// принадлежащих текущему аутентифицированному
 	// аккаунту.
 	//
-	// GET /profiles
-	ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error)
+	// GET /api/v1/profiles
+	ListMyProfiles(ctx context.Context) (ListMyProfilesRes, error)
 	// UpdateProfileById implements updateProfileById operation.
 	//
 	// Полностью обновляет профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// PUT /profiles/{profileId}
+	// PUT /api/v1/profiles/{profileId}
 	UpdateProfileById(ctx context.Context, req *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error)
 }
 

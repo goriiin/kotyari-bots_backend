@@ -2,6 +2,7 @@ package profiles
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
