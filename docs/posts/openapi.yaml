@@ -14,15 +14,15 @@ tags:
 # --------------------------------------------------------------
 components:
   # -------------------- Безопасность --------------------
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: session_id
-    csrfAuth:
-      type: apiKey
-      in: header
-      name: X-CSRF-Token
+#  securitySchemes:
+#    cookieAuth:
+#      type: apiKey
+#      in: cookie
+#      name: session_id
+#    csrfAuth:
+#      type: apiKey
+#      in: header
+#      name: X-CSRF-Token
 
   # -------------------- Схемы данных --------------------
   schemas:
@@ -35,6 +35,10 @@ components:
           format: uuid
           readOnly: true
           description: "ID поста"
+        botId:
+          type: string
+          format: uuid
+          description: "ID бота, к которому привязан пост."
         profileId:
           type: string
           format: uuid
@@ -78,12 +82,18 @@ components:
             type: string
             format: uuid
           minItems: 1
+        taskText:
+          type: string
+          description: "Описание задачи для LLM"
+
       required:
         - botId
         - profileId
+        - taskText
       example:
         botId: "b046aea8-5692-46ab-bc51-7c479584bb36"
         profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"
+        taskText: "Пост про огурцы"
 
     PostUpdate:
       type: object
@@ -202,6 +212,37 @@ paths:
       summary: "Создать новый пост"
       operationId: "createPost"
       tags: ["Posts"]
+      requestBody:
+        required: true
+        description: "Данные для нового поста."
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInput'
+      responses:
+        '201':
+          description: "Пост успешно создан."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: "Указанный пост не найден."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /posts/seo:
+    post:
+      summary: "Создать новый пост по SEO"
+      operationId: "createPost"
+      tags: [ "Posts" ]
       requestBody:
         required: true
         description: "Данные для нового поста."
