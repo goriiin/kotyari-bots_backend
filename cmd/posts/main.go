@@ -5,24 +5,36 @@ import (
 
 	"github.com/goriiin/kotyari-bots_backend/internal/apps/posts"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
+	"github.com/goriiin/kotyari-bots_backend/pkg/proxy"
 )
 
 const local = "docker-config"
 
 func main() {
-	cfg, _ := config.New[posts.PostsAppCfg]()
+	postsCfg, _ := config.New[posts.PostsAppCfg]()
 
 	config.WatchConfig(func() {
-		newCfg, err := config.NewWithConfig[posts.PostsAppCfg](local)
+		newPostsCfg, err := config.NewWithConfig[posts.PostsAppCfg](local)
 		if err != nil {
-			log.Fatalf("error parsing config in runtime: %s", err.Error())
+			log.Fatalf("error parsing posts config in runtime: %s", err.Error())
 			return
 		}
 
-		cfg = newCfg
+		postsCfg = newPostsCfg
 	})
 
-	_, err := posts.NewPostsApp(cfg)
+	proxyCfg, _ := config.New[proxy.ProxyConfig]()
+	config.WatchConfig(func() {
+		newProxyCfg, err := config.NewWithConfig[proxy.ProxyConfig](local)
+		if err != nil {
+			log.Fatalf("error parsing proxy config in runtime: %s", err.Error())
+			return
+		}
+
+		proxyCfg = newProxyCfg
+	})
+
+	_, err := posts.NewPostsApp(postsCfg, proxyCfg)
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}

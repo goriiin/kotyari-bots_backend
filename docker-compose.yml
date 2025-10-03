@@ -43,6 +43,28 @@ services:
       timeout: 5s
       retries: 5
 
+  posts_db:
+    image: postgres:17.5
+    ports:
+      - "54327:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${LOCAL_POSTS_DATABASE_USER}
+      - POSTGRES_PASSWORD=${LOCAL_POSTS_DATABASE_PASSWORD}
+      - POSTGRES_DB=${LOCAL_POSTS_DATABASE_NAME}
+    volumes:
+      - posts_db_data:/var/lib/postgresql/data/
+    container_name: posts_db
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${LOCAL_POSTS_DATABASE_USER} -d ${LOCAL_POSTS_DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka
@@ -174,6 +196,7 @@ services:
 volumes:
   api_integrations_db_data:
   aggregator_db_data:
+  posts_db_data:
 
 networks:
   app-network:

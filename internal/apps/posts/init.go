@@ -8,6 +8,7 @@ import (
 	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/grok_client"
+	"github.com/goriiin/kotyari-bots_backend/pkg/proxy"
 	"google.golang.org/grpc"
 )
 
@@ -27,13 +28,13 @@ type PostsApp struct {
 	generator PostGenerator
 }
 
-func NewPostsApp(appCfg *PostsAppCfg) (*PostsApp, error) {
+func NewPostsApp(appCfg *PostsAppCfg, proxyCfg *proxy.ProxyConfig) (*PostsApp, error) {
 	grpcClient, err := posts_client.NewPostsGRPCClient(&appCfg.GrpcClient)
 	if err != nil {
 		return nil, err
 	}
 
-	grokClient, err := grok_client.NewGrokClient(&appCfg.GrokCfg)
+	grokClient, err := grok_client.NewGrokClient(&appCfg.GrokCfg, proxyCfg)
 	if err != nil {
 		return nil, err
 	}
