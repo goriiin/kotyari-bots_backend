@@ -1,8 +1,6 @@
 package grok_client
 
 import (
-	"context"
-	"net"
 	"net/http"
 
 	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
@@ -20,15 +18,8 @@ func NewGrokClient(config *grok.GrokClientConfig, proxyCfg *proxyPkg.ProxyConfig
 	if err != nil {
 		return nil, err
 	}
-
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				return proxy.Dialer.Dial(network, addr)
-			},
-		},
-		Timeout: config.Timeout,
-	}
+	httpClient := proxy.UseProxy(&http.Client{})
+	httpClient.Timeout = config.Timeout
 
 	return &GrokClient{
 		config:     config,
