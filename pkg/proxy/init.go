@@ -1,7 +1,10 @@
 package proxy
 
 import (
+	"context"
 	"fmt"
+	"net"
+	"net/http"
 
 	"github.com/go-faster/errors"
 	"golang.org/x/net/proxy"
@@ -11,7 +14,7 @@ const tcpNetwork = "tcp"
 
 type Proxy struct {
 	config *ProxyConfig
-	Dialer proxy.Dialer
+	dialer proxy.Dialer
 }
 
 func NewProxy(config *ProxyConfig) (*Proxy, error) {
@@ -24,6 +27,16 @@ func NewProxy(config *ProxyConfig) (*Proxy, error) {
 
 	return &Proxy{
 		config: config,
-		Dialer: dialer,
+		dialer: dialer,
 	}, nil
+}
+
+func (p *Proxy) UseProxy(client *http.Client) *http.Client {
+	client.Transport = &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return p.dialer.Dial(network, addr)
+		},
+	}
+
+	return client
 }
