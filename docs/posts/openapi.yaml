@@ -4,7 +4,7 @@ info:
   description: "API для работы с постами."
   version: "1.0.0"
 servers:
-  - url: /api/v1
+  - url: http://localhost:8086
 tags:
   - name: "Posts"
     description: "Операции для управления постами."
@@ -184,15 +184,15 @@ components:
 # --------------------------------------------------------------
 # Глобальные требования безопасности
 # --------------------------------------------------------------
-security:
-  - cookieAuth: []
-  - csrfAuth: []
+#security:
+#  - cookieAuth: []
+#  - csrfAuth: []
 
 # --------------------------------------------------------------
 # Пути (Эндпоинты) API
 # --------------------------------------------------------------
 paths:
-  /posts:
+  /api/v1/posts:
     get:
       summary: "Получить список постов"
       operationId: "listPosts"
@@ -238,10 +238,10 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /posts/seo:
+  /api/v1/posts/seo:
     post:
       summary: "Создать новый пост по SEO"
-      operationId: "createPost"
+      operationId: "createPostSEO"
       tags: [ "Posts" ]
       requestBody:
         required: true
@@ -270,7 +270,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /posts/{postId}:
+  /api/v1/posts/{postId}:
     get:
       summary: "Получить пост по ID"
       operationId: "getPostById"
