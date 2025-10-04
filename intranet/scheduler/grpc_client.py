@@ -9,11 +9,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../.
 
 from api.protos.url_fetcher.gen import start_fetching_pb2_grpc
 # Import the centralized settings.
-from config import settings
+from .config import settings
 
 
 def trigger_grpc_parsing():
-    address = settings.PARSER_SERVER_ADDRESS
+    address = settings.construct_server_address
     print(f"Attempting to call Parser server at {address}...")
 
     try:

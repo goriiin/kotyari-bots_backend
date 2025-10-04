@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # 1. Redis Service
+  redis:
+    image: redis:7-alpine
+    container_name: intranet-redis
+    ports:
+      # Expose Redis on the host machine for debugging (optional)
+      - "6379:6379"
+    volumes:
+      # Persist Redis data across container restarts
+      - redis-data:/data
+    networks:
+      - intranet-net
+    healthcheck:
+      # Ensure Redis is ready before other services that depend on it start
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Dzen URL Parser Service (gRPC Server)
+  dzen-parser:
+    container_name: intranet-dzen-parser
+    build:
+      # The build context is the project root, one level up from this file
+      context: ..
+      # The Dockerfile is located inside the dzen_url_parser directory
+      dockerfile: intranet/dzen_url_parser/Dockerfile
+    env_file:
+      # Load environment variables from the .env file in this directory
+      - ./.env
+    ports:
+      # Expose the gRPC port to the host machine
+      - "8091:8091"
+    networks:
+      - intranet-net
+    depends_on:
+      redis:
+        # Wait for the Redis healthcheck to pass before starting this service
+        condition: service_healthy
+
+  # 3. Scheduler Service (FastAPI and gRPC Client)
+  scheduler:
+    container_name: intranet-scheduler
+    build:
+      context: ..
+      dockerfile: intranet/scheduler/Dockerfile
+    env_file:
+      - ./.env
+    ports:
+      # Expose the FastAPI port to the host machine
+      - "8090:8090"
+    networks:
+      - intranet-net
+    depends_on:
+      # The scheduler calls the parser, so it should start after it.
+      - dzen-parser
+
+# Define a shared volume for Redis data persistence
+volumes:
+  redis-data:
+
+# Define the shared network for all services
+networks:
+  intranet-net:
+    driver: bridge

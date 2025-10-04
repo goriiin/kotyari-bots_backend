@@ -1,5 +1,5 @@
 from intranet.libs.redis import RedisClient
-from config import settings
+from .config import settings
 from abc import ABC, abstractmethod
 
 class LinkStorer(ABC):

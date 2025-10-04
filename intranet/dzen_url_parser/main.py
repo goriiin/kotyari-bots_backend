@@ -2,9 +2,11 @@ import grpc
 from concurrent import futures
 
 from api.protos.url_fetcher.gen import start_fetching_pb2_grpc
-from grpc_server import ProfileServiceServicer
-from config import settings
-from redis_adapter import RedisPublisherAdapter
+from .grpc_server import ProfileServiceServicer
+from .config import settings
+from .redis_adapter import RedisPublisherAdapter
+
+
 def serve():
     """
     Starts the gRPC server. This is the Composition Root where dependencies
@@ -19,7 +21,7 @@ def serve():
 
     start_fetching_pb2_grpc.add_ProfileServiceServicer_to_server(servicer, server)
 
-    port = settings.GRPC_SERVER_PORT
+    port = settings.DZEN_URL_PARSER_PORT
     server.add_insecure_port(f"[::]:{port}")
 
     print(f"dzen_url_parser gRPC server started on port {port}...")

@@ -6,32 +6,34 @@ class Settings(BaseSettings):
     Loads and validates application settings from environment variables.
     """
     # Configure Pydantic to load settings from a .env file.
-    model_config = SettingsConfigDict(env_file='./../../.env', env_file_encoding='utf-8', extra='ignore')
+    model_config = SettingsConfigDict(env_file='./../.env', env_file_encoding='utf-8', extra='ignore')
 
     #default values
     DZEN_URL_PARSER_HOST: str = "localhost"
-    DZEN_URL_PARSER_PORT: int = 50051
+    DZEN_URL_PARSER_PORT: int = 8091
 
-    REDIS_HOST: str = "localhost"
+    REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
-
+    REDIS_PROCESSED_URLS_KEY: str = "processed_urls:zset"
 
     DZEN_ARTICLES_URLs: List[str]  = [
-        "https://dzen.ru/topic/travel",
+        # "https://dzen.ru/topic/travel",
         "https://dzen.ru/articles",
-        "https://dzen.ru/topic/food",
-        "https://dzen.ru/topic/culture",
-        "https://dzen.ru/topic/economy",
-        "https://dzen.ru/topic/it",
-        "https://dzen.ru/topic/auto",
-        "https://dzen.ru/topic/games",
-        "https://dzen.ru/topic/pets",
-        "https://dzen.ru/topic/multiki",
-        "https://dzen.ru/topic/science"
+        #"https://dzen.ru/topic/food",
+        #"https://dzen.ru/topic/culture",
+        #"https://dzen.ru/topic/economy",
+        #"https://dzen.ru/topic/it",
+        #"https://dzen.ru/topic/auto",
+        #"https://dzen.ru/topic/games",
+        #"https://dzen.ru/topic/pets",
+        #"https://dzen.ru/topic/multiki",
+        #"https://dzen.ru/topic/science"
     ]
 
     DZEN_SCROLL_COUNT: int = 5
     DZEN_SCROLL_DELAY_SECONDS: int = 3
+
+    REDIS_PUBLISH_TOPIC: str = "dzen"
 
     @property
     def construct_server_address(self) -> str:

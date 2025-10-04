@@ -5,21 +5,30 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from urllib.parse import urlparse
 
-from config import settings
+from .config import settings
 
 def _get_webdriver() -> webdriver.Chrome:
     """Configures and returns a headless Chrome WebDriver instance."""
     options = webdriver.ChromeOptions()
+    # ALL of these arguments are important for running in Docker
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-dev-shm-usage") # Crucial for stability in Docker
+    options.add_argument("--disable-gpu") # Often helps in environments without a dedicated GPU
+    # options.add_argument("--window-size=1920,1080") # Set a reasonable window size
     options.add_argument("--log-level=3")
     options.add_argument(
         "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     )
     options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
 
-    service = Service(ChromeDriverManager().install())
+    # When running in Docker, we now use the system's pre-installed chromedriver.
+    # The default path is usually /usr/bin/chromedriver.
+    # Selenium's Service() will find it automatically if it's in the system PATH.
+
+    chromedriver_path = "/usr/bin/chromedriver"
+    service = Service(executable_path=chromedriver_path)
+
     return webdriver.Chrome(service=service, options=options)
 
 def parse_dzen_for_links() -> list[str]:

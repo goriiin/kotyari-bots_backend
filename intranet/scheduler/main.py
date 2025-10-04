@@ -4,8 +4,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 # Import the refactored modules.
-from grpc_client import trigger_grpc_parsing
-from config import settings
+from .grpc_client import trigger_grpc_parsing
+from .config import settings
 
 # --- FastAPI App Initialization ---
 app = FastAPI(

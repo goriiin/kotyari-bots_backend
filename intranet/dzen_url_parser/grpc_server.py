@@ -2,8 +2,8 @@ import grpc
 from google.protobuf import empty_pb2
 
 from api.protos.url_fetcher.gen import start_fetching_pb2_grpc
-from parser import parse_dzen_for_links
-from redis_adapter import LinkStorer
+from .parser import parse_dzen_for_links
+from .redis_adapter import LinkStorer
 
 class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
     """
