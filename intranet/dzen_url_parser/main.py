@@ -4,15 +4,14 @@ from concurrent import futures
 from api.protos.url_fetcher.gen import start_fetching_pb2_grpc
 from grpc_server import ProfileServiceServicer
 from config import settings
-from repo import RedisLinkStorer
-
+from redis_adapter import RedisPublisherAdapter
 def serve():
     """
     Starts the gRPC server. This is the Composition Root where dependencies
     are created and injected.
     """
 
-    redis_storer = RedisLinkStorer()
+    redis_storer = RedisPublisherAdapter()
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 

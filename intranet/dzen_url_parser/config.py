@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List
 
 class Settings(BaseSettings):
     """
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
 
 
-    DZEN_ARTICLES_URLs: list[str]  = [
+    DZEN_ARTICLES_URLs: List[str]  = [
         "https://dzen.ru/topic/travel",
         "https://dzen.ru/articles",
         "https://dzen.ru/topic/food",
