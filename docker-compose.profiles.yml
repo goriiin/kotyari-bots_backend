@@ -11,7 +11,7 @@ services:
     volumes:
       - profiles_pgdata:/var/lib/postgresql/data
     networks:
-      - kotyari-network
+      - microservices-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${LOCAL_PROFILES_DATABASE_USER} -d ${LOCAL_PROFILES_DATABASE_NAME}"]
       interval: 10s
@@ -28,7 +28,7 @@ services:
     image: profiles_migrate_image
     env_file: .env
     networks:
-      - kotyari-network
+      - microservices-network
     depends_on:
       profiles_db:
         condition: service_healthy
@@ -46,15 +46,15 @@ services:
       - "8003:8003"
       - "8002:8002"
     networks:
-      - kotyari-network
+      - microservices-network
     depends_on:
       profiles_migrate:
         condition: service_completed_successfully
     restart: unless-stopped
 
 networks:
-  kotyari-network:
-    driver: bridge
+  microservices-network:
+    external: true
 
 volumes:
   profiles_pgdata:

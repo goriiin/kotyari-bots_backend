@@ -1,7 +1,12 @@
+# Имя для общей сети микросервисов
+DOCKER_NETWORK := microservices-network
+
 defalut: help
 
 SERVICES := $(shell find ./docs -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
+
+.PHONY: help up down reboot test
 
 help:
 	@echo ''
@@ -24,12 +29,34 @@ network-up:
 	@echo "Creating public gateway network if it doesn't exist..."
 	@docker network create public-gateway-network || true
 
+profiles-reboot: profiles-down profiles-up
+
+
+# --- Вспомогательные и внутренние команды ---
+
+.PHONY: setup-network teardown-network copy-env
+
+# Проверяет наличие сети и создает ее, если она отсутствует
+setup-network:
+	@docker network inspect $(DOCKER_NETWORK) >/dev/null 2>&1 || \
+		(echo "Создаю общую Docker-сеть: $(DOCKER_NETWORK)..." && docker network create $(DOCKER_NETWORK))
+
+# Удаляет общую сеть
+teardown-network:
+	@docker network rm $(DOCKER_NETWORK) >/dev/null 2>&1 || true
+
+copy-env:
+	@if [ ! -f .env ]; then \
+		echo "Создаю .env файл из .env.example..."; \
+		cp .env.example .env; \
+	fi
+
+# --- Кодогенерация и статический анализ (без изменений) ---
+
+SERVICES := $(shell find ./docs -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 PROTO_DIR := ./api/protos
-
 GEN_DIR := gen
-
 PROTOC := protoc
-
 ENTITIES := $(shell find $(PROTO_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 
 # export PATH=$PATH:$(go env GOPATH)/bin
@@ -59,20 +86,22 @@ install-ogen:
 
 define generate-service
 	@echo "--- Генерирую код для сервиса: $(1) ---"
-	@# Определяем пути
 	$(eval INPUT_FILE := ./docs/$(1)/openapi.yaml)
 	$(eval OUTPUT_DIR := ./internal/gen/$(1))
-
-	@# Проверяем наличие исходного файла
 	@if [ ! -f "$(INPUT_FILE)" ]; then \
 		echo "Ошибка: Файл спецификации $(INPUT_FILE) не найден!"; \
 		exit 1; \
 	fi
-
-	@# Запускаем ogen
 	ogen --target "$(OUTPUT_DIR)" --package "$(1)" -clean "$(INPUT_FILE)"
 endef
 
+proto-build: $(ENTITIES)
+
+$(ENTITIES):
+	@echo "Генерация кода для сущности $@..."
+	@mkdir -p $(PROTO_DIR)/$@/$(GEN_DIR)
+	@$(PROTOC) --proto_path=$(PROTO_DIR)/$@/proto --go_out=$(PROTO_DIR)/$@/$(GEN_DIR) --go_opt=paths=source_relative --go-grpc_out=$(PROTO_DIR)/$@/$(GEN_DIR) --go-grpc_opt=paths=source_relative $(PROTO_DIR)/$@/proto/*.proto
+	@echo "Генерация для $@ завершена."
 
 download-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.3.1
@@ -81,12 +110,6 @@ download-gci:
 	go install github.com/daixiang0/gci@v0.13.4
 
 install: download-lint download-gci
-
-check-lint:
-	golangci-lint --version
-
-verify-lint-config:
-	golangci-lint config verify
 
 lint:
 	golangci-lint run
@@ -118,24 +141,24 @@ copy-env:
 
 bots-up: network-up
 	@echo "Starting bots service and dependencies..."
-	docker-compose -f docker-compose.bots.yml up -d --build
+	@docker compose -f docker-compose.bots.yml up -d --build
 
 bots-down:
 	@echo "Stopping bots service and dependencies..."
-	docker-compose -f docker-compose.bots.yml down
+	@docker compose -f docker-compose.bots.yml down
 
 bots-reboot:
 	@echo "Rebooting bots service and dependencies..."
 	$(MAKE) bots-down
 	$(MAKE) bots-up
 
-profiles-up:
+profiles-up: network-up
 	@echo "Starting profiles service and dependencies..."
 	docker-compose -f docker-compose.profiles.yml up -d --build
 
 profiles-down:
 	@echo "Stopping profiles service and dependencies..."
-	docker-compose -f docker-compose.profiles.yml down
+	@docker-compose -f docker-compose.profiles.yml down
 
 profiles-reboot:
 	@echo "Rebooting profiles service and dependencies..."
@@ -177,7 +200,6 @@ install-migrate:
 	fi
 
 .PHONY: download-lint download-gci lint format format-check check help api
-
 
 INTRANET_DIR := ./intranet
 
