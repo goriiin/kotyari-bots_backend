@@ -5,3 +5,5 @@ requests
 
 pyyaml
 python-dotenv
+
+psycopg2-binary

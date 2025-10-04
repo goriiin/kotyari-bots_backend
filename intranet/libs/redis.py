@@ -57,10 +57,10 @@ class RedisClient(PublisherInterface, SubscriberInterface):
             self._conn.ping()
             print(f"[RedisClient] Успешное подключение к Redis ({host}:{port}).")
         except redis.exceptions.AuthenticationError:
-            print(f"❌ [RedisClient] КРИТИЧЕСКАЯ ОШИБКА: Неверный логин или пароль для Redis!")
+            print(f"[RedisClient] КРИТИЧЕСКАЯ ОШИБКА: Неверный логин или пароль для Redis!")
             raise
         except redis.exceptions.ConnectionError as e:
-            print(f"❌ [RedisClient] Не удалось подключиться к Redis: {e}")
+            print(f"[RedisClient] Не удалось подключиться к Redis: {e}")
             raise
     def _is_url_processed(self, url: str) -> bool:
         """Внутренний метод для проверки существования URL в ZSET."""
@@ -104,7 +104,7 @@ class MockRedisClient(PublisherInterface, SubscriberInterface):
     """
 
     def __init__(self):
-        print("✅ [MockRedisClient] Инициализирован фальшивый клиент Redis. Все данные будут храниться в памяти.")
+        print("[MockRedisClient] Инициализирован фальшивый клиент Redis. Все данные будут храниться в памяти.")
         self._processed_urls = {}  # Имитация ZSET: {url: timestamp}
         self._message_queue = []  # Имитация Pub/Sub очереди
         self._topics = []
@@ -121,7 +121,7 @@ class MockRedisClient(PublisherInterface, SubscriberInterface):
     def publish(self, topic: str, url: str) -> bool:
         """Имитирует публикацию, добавляя сообщение в очередь."""
         if url in self._processed_urls:
-            print(f"⏭️ [MockPublisher] URL уже существует, публикация отменена: {url}")
+            print(f"[MockPublisher] URL уже существует, публикация отменена: {url}")
             return False
 
         message = {'channel': topic, 'data': url}
@@ -135,7 +135,7 @@ class MockRedisClient(PublisherInterface, SubscriberInterface):
         а затем "засыпает", имитируя ожидание.
         """
         self._topics = topics
-        print(f"🎧 [MockSubscriber] Начал прослушивание топиков: {', '.join(topics)}")
+        print(f"[MockSubscriber] Начал прослушивание топиков: {', '.join(topics)}")
 
         while True:
             if self._message_queue:
@@ -149,4 +149,4 @@ class MockRedisClient(PublisherInterface, SubscriberInterface):
     def mark_as_processed(self, url: str):
         """Имитирует добавление в ZSET, сохраняя URL в словарь."""
         self._processed_urls[url] = time.time()
-        print(f"📝 [MockSubscriber] URL помечен как обработанный: {url}")
+        print(f"[MockSubscriber] URL помечен как обработанный: {url}")

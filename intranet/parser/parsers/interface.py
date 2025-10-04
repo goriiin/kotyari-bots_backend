@@ -34,6 +34,7 @@ class BaseBrowserParser(BaseParser, ABC):
     def _get_webdriver(self):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
+        options.to_capabilities()  # Новая рекомендация для headless
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--log-level=3")
@@ -41,14 +42,15 @@ class BaseBrowserParser(BaseParser, ABC):
             "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
         options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
 
+        service = Service(executable_path='/usr/bin/chromedriver')
+
         try:
-            print("   [WebDriver] Попытка использовать ChromeDriverManager для локального запуска.")
-            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-            print("   [WebDriver] Успешно. Установлен и используется драйвер через ChromeDriverManager.")
+            print("   [WebDriver] Инициализация драйвера Chromium из системного пути...")
+            driver = webdriver.Chrome(service=service, options=options)
+            print("   [WebDriver] Драйвер Chromium успешно создан.")
             return driver
         except Exception as e:
-
-            print(f"   [WebDriver] КРИТИЧЕСКАЯ ОШИБКА: Не удалось создать драйвер: {e}")
+            print(f"   [WebDriver] КРИТИЧЕСКАЯ ОШИБКА: Не удалось создать системный драйвер: {e}")
             raise
 
     def close(self):

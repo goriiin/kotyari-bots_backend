@@ -34,6 +34,17 @@ def load_config():
     config['redis']['user'] = os.getenv("REDIS_USER")
     config['redis']['password'] = os.getenv("REDIS_PASSWORD")
 
+    if 'greenplum' not in config: config['greenplum'] = {}
+    config['greenplum']['host'] = os.getenv("GP_HOST", config['greenplum'].get('host', 'localhost'))
+    config['greenplum']['port'] = int(os.getenv("GP_PORT", config['greenplum'].get('port', 5432)))
+
+    # ДОБАВЬТЕ ЭТУ СТРОКУ
+    config['greenplum']['dbname'] = os.getenv("GP_DB", config['greenplum'].get('dbname'))
+
+    # Секреты читаем только из .env
+    config['greenplum']['user'] = os.getenv("GP_USER")
+    config['greenplum']['password'] = os.getenv("GP_PASSWORD")
+
     return config
 
 
