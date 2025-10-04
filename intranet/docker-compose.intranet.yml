@@ -50,17 +50,47 @@ services:
     env_file:
       - ./.env
     ports:
-      # Expose the FastAPI port to the host machine
       - "8090:8090"
     networks:
       - intranet-net
     depends_on:
-      # The scheduler calls the parser, so it should start after it.
       - dzen-parser
+
+  greenplum:
+    image: postgres:13-alpine
+    container_name: "greenplum"
+    environment:
+      POSTGRES_DB: ${GP_DB}
+      POSTGRES_USER: ${GP_USER}
+      POSTGRES_PASSWORD: ${GP_PASSWORD}
+    volumes:
+      - greenplum_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    ports:
+      - "54325:5432"
+
+  parser_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.parser
+    container_name: parser_app
+    depends_on:
+      redis:
+        condition: service_healthy
+      greenplum:
+        condition: service_started
+    env_file:
+      - .env
+    shm_size: '2gb'
+    restart: unless-stopped
+    networks:
+      - intranet-net
+
 
 # Define a shared volume for Redis data persistence
 volumes:
   redis-data:
+  greenplum_data:
 
 # Define the shared network for all services
 networks:
