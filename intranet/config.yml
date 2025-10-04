@@ -4,5 +4,13 @@ active_topics:
 redis:
   host: "redis"
   port: 6379
-
   processed_urls_key: "processed_urls:zset"
+
+greenplum:
+  host: "greenplum"
+  port: 5432
+  dbname: ${GP_DB}
+  table_name: "parsed_articles"
+
+parser:
+  max_workers: 2

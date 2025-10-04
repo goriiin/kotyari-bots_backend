@@ -1,0 +1,45 @@
+services:
+  redis:
+    image: "redis:7-alpine"
+    container_name: "redis_links"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+    ports:
+      - "6379:6379"
+
+  greenplum:
+    image: postgres:13-alpine
+    container_name: "greenplum_db"
+    environment:
+      POSTGRES_DB: ${GP_DB}
+      POSTGRES_USER: ${GP_USER}
+      POSTGRES_PASSWORD: ${GP_PASSWORD}
+    volumes:
+      - greenplum_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    ports:
+      - "54325:5432"
+
+  parser_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.parser
+    container_name: parser_app
+    depends_on:
+      redis:
+        condition: service_healthy
+      greenplum:
+        condition: service_started
+    env_file:
+      - .env
+    shm_size: '2gb'
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  greenplum_data:
