@@ -1,0 +1,8 @@
+active_topics:
+  - "dzen"
+
+redis:
+  host: "redis"
+  port: 6379
+
+  processed_urls_key: "processed_urls:zset"

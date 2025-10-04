@@ -32,6 +32,7 @@ go.work.sum
 # .vscode/
 
 # configs
-
-configs/local-config.yaml
 configs/docker-config.yaml
+
+__pycache__/
+*.pyc

@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
-
 	"github.com/ogen-go/ogen/conv"
 	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/uri"
@@ -162,7 +161,7 @@ func decodeAddProfileToBotResponse(resp *http.Response) (res AddProfileToBotRes,
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error) {
@@ -352,7 +351,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeCreateTaskForBotWithProfileResponse(resp *http.Response) (res CreateTaskForBotWithProfileRes, _ error) {
@@ -540,7 +539,7 @@ func decodeCreateTaskForBotWithProfileResponse(resp *http.Response) (res CreateT
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeDeleteBotByIdResponse(resp *http.Response) (res DeleteBotByIdRes, _ error) {
@@ -654,7 +653,7 @@ func decodeDeleteBotByIdResponse(resp *http.Response) (res DeleteBotByIdRes, _ e
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeGetBotByIdResponse(resp *http.Response) (res GetBotByIdRes, _ error) {
@@ -809,7 +808,7 @@ func decodeGetBotByIdResponse(resp *http.Response) (res GetBotByIdRes, _ error) 
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeGetBotProfilesResponse(resp *http.Response) (res GetBotProfilesRes, _ error) {
@@ -964,7 +963,7 @@ func decodeGetBotProfilesResponse(resp *http.Response) (res GetBotProfilesRes, _
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeGetTaskByIdResponse(resp *http.Response) (res GetTaskByIdRes, _ error) {
@@ -1119,7 +1118,7 @@ func decodeGetTaskByIdResponse(resp *http.Response) (res GetTaskByIdRes, _ error
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) {
@@ -1239,7 +1238,7 @@ func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) 
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeRemoveProfileFromBotResponse(resp *http.Response) (res RemoveProfileFromBotRes, _ error) {
@@ -1353,7 +1352,7 @@ func decodeRemoveProfileFromBotResponse(resp *http.Response) (res RemoveProfileF
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeUpdateBotByIdResponse(resp *http.Response) (res UpdateBotByIdRes, _ error) {
@@ -1578,5 +1577,5 @@ func decodeUpdateBotByIdResponse(resp *http.Response) (res UpdateBotByIdRes, _ e
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }

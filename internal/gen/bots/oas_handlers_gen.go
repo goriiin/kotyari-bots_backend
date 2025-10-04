@@ -8,16 +8,15 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"go.opentelemetry.io/otel/trace"
-
 	ht "github.com/ogen-go/ogen/http"
 	"github.com/ogen-go/ogen/middleware"
 	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type codeRecorder struct {
@@ -86,7 +85,7 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -177,6 +176,8 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 		return
 	}
 
+	var rawBody []byte
+
 	var response AddProfileToBotRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -185,6 +186,7 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 			OperationSummary: "Привязать профиль к боту",
 			OperationID:      "addProfileToBot",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
@@ -290,7 +292,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -370,7 +372,9 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 			return
 		}
 	}
-	request, close, err := s.decodeCreateMyBotRequest(r)
+
+	var rawBody []byte
+	request, rawBody, close, err := s.decodeCreateMyBotRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -394,6 +398,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 			OperationSummary: "Создать нового бота",
 			OperationID:      "createMyBot",
 			Body:             request,
+			RawBody:          rawBody,
 			Params:           middleware.Parameters{},
 			Raw:              r,
 		}
@@ -490,7 +495,7 @@ func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEs
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -580,7 +585,9 @@ func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEs
 		s.cfg.ErrorHandler(ctx, w, r, err)
 		return
 	}
-	request, close, err := s.decodeCreateTaskForBotWithProfileRequest(r)
+
+	var rawBody []byte
+	request, rawBody, close, err := s.decodeCreateTaskForBotWithProfileRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -604,6 +611,7 @@ func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEs
 			OperationSummary: "Создать задачу для бота с конкретным профилем",
 			OperationID:      "createTaskForBotWithProfile",
 			Body:             request,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
@@ -709,7 +717,7 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -800,6 +808,8 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 		return
 	}
 
+	var rawBody []byte
+
 	var response DeleteBotByIdRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -808,6 +818,7 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 			OperationSummary: "Удалить бота по ID",
 			OperationID:      "deleteBotById",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
@@ -909,7 +920,7 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -1000,6 +1011,8 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 		return
 	}
 
+	var rawBody []byte
+
 	var response GetBotByIdRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -1008,6 +1021,7 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 			OperationSummary: "Получить бота по ID",
 			OperationID:      "getBotById",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
@@ -1109,7 +1123,7 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -1200,6 +1214,8 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 		return
 	}
 
+	var rawBody []byte
+
 	var response GetBotProfilesRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -1208,6 +1224,7 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 			OperationSummary: "Получить список профилей, привязанных к боту",
 			OperationID:      "getBotProfiles",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
@@ -1317,7 +1334,7 @@ func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w ht
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -1408,6 +1425,8 @@ func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w ht
 		return
 	}
 
+	var rawBody []byte
+
 	var response GetTaskByIdRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -1416,6 +1435,7 @@ func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w ht
 			OperationSummary: "Получить статус задачи по ID",
 			OperationID:      "getTaskById",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "taskId",
@@ -1517,7 +1537,7 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -1608,6 +1628,8 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 		return
 	}
 
+	var rawBody []byte
+
 	var response ListMyBotsRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -1616,6 +1638,7 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 			OperationSummary: "Получить список своих ботов",
 			OperationID:      "listMyBots",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "cursor",
@@ -1721,7 +1744,7 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -1812,6 +1835,8 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 		return
 	}
 
+	var rawBody []byte
+
 	var response RemoveProfileFromBotRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -1820,6 +1845,7 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 			OperationSummary: "Отвязать профиль от бота",
 			OperationID:      "removeProfileFromBot",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
@@ -1925,7 +1951,7 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -2015,7 +2041,9 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 		s.cfg.ErrorHandler(ctx, w, r, err)
 		return
 	}
-	request, close, err := s.decodeUpdateBotByIdRequest(r)
+
+	var rawBody []byte
+	request, rawBody, close, err := s.decodeUpdateBotByIdRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -2039,6 +2067,7 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 			OperationSummary: "Полностью обновить бота по ID",
 			OperationID:      "updateBotById",
 			Body:             request,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "botId",
