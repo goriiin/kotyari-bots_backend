@@ -8,16 +8,15 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"go.opentelemetry.io/otel/trace"
-
 	ht "github.com/ogen-go/ogen/http"
 	"github.com/ogen-go/ogen/middleware"
 	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type codeRecorder struct {
@@ -87,7 +86,7 @@ func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, 
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -167,7 +166,9 @@ func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, 
 			return
 		}
 	}
-	request, close, err := s.decodeCreateMyProfileRequest(r)
+
+	var rawBody []byte
+	request, rawBody, close, err := s.decodeCreateMyProfileRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -191,6 +192,7 @@ func (s *Server) handleCreateMyProfileRequest(args [0]string, argsEscaped bool, 
 			OperationSummary: "Создать новый профиль",
 			OperationID:      "createMyProfile",
 			Body:             request,
+			RawBody:          rawBody,
 			Params:           middleware.Parameters{},
 			Raw:              r,
 		}
@@ -288,7 +290,7 @@ func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -379,6 +381,8 @@ func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool
 		return
 	}
 
+	var rawBody []byte
+
 	var response DeleteProfileByIdRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -387,6 +391,7 @@ func (s *Server) handleDeleteProfileByIdRequest(args [1]string, argsEscaped bool
 			OperationSummary: "Удалить профиль по ID",
 			OperationID:      "deleteProfileById",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "profileId",
@@ -489,7 +494,7 @@ func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -580,6 +585,8 @@ func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w
 		return
 	}
 
+	var rawBody []byte
+
 	var response GetProfileByIdRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -588,6 +595,7 @@ func (s *Server) handleGetProfileByIdRequest(args [1]string, argsEscaped bool, w
 			OperationSummary: "Получить профиль по ID",
 			OperationID:      "getProfileById",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "profileId",
@@ -691,7 +699,7 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -782,6 +790,8 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 		return
 	}
 
+	var rawBody []byte
+
 	var response ListMyProfilesRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
@@ -790,6 +800,7 @@ func (s *Server) handleListMyProfilesRequest(args [0]string, argsEscaped bool, w
 			OperationSummary: "Получить список своих профилей",
 			OperationID:      "listMyProfiles",
 			Body:             nil,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "cursor",
@@ -896,7 +907,7 @@ func (s *Server) handleUpdateProfileByIdRequest(args [1]string, argsEscaped bool
 			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
 			// max redirects exceeded), in which case status MUST be set to Error.
 			code := statusWriter.status
-			if code >= 100 && code < 500 {
+			if code < 100 || code >= 500 {
 				span.SetStatus(codes.Error, stage)
 			}
 
@@ -986,7 +997,9 @@ func (s *Server) handleUpdateProfileByIdRequest(args [1]string, argsEscaped bool
 		s.cfg.ErrorHandler(ctx, w, r, err)
 		return
 	}
-	request, close, err := s.decodeUpdateProfileByIdRequest(r)
+
+	var rawBody []byte
+	request, rawBody, close, err := s.decodeUpdateProfileByIdRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -1010,6 +1023,7 @@ func (s *Server) handleUpdateProfileByIdRequest(args [1]string, argsEscaped bool
 			OperationSummary: "Обновить профиль по ID",
 			OperationID:      "updateProfileById",
 			Body:             request,
+			RawBody:          rawBody,
 			Params: middleware.Parameters{
 				{
 					Name: "profileId",

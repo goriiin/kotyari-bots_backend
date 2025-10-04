@@ -9,17 +9,16 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/ogen-go/ogen/conv"
 	ht "github.com/ogen-go/ogen/http"
 	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
 	"github.com/ogen-go/ogen/uri"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func trimTrailingSlashes(u *url.URL) {
@@ -127,8 +126,9 @@ func (c *Client) sendCreateMyProfile(ctx context.Context, request *ProfileInput)
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createMyProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.URLTemplateKey.String("/profiles"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -248,8 +248,9 @@ func (c *Client) sendDeleteProfileById(ctx context.Context, params DeleteProfile
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteProfileById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.URLTemplateKey.String("/profiles/{profileId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -384,8 +385,9 @@ func (c *Client) sendGetProfileById(ctx context.Context, params GetProfileByIdPa
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getProfileById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.URLTemplateKey.String("/profiles/{profileId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -521,8 +523,9 @@ func (c *Client) sendListMyProfiles(ctx context.Context, params ListMyProfilesPa
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listMyProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/profiles"),
+		semconv.URLTemplateKey.String("/profiles"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -677,8 +680,9 @@ func (c *Client) sendUpdateProfileById(ctx context.Context, request *ProfileInpu
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateProfileById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/profiles/{profileId}"),
+		semconv.URLTemplateKey.String("/profiles/{profileId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()

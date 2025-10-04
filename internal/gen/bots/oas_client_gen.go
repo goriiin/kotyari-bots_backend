@@ -9,17 +9,16 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/ogen-go/ogen/conv"
 	ht "github.com/ogen-go/ogen/http"
 	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
 	"github.com/ogen-go/ogen/uri"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func trimTrailingSlashes(u *url.URL) {
@@ -150,8 +149,9 @@ func (c *Client) sendAddProfileToBot(ctx context.Context, params AddProfileToBot
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("addProfileToBot"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}"),
+		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -304,8 +304,9 @@ func (c *Client) sendCreateMyBot(ctx context.Context, request *BotInput) (res Cr
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createMyBot"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/bots"),
+		semconv.URLTemplateKey.String("/bots"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -424,8 +425,9 @@ func (c *Client) sendCreateTaskForBotWithProfile(ctx context.Context, request *T
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("createTaskForBotWithProfile"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}/tasks"),
+		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}/tasks"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -582,8 +584,9 @@ func (c *Client) sendDeleteBotById(ctx context.Context, params DeleteBotByIdPara
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("deleteBotById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/bots/{botId}"),
+		semconv.URLTemplateKey.String("/bots/{botId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -717,8 +720,9 @@ func (c *Client) sendGetBotById(ctx context.Context, params GetBotByIdParams) (r
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getBotById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/bots/{botId}"),
+		semconv.URLTemplateKey.String("/bots/{botId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -852,8 +856,9 @@ func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesPa
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getBotProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles"),
+		semconv.URLTemplateKey.String("/bots/{botId}/profiles"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -1026,8 +1031,9 @@ func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) 
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("getTaskById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
+		semconv.URLTemplateKey.String("/tasks/{taskId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -1161,8 +1167,9 @@ func (c *Client) sendListMyBots(ctx context.Context, params ListMyBotsParams) (r
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("listMyBots"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/bots"),
+		semconv.URLTemplateKey.String("/bots"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -1316,8 +1323,9 @@ func (c *Client) sendRemoveProfileFromBot(ctx context.Context, params RemoveProf
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("removeProfileFromBot"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}"),
+		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -1470,8 +1478,9 @@ func (c *Client) sendUpdateBotById(ctx context.Context, request *BotInput, param
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("updateBotById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/bots/{botId}"),
+		semconv.URLTemplateKey.String("/bots/{botId}"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()

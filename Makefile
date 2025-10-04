@@ -1,6 +1,7 @@
 defalut: help
 
 SERVICES := $(shell find ./docs -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
 
 help:
 	@echo ''

@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
-
 	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/validate"
 )
@@ -201,7 +200,7 @@ func decodeCreateMyProfileResponse(resp *http.Response) (res CreateMyProfileRes,
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeDeleteProfileByIdResponse(resp *http.Response) (res DeleteProfileByIdRes, _ error) {
@@ -315,7 +314,7 @@ func decodeDeleteProfileByIdResponse(resp *http.Response) (res DeleteProfileById
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeGetProfileByIdResponse(resp *http.Response) (res GetProfileByIdRes, _ error) {
@@ -470,7 +469,7 @@ func decodeGetProfileByIdResponse(resp *http.Response) (res GetProfileByIdRes, _
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeListMyProfilesResponse(resp *http.Response) (res ListMyProfilesRes, _ error) {
@@ -590,7 +589,7 @@ func decodeListMyProfilesResponse(resp *http.Response) (res ListMyProfilesRes, _
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
 func decodeUpdateProfileByIdResponse(resp *http.Response) (res UpdateProfileByIdRes, _ error) {
@@ -815,5 +814,5 @@ func decodeUpdateProfileByIdResponse(resp *http.Response) (res UpdateProfileById
 			return res, validate.InvalidContentType(ct)
 		}
 	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
