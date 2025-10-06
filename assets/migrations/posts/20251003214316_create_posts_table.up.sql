@@ -20,8 +20,9 @@ CREATE TABLE IF NOT EXISTS posts(
     "bot_id" UUID NOT NULL,
     "profile_id" UUID NOT NULL,
     "platform_type" platform_type_enum NOT NULL,
-    "post_type" post_type_enum NOT NULL,
+    "post_type" post_type_enum,
     "post_title" TEXT NOT NULL,
+    "post_text" TEXT NOT NULL,
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
