@@ -57,17 +57,21 @@ services:
       - dzen-parser
 
   greenplum:
-    image: woblerr/docker-greenplum:latest
+    image: projectairws/greenplum:latest
     container_name: "greenplum_db"
     environment:
-      GREENPLUM_DATABASE_NAME: ${GP_DB}
-      GREENPLUM_USER: ${GP_USER}
-      GREENPLUM_PASSWORD: ${GP_PASSWORD}
+      GP_DBNAME: ${GP_DB}
+      GP_USER: ${GP_USER}
+      GP_PASS: ${GP_PASSWORD}
     volumes:
-      - greenplum_data:/data
+      - greenplum_data:/gpdata
     restart: unless-stopped
     ports:
       - "54325:5432"
+    entrypoint: |
+      sh -c '
+        chown -R gpadmin:gpadmin /gpdata && exec /entrypoint.sh
+      '
     networks:
       - intranet-net
 
