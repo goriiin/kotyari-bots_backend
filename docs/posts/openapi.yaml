@@ -36,20 +36,10 @@ components:
         title:
           type: string
           description: "Название категории"
-        createdAt:
-          type: string
-          format: date-time
-          readOnly: true
-        updatedAt:
-          type: string
-          format: date-time
-          readOnly: true
-      required: [ id, title, createdAt, updatedAt ]
+      required: [ id, title ]
       example:
         id: "b3eea15e-865c-462a-9b05-393b71954fc5"
         title: "C++"
-        createdAt: "2023-10-01T09:00:00Z"
-        updatedAt: "2023-10-01T09:00:00Z"
 
     Post:
       type: object
@@ -125,12 +115,8 @@ components:
         categories:
           - id: "b3eea15e-865c-462a-9b05-393b71954fc5"
             title: "C++"
-            createdAt: "2023-10-01T09:00:00Z"
-            updatedAt: "2023-10-01T09:00:00Z"
           - id: "ac08780e-be4a-41df-a54a-58750b3c6b59"
             title: "Программирование"
-            createdAt: "2023-10-01T09:00:00Z"
-            updatedAt: "2023-10-01T09:00:00Z"
         createdAt: "2023-10-27T10:00:00Z"
         updatedAt: "2023-10-27T11:30:00Z"
 
