@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	"github.com/go-faster/errors"
-	"github.com/google/uuid"
 	"github.com/ogen-go/ogen/conv"
 	"github.com/ogen-go/ogen/middleware"
 	"github.com/ogen-go/ogen/ogenerrors"
@@ -18,7 +17,7 @@ import (
 // DeletePostByIdParams is parameters of deletePostById operation.
 type DeletePostByIdParams struct {
 	// Уникальный идентификатор поста.
-	PostId uuid.UUID
+	PostId int
 }
 
 func unpackDeletePostByIdParams(packed middleware.Parameters) (params DeletePostByIdParams) {
@@ -27,7 +26,7 @@ func unpackDeletePostByIdParams(packed middleware.Parameters) (params DeletePost
 			Name: "postId",
 			In:   "path",
 		}
-		params.PostId = packed[key].(uuid.UUID)
+		params.PostId = packed[key].(int)
 	}
 	return params
 }
@@ -57,7 +56,7 @@ func decodeDeletePostByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt(val)
 				if err != nil {
 					return err
 				}
@@ -84,7 +83,7 @@ func decodeDeletePostByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 // GetPostByIdParams is parameters of getPostById operation.
 type GetPostByIdParams struct {
 	// Уникальный идентификатор поста.
-	PostId uuid.UUID
+	PostId int
 }
 
 func unpackGetPostByIdParams(packed middleware.Parameters) (params GetPostByIdParams) {
@@ -93,7 +92,7 @@ func unpackGetPostByIdParams(packed middleware.Parameters) (params GetPostByIdPa
 			Name: "postId",
 			In:   "path",
 		}
-		params.PostId = packed[key].(uuid.UUID)
+		params.PostId = packed[key].(int)
 	}
 	return params
 }
@@ -123,7 +122,7 @@ func decodeGetPostByIdParams(args [1]string, argsEscaped bool, r *http.Request) 
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt(val)
 				if err != nil {
 					return err
 				}
@@ -150,7 +149,7 @@ func decodeGetPostByIdParams(args [1]string, argsEscaped bool, r *http.Request) 
 // UpdatePostByIdParams is parameters of updatePostById operation.
 type UpdatePostByIdParams struct {
 	// Уникальный идентификатор поста.
-	PostId uuid.UUID
+	PostId int
 }
 
 func unpackUpdatePostByIdParams(packed middleware.Parameters) (params UpdatePostByIdParams) {
@@ -159,7 +158,7 @@ func unpackUpdatePostByIdParams(packed middleware.Parameters) (params UpdatePost
 			Name: "postId",
 			In:   "path",
 		}
-		params.PostId = packed[key].(uuid.UUID)
+		params.PostId = packed[key].(int)
 	}
 	return params
 }
@@ -189,7 +188,7 @@ func decodeUpdatePostByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 					return err
 				}
 
-				c, err := conv.ToUUID(val)
+				c, err := conv.ToInt(val)
 				if err != nil {
 					return err
 				}
