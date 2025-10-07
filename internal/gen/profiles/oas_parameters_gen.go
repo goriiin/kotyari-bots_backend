@@ -150,9 +150,9 @@ func decodeGetProfileByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 // ListMyProfilesParams is parameters of listMyProfiles operation.
 type ListMyProfilesParams struct {
 	// Курсор для получения следующей страницы результатов.
-	Cursor OptString
+	Cursor OptString `json:",omitempty,omitzero"`
 	// Максимальное количество результатов на странице.
-	Limit OptInt
+	Limit OptInt `json:",omitempty,omitzero"`
 }
 
 func unpackListMyProfilesParams(packed middleware.Parameters) (params ListMyProfilesParams) {
