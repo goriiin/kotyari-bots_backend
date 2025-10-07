@@ -56,6 +56,7 @@ api: install-ogen
 
 install-ogen:
 	go get github.com/ogen-go/ogen/cmd/ogen@latest
+	go mod tidy
 
 define generate-service
 	@echo "--- Генерирую код для сервиса: $(1) ---"
