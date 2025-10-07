@@ -1,0 +1,10 @@
+grpcio
+grpcio-tools
+
+pydantic-settings
+
+redis
+
+selenium
+webdriver-manager
+beautifulsoup4

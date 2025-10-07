@@ -1,0 +1,9 @@
+grpcio
+grpcio-tools
+
+fastapi
+uvicorn[standard]
+
+apscheduler
+
+pydantic-settings
