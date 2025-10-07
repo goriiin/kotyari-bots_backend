@@ -143,6 +143,7 @@ services:
     networks:
       - app-network
 
+
 volumes:
   api_integrations_db_data:
   aggregator_db_data:
