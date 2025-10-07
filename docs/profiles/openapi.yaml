@@ -1,0 +1,320 @@
+openapi: 3.0.0
+info:
+  title: "Profiles Service"
+  description: "API для управления профилями пользователей, принадлежащими аккаунту."
+  version: "1.0.0"
+servers:
+  - url: /api/v1
+tags:
+  - name: "Profiles"
+    description: "Операции, связанные с профилями пользователей."
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
+    csrfAuth:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+
+  schemas:
+    Profile:
+      type: object
+      description: "Профиль пользователя, содержащий персональные настройки."
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Уникальный идентификатор профиля."
+          readOnly: true
+        name:
+          type: string
+          description: "Имя пользователя в профиле."
+        email:
+          type: string
+          format: email
+          description: "Контактная электронная почта (уникальная в рамках системы)."
+        prompt:
+          type: string
+          description: "Системный промпт для AI."
+        createdAt:
+          type: string
+          format: date-time
+          description: "Время создания профиля."
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          description: "Время последнего обновления профиля."
+          readOnly: true
+      required:
+        - id
+        - name
+        - email
+        - createdAt
+        - updatedAt
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174000"
+        name: "AI Enthusiast"
+        email: "ai.enthusiast@example.com"
+        prompt: "You are a creative writer."
+        createdAt: "2023-10-27T10:00:00Z"
+        updatedAt: "2023-10-27T11:30:00Z"
+
+    ProfileInput:
+      type: object
+      description: "Данные для создания или обновления профиля."
+      properties:
+        name:
+          type: string
+          description: "Имя пользователя."
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: "Электронная почта пользователя."
+          example: "john.doe@example.com"
+        prompt:
+          type: string
+          description: "Системный промпт для AI."
+          example: "You are a helpful assistant."
+      required:
+        - name
+        - email
+
+    ProfileList:
+      type: object
+      description: "Пагинированный список профилей."
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        nextCursor:
+          type: string
+          nullable: true
+          description: "Курсор для запроса следующей страницы. null, если это последняя страница."
+      required:
+        - data
+      example:
+        data:
+          - id: "123e4567-e89b-12d3-a456-426614174000"
+            name: "AI Enthusiast"
+            email: "ai.enthusiast@example.com"
+            prompt: "You are a creative writer."
+            createdAt: "2023-10-27T10:00:00Z"
+            updatedAt: "2023-10-27T11:30:00Z"
+          - id: "123e4567-e89b-12d3-a456-426614174001"
+            name: "Tech Reviewer"
+            email: "tech.reviewer@example.com"
+            prompt: "You are a skeptical tech critic."
+            createdAt: "2023-10-27T12:00:00Z"
+            updatedAt: "2023-10-27T12:00:00Z"
+        nextCursor: "eyJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMSIsImNyZWF0ZWRBdCI6IjIwMjMtMTAtMjdUMTI6MDA6MDBaIn0="
+
+    Error:
+      type: object
+      description: "Стандартизированная структура ошибки."
+      properties:
+        errorCode:
+          type: string
+          description: "Машиночитаемый код ошибки."
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          description: "Человекочитаемое сообщение об ошибке."
+          example: "Одно или несколько полей не прошли валидацию."
+        details:
+          type: object
+          additionalProperties: true
+          description: "Дополнительные детали об ошибке, например, по полям."
+          example:
+            email: "Некорректный формат email."
+      required:
+        - errorCode
+        - message
+
+  parameters:
+    ProfileID:
+      name: profileId
+      in: path
+      required: true
+      description: "Уникальный идентификатор профиля (UUID)."
+      schema:
+        type: string
+        format: uuid
+    PaginationCursor:
+      name: cursor
+      in: query
+      description: "Курсор для получения следующей страницы результатов."
+      schema:
+        type: string
+      example: "eyJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMSIsImNyZWF0ZWRBdCI6IjIwMjMtMTAtMjdUMTI6MDA6MDBaIn0="
+    PaginationLimit:
+      name: limit
+      in: query
+      description: "Максимальное количество результатов на странице."
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    OK:
+      description: "Успешный запрос (OK)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Profile'
+    OKList:
+      description: "Успешный запрос, возвращает пагинированный список профилей."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProfileList'
+    Created:
+      description: "Ресурс успешно создан (Created)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Profile'
+    NoContent:
+      description: "Ресурс успешно обработан или удален, тело ответа отсутствует (No Content)."
+    BadRequest:
+      description: "Некорректный запрос (Bad Request). Например, ошибка валидации."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: "Ошибка аутентификации (Unauthorized). Сессия не найдена или невалидна."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: "Запрашиваемый ресурс не найден (Not Found)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: "Конфликт (Conflict). Ресурс с таким уникальным полем уже существует."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: "Внутренняя ошибка сервера (Internal Server Error)."
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+security:
+  - cookieAuth: []
+  - csrfAuth: []
+
+paths:
+  /profiles:
+    get:
+      summary: "Получить список своих профилей"
+      description: "Возвращает пагинированный список профилей, принадлежащих текущему аутентифицированному аккаунту."
+      operationId: "listMyProfiles"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/PaginationCursor'
+        - $ref: '#/components/parameters/PaginationLimit'
+      responses:
+        '200':
+          $ref: '#/components/responses/OKList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: "Создать новый профиль"
+      description: "Создает новый профиль и связывает его с текущим аккаунтом."
+      operationId: "createMyProfile"
+      tags: ["Profiles"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /profiles/{profileId}:
+    get:
+      summary: "Получить профиль по ID"
+      description: "Получает один профиль по его ID. Доступ разрешен только если профиль принадлежит текущему аккаунту."
+      operationId: "getProfileById"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileID'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      summary: "Обновить профиль по ID"
+      description: "Полностью обновляет профиль по его ID. Доступ разрешен только если профиль принадлежит текущему аккаунту."
+      operationId: "updateProfileById"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+      responses:
+        '200':
+          $ref: '#/components/responses/OK'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: "Удалить профиль по ID"
+      description: "Удаляет профиль по его ID. Доступ разрешен только если профиль принадлежит текущему аккаунту."
+      operationId: "deleteProfileById"
+      tags: ["Profiles"]
+      parameters:
+        - $ref: '#/components/parameters/ProfileID'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'

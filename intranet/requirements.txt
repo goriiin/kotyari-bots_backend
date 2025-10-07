@@ -1,0 +1,9 @@
+redis
+selenium
+webdriver-manager
+requests
+
+pyyaml
+python-dotenv
+
+psycopg2-binary

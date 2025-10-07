@@ -28,5 +28,11 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
+.idea/
 # .vscode/
+
+# configs
+configs/docker-config.yaml
+
+__pycache__/
+*.pyc
