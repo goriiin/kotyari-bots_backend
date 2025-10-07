@@ -1,14 +1,10 @@
 package grok_client
 
 import (
-	"context"
-	"fmt"
-	"net"
 	"net/http"
 
-	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
-	"golang.org/x/net/proxy"
+	proxyPkg "github.com/goriiin/kotyari-bots_backend/pkg/proxy"
 )
 
 type GrokClient struct {
@@ -17,20 +13,13 @@ type GrokClient struct {
 	httpClient *http.Client
 }
 
-func NewGrokClient(config *grok.GrokClientConfig) (*GrokClient, error) {
-	dialer, err := proxy.SOCKS5("tcp", fmt.Sprintf("%s:%d", config.ProxyAPI.Host, config.ProxyAPI.Port), nil, proxy.Direct)
+func NewGrokClient(config *grok.GrokClientConfig, proxyCfg *proxyPkg.ProxyConfig) (*GrokClient, error) {
+	proxy, err := proxyPkg.NewProxy(proxyCfg)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create dialer")
+		return nil, err
 	}
-
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-				return dialer.Dial(network, addr)
-			},
-		},
-		Timeout: config.Timeout,
-	}
+	httpClient := proxy.UseProxy(&http.Client{})
+	httpClient.Timeout = config.Timeout
 
 	return &GrokClient{
 		config:     config,

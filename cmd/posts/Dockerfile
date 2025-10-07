@@ -27,6 +27,6 @@ RUN mkdir -p /app/internal/configs
 COPY configs app/configs
 
 WORKDIR /app
-EXPOSE 8087
+EXPOSE 8002
 
 ENTRYPOINT exec ./main --env=local --config="./configs/docker-config.yaml"
