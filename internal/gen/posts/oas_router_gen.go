@@ -237,7 +237,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					return r, true
 				case "POST":
 					r.name = CreatePostOperation
-					r.summary = "Создать новый пост"
+					r.summary = "Создать новые посты"
 					r.operationID = "createPost"
 					r.pathPattern = "/api/v1/posts"
 					r.args = args

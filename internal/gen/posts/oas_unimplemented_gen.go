@@ -15,7 +15,7 @@ var _ Handler = UnimplementedHandler{}
 
 // CreatePost implements createPost operation.
 //
-// Создать новый пост.
+// Создать новые посты.
 //
 // POST /api/v1/posts
 func (UnimplementedHandler) CreatePost(ctx context.Context, req *PostInput) (r CreatePostRes, _ error) {

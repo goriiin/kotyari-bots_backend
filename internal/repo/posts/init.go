@@ -3,11 +3,11 @@ package posts
 import "github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
 
 type PostsRepo struct {
-	// TODO: logs
+	// TODO: add logs
 	db pool.DBPool
 }
 
-func NewAPIIntegrationsRepo(dbPool pool.DBPool) *PostsRepo {
+func NewPostsRepo(dbPool pool.DBPool) *PostsRepo {
 	return &PostsRepo{
 		dbPool,
 	}

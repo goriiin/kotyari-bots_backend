@@ -29,7 +29,7 @@ func trimTrailingSlashes(u *url.URL) {
 type Invoker interface {
 	// CreatePost invokes createPost operation.
 	//
-	// Создать новый пост.
+	// Создать новые посты.
 	//
 	// POST /api/v1/posts
 	CreatePost(ctx context.Context, request *PostInput) (CreatePostRes, error)
@@ -110,7 +110,7 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 
 // CreatePost invokes createPost operation.
 //
-// Создать новый пост.
+// Создать новые посты.
 //
 // POST /api/v1/posts
 func (c *Client) CreatePost(ctx context.Context, request *PostInput) (CreatePostRes, error) {

@@ -34,8 +34,12 @@ func main() {
 		proxyCfg = newProxyCfg
 	})
 
-	_, err := posts.NewPostsApp(postsCfg, proxyCfg)
+	posts, err := posts.NewPostsApp(postsCfg, proxyCfg)
 	if err != nil {
+		log.Fatalf("%s", err.Error())
+	}
+
+	if err := posts.Run(); err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 }

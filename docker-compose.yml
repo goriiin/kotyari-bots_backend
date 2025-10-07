@@ -133,7 +133,7 @@ services:
       context: .
       dockerfile: ./cmd/posts/Dockerfile
     ports:
-      - "8087:8087"
+      - "8002:8002"
     image: posts-go-image
     container_name: posts_go
     restart: unless-stopped

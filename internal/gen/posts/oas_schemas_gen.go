@@ -84,8 +84,8 @@ func (*DeletePostByIdUnauthorized) deletePostByIdRes() {}
 // Стандартизированная структура ошибки.
 // Ref: #/components/schemas/Error
 type Error struct {
-	// Машиночитаемый код ошибки.
-	ErrorCode string `json:"errorCode"`
+	// HTTP error code.
+	ErrorCode uint16 `json:"errorCode"`
 	// Человекочитаемое сообщение об ошибке.
 	Message string `json:"message"`
 	// Дополнительные детали об ошибке, например, по полям.
@@ -93,7 +93,7 @@ type Error struct {
 }
 
 // GetErrorCode returns the value of ErrorCode.
-func (s *Error) GetErrorCode() string {
+func (s *Error) GetErrorCode() uint16 {
 	return s.ErrorCode
 }
 
@@ -108,7 +108,7 @@ func (s *Error) GetDetails() OptErrorDetails {
 }
 
 // SetErrorCode sets the value of ErrorCode.
-func (s *Error) SetErrorCode(val string) {
+func (s *Error) SetErrorCode(val uint16) {
 	s.ErrorCode = val
 }
 
@@ -268,52 +268,52 @@ func (o OptNilPostInputPostType) Or(d PostInputPostType) PostInputPostType {
 	return d
 }
 
-// NewOptNilPostPostTypeItemArray returns new OptNilPostPostTypeItemArray with value set to v.
-func NewOptNilPostPostTypeItemArray(v []PostPostTypeItem) OptNilPostPostTypeItemArray {
-	return OptNilPostPostTypeItemArray{
+// NewOptNilPostPostType returns new OptNilPostPostType with value set to v.
+func NewOptNilPostPostType(v PostPostType) OptNilPostPostType {
+	return OptNilPostPostType{
 		Value: v,
 		Set:   true,
 	}
 }
 
-// OptNilPostPostTypeItemArray is optional nullable []PostPostTypeItem.
-type OptNilPostPostTypeItemArray struct {
-	Value []PostPostTypeItem
+// OptNilPostPostType is optional nullable PostPostType.
+type OptNilPostPostType struct {
+	Value PostPostType
 	Set   bool
 	Null  bool
 }
 
-// IsSet returns true if OptNilPostPostTypeItemArray was set.
-func (o OptNilPostPostTypeItemArray) IsSet() bool { return o.Set }
+// IsSet returns true if OptNilPostPostType was set.
+func (o OptNilPostPostType) IsSet() bool { return o.Set }
 
 // Reset unsets value.
-func (o *OptNilPostPostTypeItemArray) Reset() {
-	var v []PostPostTypeItem
+func (o *OptNilPostPostType) Reset() {
+	var v PostPostType
 	o.Value = v
 	o.Set = false
 	o.Null = false
 }
 
 // SetTo sets value to v.
-func (o *OptNilPostPostTypeItemArray) SetTo(v []PostPostTypeItem) {
+func (o *OptNilPostPostType) SetTo(v PostPostType) {
 	o.Set = true
 	o.Null = false
 	o.Value = v
 }
 
 // IsNull returns true if value is Null.
-func (o OptNilPostPostTypeItemArray) IsNull() bool { return o.Null }
+func (o OptNilPostPostType) IsNull() bool { return o.Null }
 
 // SetToNull sets value to null.
-func (o *OptNilPostPostTypeItemArray) SetToNull() {
+func (o *OptNilPostPostType) SetToNull() {
 	o.Set = true
 	o.Null = true
-	var v []PostPostTypeItem
+	var v PostPostType
 	o.Value = v
 }
 
 // Get returns value and boolean that denotes whether value was set.
-func (o OptNilPostPostTypeItemArray) Get() (v []PostPostTypeItem, ok bool) {
+func (o OptNilPostPostType) Get() (v PostPostType, ok bool) {
 	if o.Null {
 		return v, false
 	}
@@ -324,7 +324,7 @@ func (o OptNilPostPostTypeItemArray) Get() (v []PostPostTypeItem, ok bool) {
 }
 
 // Or returns value if set, or given parameter if does not.
-func (o OptNilPostPostTypeItemArray) Or(d []PostPostTypeItem) []PostPostTypeItem {
+func (o OptNilPostPostType) Or(d PostPostType) PostPostType {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -394,65 +394,19 @@ func (o OptNilUUIDArray) Or(d []uuid.UUID) []uuid.UUID {
 	return d
 }
 
-// NewOptUUID returns new OptUUID with value set to v.
-func NewOptUUID(v uuid.UUID) OptUUID {
-	return OptUUID{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptUUID is optional uuid.UUID.
-type OptUUID struct {
-	Value uuid.UUID
-	Set   bool
-}
-
-// IsSet returns true if OptUUID was set.
-func (o OptUUID) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptUUID) Reset() {
-	var v uuid.UUID
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptUUID) SetTo(v uuid.UUID) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptUUID) Get() (v uuid.UUID, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptUUID) Or(d uuid.UUID) uuid.UUID {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
 // Пост.
 // Ref: #/components/schemas/Post
 type Post struct {
 	// ID поста.
-	ID int64 `json:"id"`
+	ID uint64 `json:"id"`
 	// ID бота, к которому привязан пост.
 	BotId uuid.UUID `json:"botId"`
 	// ID профиля, к которому относится пост.
 	ProfileId uuid.UUID `json:"profileId"`
 	// Платформа, для которой создавался пост.
-	Platform []PostPlatformItem `json:"platform"`
+	Platform PostPlatform `json:"platform"`
 	// Тип поста.
-	PostType OptNilPostPostTypeItemArray `json:"postType"`
+	PostType OptNilPostPostType `json:"postType"`
 	// Название поста.
 	Title string `json:"title"`
 	// Текстовое содержимое поста.
@@ -464,7 +418,7 @@ type Post struct {
 }
 
 // GetID returns the value of ID.
-func (s *Post) GetID() int64 {
+func (s *Post) GetID() uint64 {
 	return s.ID
 }
 
@@ -479,12 +433,12 @@ func (s *Post) GetProfileId() uuid.UUID {
 }
 
 // GetPlatform returns the value of Platform.
-func (s *Post) GetPlatform() []PostPlatformItem {
+func (s *Post) GetPlatform() PostPlatform {
 	return s.Platform
 }
 
 // GetPostType returns the value of PostType.
-func (s *Post) GetPostType() OptNilPostPostTypeItemArray {
+func (s *Post) GetPostType() OptNilPostPostType {
 	return s.PostType
 }
 
@@ -514,7 +468,7 @@ func (s *Post) GetUpdatedAt() time.Time {
 }
 
 // SetID sets the value of ID.
-func (s *Post) SetID(val int64) {
+func (s *Post) SetID(val uint64) {
 	s.ID = val
 }
 
@@ -529,12 +483,12 @@ func (s *Post) SetProfileId(val uuid.UUID) {
 }
 
 // SetPlatform sets the value of Platform.
-func (s *Post) SetPlatform(val []PostPlatformItem) {
+func (s *Post) SetPlatform(val PostPlatform) {
 	s.Platform = val
 }
 
 // SetPostType sets the value of PostType.
-func (s *Post) SetPostType(val OptNilPostPostTypeItemArray) {
+func (s *Post) SetPostType(val OptNilPostPostType) {
 	s.PostType = val
 }
 
@@ -563,8 +517,6 @@ func (s *Post) SetUpdatedAt(val time.Time) {
 	s.UpdatedAt = val
 }
 
-func (*Post) createPostRes()     {}
-func (*Post) createPostSEORes()  {}
 func (*Post) getPostByIdRes()    {}
 func (*Post) updatePostByIdRes() {}
 
@@ -578,7 +530,7 @@ type PostInput struct {
 	// Описание задачи для LLM.
 	TaskText string `json:"taskText"`
 	// Платформа, для которой создается пост.
-	Platform []PostInputPlatformItem `json:"platform"`
+	Platform PostInputPlatform `json:"platform"`
 	// Тип поста - обязательное поле для ответов, nullable для
 	// возможной поддержки других платформ.
 	PostType OptNilPostInputPostType `json:"postType"`
@@ -603,7 +555,7 @@ func (s *PostInput) GetTaskText() string {
 }
 
 // GetPlatform returns the value of Platform.
-func (s *PostInput) GetPlatform() []PostInputPlatformItem {
+func (s *PostInput) GetPlatform() PostInputPlatform {
 	return s.Platform
 }
 
@@ -633,7 +585,7 @@ func (s *PostInput) SetTaskText(val string) {
 }
 
 // SetPlatform sets the value of Platform.
-func (s *PostInput) SetPlatform(val []PostInputPlatformItem) {
+func (s *PostInput) SetPlatform(val PostInputPlatform) {
 	s.Platform = val
 }
 
@@ -647,23 +599,24 @@ func (s *PostInput) SetCategoryIds(val OptNilUUIDArray) {
 	s.CategoryIds = val
 }
 
-type PostInputPlatformItem string
+// Платформа, для которой создается пост.
+type PostInputPlatform string
 
 const (
-	PostInputPlatformItemOtveti PostInputPlatformItem = "otveti"
+	PostInputPlatformOtveti PostInputPlatform = "otveti"
 )
 
-// AllValues returns all PostInputPlatformItem values.
-func (PostInputPlatformItem) AllValues() []PostInputPlatformItem {
-	return []PostInputPlatformItem{
-		PostInputPlatformItemOtveti,
+// AllValues returns all PostInputPlatform values.
+func (PostInputPlatform) AllValues() []PostInputPlatform {
+	return []PostInputPlatform{
+		PostInputPlatformOtveti,
 	}
 }
 
 // MarshalText implements encoding.TextMarshaler.
-func (s PostInputPlatformItem) MarshalText() ([]byte, error) {
+func (s PostInputPlatform) MarshalText() ([]byte, error) {
 	switch s {
-	case PostInputPlatformItemOtveti:
+	case PostInputPlatformOtveti:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -671,10 +624,10 @@ func (s PostInputPlatformItem) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (s *PostInputPlatformItem) UnmarshalText(data []byte) error {
-	switch PostInputPlatformItem(data) {
-	case PostInputPlatformItemOtveti:
-		*s = PostInputPlatformItemOtveti
+func (s *PostInputPlatform) UnmarshalText(data []byte) error {
+	switch PostInputPlatform(data) {
+	case PostInputPlatformOtveti:
+		*s = PostInputPlatformOtveti
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -746,25 +699,28 @@ func (s *PostList) SetData(val []Post) {
 	s.Data = val
 }
 
-func (*PostList) listPostsRes() {}
+func (*PostList) createPostRes()    {}
+func (*PostList) createPostSEORes() {}
+func (*PostList) listPostsRes()     {}
 
-type PostPlatformItem string
+// Платформа, для которой создавался пост.
+type PostPlatform string
 
 const (
-	PostPlatformItemOtveti PostPlatformItem = "otveti"
+	PostPlatformOtveti PostPlatform = "otveti"
 )
 
-// AllValues returns all PostPlatformItem values.
-func (PostPlatformItem) AllValues() []PostPlatformItem {
-	return []PostPlatformItem{
-		PostPlatformItemOtveti,
+// AllValues returns all PostPlatform values.
+func (PostPlatform) AllValues() []PostPlatform {
+	return []PostPlatform{
+		PostPlatformOtveti,
 	}
 }
 
 // MarshalText implements encoding.TextMarshaler.
-func (s PostPlatformItem) MarshalText() ([]byte, error) {
+func (s PostPlatform) MarshalText() ([]byte, error) {
 	switch s {
-	case PostPlatformItemOtveti:
+	case PostPlatformOtveti:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -772,41 +728,42 @@ func (s PostPlatformItem) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (s *PostPlatformItem) UnmarshalText(data []byte) error {
-	switch PostPlatformItem(data) {
-	case PostPlatformItemOtveti:
-		*s = PostPlatformItemOtveti
+func (s *PostPlatform) UnmarshalText(data []byte) error {
+	switch PostPlatform(data) {
+	case PostPlatformOtveti:
+		*s = PostPlatformOtveti
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
 	}
 }
 
-type PostPostTypeItem string
+// Тип поста.
+type PostPostType string
 
 const (
-	PostPostTypeItemOpinion   PostPostTypeItem = "opinion"
-	PostPostTypeItemKnowledge PostPostTypeItem = "knowledge"
-	PostPostTypeItemHistory   PostPostTypeItem = "history"
+	PostPostTypeOpinion   PostPostType = "opinion"
+	PostPostTypeKnowledge PostPostType = "knowledge"
+	PostPostTypeHistory   PostPostType = "history"
 )
 
-// AllValues returns all PostPostTypeItem values.
-func (PostPostTypeItem) AllValues() []PostPostTypeItem {
-	return []PostPostTypeItem{
-		PostPostTypeItemOpinion,
-		PostPostTypeItemKnowledge,
-		PostPostTypeItemHistory,
+// AllValues returns all PostPostType values.
+func (PostPostType) AllValues() []PostPostType {
+	return []PostPostType{
+		PostPostTypeOpinion,
+		PostPostTypeKnowledge,
+		PostPostTypeHistory,
 	}
 }
 
 // MarshalText implements encoding.TextMarshaler.
-func (s PostPostTypeItem) MarshalText() ([]byte, error) {
+func (s PostPostType) MarshalText() ([]byte, error) {
 	switch s {
-	case PostPostTypeItemOpinion:
+	case PostPostTypeOpinion:
 		return []byte(s), nil
-	case PostPostTypeItemKnowledge:
+	case PostPostTypeKnowledge:
 		return []byte(s), nil
-	case PostPostTypeItemHistory:
+	case PostPostTypeHistory:
 		return []byte(s), nil
 	default:
 		return nil, errors.Errorf("invalid value: %q", s)
@@ -814,16 +771,16 @@ func (s PostPostTypeItem) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler.
-func (s *PostPostTypeItem) UnmarshalText(data []byte) error {
-	switch PostPostTypeItem(data) {
-	case PostPostTypeItemOpinion:
-		*s = PostPostTypeItemOpinion
+func (s *PostPostType) UnmarshalText(data []byte) error {
+	switch PostPostType(data) {
+	case PostPostTypeOpinion:
+		*s = PostPostTypeOpinion
 		return nil
-	case PostPostTypeItemKnowledge:
-		*s = PostPostTypeItemKnowledge
+	case PostPostTypeKnowledge:
+		*s = PostPostTypeKnowledge
 		return nil
-	case PostPostTypeItemHistory:
-		*s = PostPostTypeItemHistory
+	case PostPostTypeHistory:
+		*s = PostPostTypeHistory
 		return nil
 	default:
 		return errors.Errorf("invalid value: %q", data)
@@ -833,15 +790,15 @@ func (s *PostPostTypeItem) UnmarshalText(data []byte) error {
 // Данные для обновления поста.
 // Ref: #/components/schemas/PostUpdate
 type PostUpdate struct {
-	// ID поста.
-	ID OptUUID `json:"id"`
+	// Новый заголовок поста.
+	Title string `json:"title"`
 	// Новое содержимое поста.
 	Text string `json:"text"`
 }
 
-// GetID returns the value of ID.
-func (s *PostUpdate) GetID() OptUUID {
-	return s.ID
+// GetTitle returns the value of Title.
+func (s *PostUpdate) GetTitle() string {
+	return s.Title
 }
 
 // GetText returns the value of Text.
@@ -849,9 +806,9 @@ func (s *PostUpdate) GetText() string {
 	return s.Text
 }
 
-// SetID sets the value of ID.
-func (s *PostUpdate) SetID(val OptUUID) {
-	s.ID = val
+// SetTitle sets the value of Title.
+func (s *PostUpdate) SetTitle(val string) {
+	s.Title = val
 }
 
 // SetText sets the value of Text.

@@ -16,33 +16,8 @@ func (s *Post) Validate() error {
 
 	var failures []validate.FieldError
 	if err := func() error {
-		if s.Platform == nil {
-			return errors.New("nil is invalid value")
-		}
-		if err := (validate.Array{
-			MinLength:    1,
-			MinLengthSet: true,
-			MaxLength:    0,
-			MaxLengthSet: false,
-		}).ValidateLength(len(s.Platform)); err != nil {
-			return errors.Wrap(err, "array")
-		}
-		var failures []validate.FieldError
-		for i, elem := range s.Platform {
-			if err := func() error {
-				if err := elem.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				failures = append(failures, validate.FieldError{
-					Name:  fmt.Sprintf("[%d]", i),
-					Error: err,
-				})
-			}
-		}
-		if len(failures) > 0 {
-			return &validate.Error{Fields: failures}
+		if err := s.Platform.Validate(); err != nil {
+			return err
 		}
 		return nil
 	}(); err != nil {
@@ -54,25 +29,8 @@ func (s *Post) Validate() error {
 	if err := func() error {
 		if value, ok := s.PostType.Get(); ok {
 			if err := func() error {
-				if value == nil {
-					return errors.New("nil is invalid value")
-				}
-				var failures []validate.FieldError
-				for i, elem := range value {
-					if err := func() error {
-						if err := elem.Validate(); err != nil {
-							return err
-						}
-						return nil
-					}(); err != nil {
-						failures = append(failures, validate.FieldError{
-							Name:  fmt.Sprintf("[%d]", i),
-							Error: err,
-						})
-					}
-				}
-				if len(failures) > 0 {
-					return &validate.Error{Fields: failures}
+				if err := value.Validate(); err != nil {
+					return err
 				}
 				return nil
 			}(); err != nil {
@@ -118,33 +76,8 @@ func (s *PostInput) Validate() error {
 		})
 	}
 	if err := func() error {
-		if s.Platform == nil {
-			return errors.New("nil is invalid value")
-		}
-		if err := (validate.Array{
-			MinLength:    1,
-			MinLengthSet: true,
-			MaxLength:    0,
-			MaxLengthSet: false,
-		}).ValidateLength(len(s.Platform)); err != nil {
-			return errors.Wrap(err, "array")
-		}
-		var failures []validate.FieldError
-		for i, elem := range s.Platform {
-			if err := func() error {
-				if err := elem.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				failures = append(failures, validate.FieldError{
-					Name:  fmt.Sprintf("[%d]", i),
-					Error: err,
-				})
-			}
-		}
-		if len(failures) > 0 {
-			return &validate.Error{Fields: failures}
+		if err := s.Platform.Validate(); err != nil {
+			return err
 		}
 		return nil
 	}(); err != nil {
@@ -195,7 +128,7 @@ func (s *PostInput) Validate() error {
 	return nil
 }
 
-func (s PostInputPlatformItem) Validate() error {
+func (s PostInputPlatform) Validate() error {
 	switch s {
 	case "otveti":
 		return nil
@@ -254,7 +187,7 @@ func (s *PostList) Validate() error {
 	return nil
 }
 
-func (s PostPlatformItem) Validate() error {
+func (s PostPlatform) Validate() error {
 	switch s {
 	case "otveti":
 		return nil
@@ -263,7 +196,7 @@ func (s PostPlatformItem) Validate() error {
 	}
 }
 
-func (s PostPostTypeItem) Validate() error {
+func (s PostPostType) Validate() error {
 	switch s {
 	case "opinion":
 		return nil

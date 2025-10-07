@@ -29,7 +29,7 @@ func decodeCreatePostResponse(resp *http.Response) (res CreatePostRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response Post
+			var response PostList
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -219,7 +219,7 @@ func decodeCreatePostSEOResponse(resp *http.Response) (res CreatePostSEORes, _ e
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response Post
+			var response PostList
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
