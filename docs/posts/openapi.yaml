@@ -4,7 +4,7 @@ info:
   description: "API для работы с постами."
   version: "1.0.0"
 servers:
-  - url: http://localhost:8086
+  - url: http://localhost:8002
 tags:
   - name: "Posts"
     description: "Операции для управления постами."

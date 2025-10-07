@@ -142,6 +142,8 @@ services:
     depends_on:
       xray-proxy:
         condition: service_started
+      posts_db:
+        condition: service_healthy
 
   xray-proxy:
     image: teddysun/xray:latest
