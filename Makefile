@@ -1,6 +1,7 @@
 defalut: help
 
 SERVICES := $(shell find ./docs -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
 
 help:
 	@echo ''
@@ -111,3 +112,16 @@ example-run-prod:  ## Запустить в production режиме
 
 
 .PHONY: download-lint download-gci lint format format-check check help api
+
+
+INTRANET_DIR := ./intranet
+
+intranet-up:
+	$(MAKE) -C $(INTRANET_DIR) up
+
+intranet-down:
+	$(MAKE) -C $(INTRANET_DIR) down
+
+intranet-parser-logs:
+	$(MAKE) -C $(INTRANET_DIR) parser-logs
+
