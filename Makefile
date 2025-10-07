@@ -55,10 +55,7 @@ api: install-ogen
 	@echo "Генерация кода успешно завершена."
 
 install-ogen:
-	@if ! command -v ogen &> /dev/null; then \
-		echo "ogen не найден. Устанавливаю..."; \
-		go install github.com/ogen-go/ogen/cmd/ogen@latest; \
-	fi
+	go get github.com/ogen-go/ogen/cmd/ogen@latest
 
 define generate-service
 	@echo "--- Генерирую код для сервиса: $(1) ---"

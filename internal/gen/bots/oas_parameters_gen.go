@@ -385,9 +385,9 @@ func decodeGetBotByIdParams(args [1]string, argsEscaped bool, r *http.Request) (
 type GetBotProfilesParams struct {
 	BotId uuid.UUID
 	// Курсор для получения следующей страницы результатов.
-	Cursor OptString
+	Cursor OptString `json:",omitempty,omitzero"`
 	// Максимальное количество результатов на странице.
-	Limit OptInt
+	Limit OptInt `json:",omitempty,omitzero"`
 }
 
 func unpackGetBotProfilesParams(packed middleware.Parameters) (params GetBotProfilesParams) {
@@ -648,9 +648,9 @@ func decodeGetTaskByIdParams(args [1]string, argsEscaped bool, r *http.Request) 
 // ListMyBotsParams is parameters of listMyBots operation.
 type ListMyBotsParams struct {
 	// Курсор для получения следующей страницы результатов.
-	Cursor OptString
+	Cursor OptString `json:",omitempty,omitzero"`
 	// Максимальное количество результатов на странице.
-	Limit OptInt
+	Limit OptInt `json:",omitempty,omitzero"`
 }
 
 func unpackListMyBotsParams(packed middleware.Parameters) (params ListMyBotsParams) {
