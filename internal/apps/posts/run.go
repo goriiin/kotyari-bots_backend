@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-faster/errors"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts"
@@ -14,7 +15,6 @@ func (p *PostsApp) Run() error {
 		log.Printf("Error happened starting server %v", err)
 		return err
 	}
-
 	return nil
 }
 
@@ -26,8 +26,11 @@ func (p *PostsApp) startHTTPServer(handler gen.Handler) error {
 
 	httpAddr := fmt.Sprintf("%s:%d", p.appCfg.API.Host, p.appCfg.API.Port)
 	httpServer := &http.Server{
-		Addr:    httpAddr,
-		Handler: svr,
+		Addr:         httpAddr,
+		Handler:      svr,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
 	log.Printf("PostsApp HTTP service listening on %s", httpAddr)
