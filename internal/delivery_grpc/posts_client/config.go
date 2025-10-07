@@ -7,26 +7,14 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-type postsGRPCClientApiCfg struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
-}
 type PostsGRPCClientAppConfig struct {
 	config.ConfigBase
-	API          postsGRPCClientApiCfg `mapstructure:"posts_api"`
-	BotsAddr     string                `mapstructure:"bots_addr"`
-	ProfilesAddr string                `mapstructure:"profiles_addr"`
-	Timeout      time.Duration         `mapstructure:"dial_timeout"`
+	BotsAddr     string        `mapstructure:"bots_addr"`
+	ProfilesAddr string        `mapstructure:"profiles_addr"`
+	Timeout      time.Duration `mapstructure:"dial_timeout"`
 }
 
 func (p *PostsGRPCClientAppConfig) Validate() error {
-	if p.API.Port < 1 || p.API.Port > 65535 {
-		return fmt.Errorf("invalid API port: %d", p.API.Port)
-	}
-
-	if p.API.Host == "" {
-		return fmt.Errorf("host should be presented in config")
-	}
 
 	if p.BotsAddr == "" || p.ProfilesAddr == "" {
 		return fmt.Errorf("bots and profile servers adresses should be presented in config")

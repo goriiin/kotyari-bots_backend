@@ -555,7 +555,7 @@ func (s *Error) Encode(e *jx.Encoder) {
 func (s *Error) encodeFields(e *jx.Encoder) {
 	{
 		e.FieldStart("errorCode")
-		e.Str(s.ErrorCode)
+		e.UInt16(s.ErrorCode)
 	}
 	{
 		e.FieldStart("message")
@@ -587,8 +587,8 @@ func (s *Error) Decode(d *jx.Decoder) error {
 		case "errorCode":
 			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
-				v, err := d.Str()
-				s.ErrorCode = string(v)
+				v, err := d.UInt16()
+				s.ErrorCode = uint16(v)
 				if err != nil {
 					return err
 				}
@@ -1003,8 +1003,8 @@ func (s *OptNilPostInputPostType) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes []PostPostTypeItem as json.
-func (o OptNilPostPostTypeItemArray) Encode(e *jx.Encoder) {
+// Encode encodes PostPostType as json.
+func (o OptNilPostPostType) Encode(e *jx.Encoder) {
 	if !o.Set {
 		return
 	}
@@ -1012,24 +1012,20 @@ func (o OptNilPostPostTypeItemArray) Encode(e *jx.Encoder) {
 		e.Null()
 		return
 	}
-	e.ArrStart()
-	for _, elem := range o.Value {
-		elem.Encode(e)
-	}
-	e.ArrEnd()
+	e.Str(string(o.Value))
 }
 
-// Decode decodes []PostPostTypeItem from json.
-func (o *OptNilPostPostTypeItemArray) Decode(d *jx.Decoder) error {
+// Decode decodes PostPostType from json.
+func (o *OptNilPostPostType) Decode(d *jx.Decoder) error {
 	if o == nil {
-		return errors.New("invalid: unable to decode OptNilPostPostTypeItemArray to nil")
+		return errors.New("invalid: unable to decode OptNilPostPostType to nil")
 	}
 	if d.Next() == jx.Null {
 		if err := d.Null(); err != nil {
 			return err
 		}
 
-		var v []PostPostTypeItem
+		var v PostPostType
 		o.Value = v
 		o.Set = true
 		o.Null = true
@@ -1037,29 +1033,21 @@ func (o *OptNilPostPostTypeItemArray) Decode(d *jx.Decoder) error {
 	}
 	o.Set = true
 	o.Null = false
-	o.Value = make([]PostPostTypeItem, 0)
-	if err := d.Arr(func(d *jx.Decoder) error {
-		var elem PostPostTypeItem
-		if err := elem.Decode(d); err != nil {
-			return err
-		}
-		o.Value = append(o.Value, elem)
-		return nil
-	}); err != nil {
+	if err := o.Value.Decode(d); err != nil {
 		return err
 	}
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s OptNilPostPostTypeItemArray) MarshalJSON() ([]byte, error) {
+func (s OptNilPostPostType) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *OptNilPostPostTypeItemArray) UnmarshalJSON(data []byte) error {
+func (s *OptNilPostPostType) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -1127,41 +1115,6 @@ func (s *OptNilUUIDArray) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes uuid.UUID as json.
-func (o OptUUID) Encode(e *jx.Encoder) {
-	if !o.Set {
-		return
-	}
-	json.EncodeUUID(e, o.Value)
-}
-
-// Decode decodes uuid.UUID from json.
-func (o *OptUUID) Decode(d *jx.Decoder) error {
-	if o == nil {
-		return errors.New("invalid: unable to decode OptUUID to nil")
-	}
-	o.Set = true
-	v, err := json.DecodeUUID(d)
-	if err != nil {
-		return err
-	}
-	o.Value = v
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s OptUUID) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *OptUUID) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
 // Encode implements json.Marshaler.
 func (s *Post) Encode(e *jx.Encoder) {
 	e.ObjStart()
@@ -1173,7 +1126,7 @@ func (s *Post) Encode(e *jx.Encoder) {
 func (s *Post) encodeFields(e *jx.Encoder) {
 	{
 		e.FieldStart("id")
-		e.Int64(s.ID)
+		e.UInt64(s.ID)
 	}
 	{
 		e.FieldStart("botId")
@@ -1185,11 +1138,7 @@ func (s *Post) encodeFields(e *jx.Encoder) {
 	}
 	{
 		e.FieldStart("platform")
-		e.ArrStart()
-		for _, elem := range s.Platform {
-			elem.Encode(e)
-		}
-		e.ArrEnd()
+		s.Platform.Encode(e)
 	}
 	{
 		if s.PostType.Set {
@@ -1250,8 +1199,8 @@ func (s *Post) Decode(d *jx.Decoder) error {
 		case "id":
 			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
-				v, err := d.Int64()
-				s.ID = int64(v)
+				v, err := d.UInt64()
+				s.ID = uint64(v)
 				if err != nil {
 					return err
 				}
@@ -1286,15 +1235,7 @@ func (s *Post) Decode(d *jx.Decoder) error {
 		case "platform":
 			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
-				s.Platform = make([]PostPlatformItem, 0)
-				if err := d.Arr(func(d *jx.Decoder) error {
-					var elem PostPlatformItem
-					if err := elem.Decode(d); err != nil {
-						return err
-					}
-					s.Platform = append(s.Platform, elem)
-					return nil
-				}); err != nil {
+				if err := s.Platform.Decode(d); err != nil {
 					return err
 				}
 				return nil
@@ -1462,11 +1403,7 @@ func (s *PostInput) encodeFields(e *jx.Encoder) {
 	}
 	{
 		e.FieldStart("platform")
-		e.ArrStart()
-		for _, elem := range s.Platform {
-			elem.Encode(e)
-		}
-		e.ArrEnd()
+		s.Platform.Encode(e)
 	}
 	{
 		if s.PostType.Set {
@@ -1546,15 +1483,7 @@ func (s *PostInput) Decode(d *jx.Decoder) error {
 		case "platform":
 			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
-				s.Platform = make([]PostInputPlatformItem, 0)
-				if err := d.Arr(func(d *jx.Decoder) error {
-					var elem PostInputPlatformItem
-					if err := elem.Decode(d); err != nil {
-						return err
-					}
-					s.Platform = append(s.Platform, elem)
-					return nil
-				}); err != nil {
+				if err := s.Platform.Decode(d); err != nil {
 					return err
 				}
 				return nil
@@ -1637,40 +1566,40 @@ func (s *PostInput) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes PostInputPlatformItem as json.
-func (s PostInputPlatformItem) Encode(e *jx.Encoder) {
+// Encode encodes PostInputPlatform as json.
+func (s PostInputPlatform) Encode(e *jx.Encoder) {
 	e.Str(string(s))
 }
 
-// Decode decodes PostInputPlatformItem from json.
-func (s *PostInputPlatformItem) Decode(d *jx.Decoder) error {
+// Decode decodes PostInputPlatform from json.
+func (s *PostInputPlatform) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode PostInputPlatformItem to nil")
+		return errors.New("invalid: unable to decode PostInputPlatform to nil")
 	}
 	v, err := d.StrBytes()
 	if err != nil {
 		return err
 	}
 	// Try to use constant string.
-	switch PostInputPlatformItem(v) {
-	case PostInputPlatformItemOtveti:
-		*s = PostInputPlatformItemOtveti
+	switch PostInputPlatform(v) {
+	case PostInputPlatformOtveti:
+		*s = PostInputPlatformOtveti
 	default:
-		*s = PostInputPlatformItem(v)
+		*s = PostInputPlatform(v)
 	}
 
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s PostInputPlatformItem) MarshalJSON() ([]byte, error) {
+func (s PostInputPlatform) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *PostInputPlatformItem) UnmarshalJSON(data []byte) error {
+func (s *PostInputPlatform) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -1791,82 +1720,82 @@ func (s *PostList) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes PostPlatformItem as json.
-func (s PostPlatformItem) Encode(e *jx.Encoder) {
+// Encode encodes PostPlatform as json.
+func (s PostPlatform) Encode(e *jx.Encoder) {
 	e.Str(string(s))
 }
 
-// Decode decodes PostPlatformItem from json.
-func (s *PostPlatformItem) Decode(d *jx.Decoder) error {
+// Decode decodes PostPlatform from json.
+func (s *PostPlatform) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode PostPlatformItem to nil")
+		return errors.New("invalid: unable to decode PostPlatform to nil")
 	}
 	v, err := d.StrBytes()
 	if err != nil {
 		return err
 	}
 	// Try to use constant string.
-	switch PostPlatformItem(v) {
-	case PostPlatformItemOtveti:
-		*s = PostPlatformItemOtveti
+	switch PostPlatform(v) {
+	case PostPlatformOtveti:
+		*s = PostPlatformOtveti
 	default:
-		*s = PostPlatformItem(v)
+		*s = PostPlatform(v)
 	}
 
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s PostPlatformItem) MarshalJSON() ([]byte, error) {
+func (s PostPlatform) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *PostPlatformItem) UnmarshalJSON(data []byte) error {
+func (s *PostPlatform) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode encodes PostPostTypeItem as json.
-func (s PostPostTypeItem) Encode(e *jx.Encoder) {
+// Encode encodes PostPostType as json.
+func (s PostPostType) Encode(e *jx.Encoder) {
 	e.Str(string(s))
 }
 
-// Decode decodes PostPostTypeItem from json.
-func (s *PostPostTypeItem) Decode(d *jx.Decoder) error {
+// Decode decodes PostPostType from json.
+func (s *PostPostType) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode PostPostTypeItem to nil")
+		return errors.New("invalid: unable to decode PostPostType to nil")
 	}
 	v, err := d.StrBytes()
 	if err != nil {
 		return err
 	}
 	// Try to use constant string.
-	switch PostPostTypeItem(v) {
-	case PostPostTypeItemOpinion:
-		*s = PostPostTypeItemOpinion
-	case PostPostTypeItemKnowledge:
-		*s = PostPostTypeItemKnowledge
-	case PostPostTypeItemHistory:
-		*s = PostPostTypeItemHistory
+	switch PostPostType(v) {
+	case PostPostTypeOpinion:
+		*s = PostPostTypeOpinion
+	case PostPostTypeKnowledge:
+		*s = PostPostTypeKnowledge
+	case PostPostTypeHistory:
+		*s = PostPostTypeHistory
 	default:
-		*s = PostPostTypeItem(v)
+		*s = PostPostType(v)
 	}
 
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s PostPostTypeItem) MarshalJSON() ([]byte, error) {
+func (s PostPostType) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *PostPostTypeItem) UnmarshalJSON(data []byte) error {
+func (s *PostPostType) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -1881,10 +1810,8 @@ func (s *PostUpdate) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *PostUpdate) encodeFields(e *jx.Encoder) {
 	{
-		if s.ID.Set {
-			e.FieldStart("id")
-			s.ID.Encode(e)
-		}
+		e.FieldStart("title")
+		e.Str(s.Title)
 	}
 	{
 		e.FieldStart("text")
@@ -1893,7 +1820,7 @@ func (s *PostUpdate) encodeFields(e *jx.Encoder) {
 }
 
 var jsonFieldsNameOfPostUpdate = [2]string{
-	0: "id",
+	0: "title",
 	1: "text",
 }
 
@@ -1906,15 +1833,17 @@ func (s *PostUpdate) Decode(d *jx.Decoder) error {
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
-		case "id":
+		case "title":
+			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
-				s.ID.Reset()
-				if err := s.ID.Decode(d); err != nil {
+				v, err := d.Str()
+				s.Title = string(v)
+				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"id\"")
+				return errors.Wrap(err, "decode field \"title\"")
 			}
 		case "text":
 			requiredBitSet[0] |= 1 << 1
@@ -1938,7 +1867,7 @@ func (s *PostUpdate) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000010,
+		0b00000011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

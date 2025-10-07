@@ -18,13 +18,14 @@ const (
 	defaultRetryDelay = 2 * time.Second
 )
 
-func (c *GrokClient) GeneratePost(ctx context.Context, botPrompt, profilePrompt string) (string, error) {
+func (c *GrokClient) GeneratePost(ctx context.Context, botPrompt, taskText, profilePrompt string) (string, error) {
 	botMessage := messageFromPrompt(systemRole, botPrompt)
+	taskMessage := messageFromPrompt(userRole, taskText)
 	userMessage := messageFromPrompt(userRole, profilePrompt)
 
 	req := GrokRequest{
 		Model:    defaultModel,
-		Messages: messagesFromGrokMessage(botMessage, userMessage),
+		Messages: messagesFromGrokMessage(botMessage, taskMessage, userMessage),
 	}
 
 	body, err := json.Marshal(req)

@@ -6,6 +6,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_client"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
+	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
 
 type PostsApiCfg struct {
@@ -17,6 +18,7 @@ type PostsAppCfg struct {
 	config.ConfigBase
 	API        PostsApiCfg                           `mapstructure:"posts_api"`
 	GrpcClient posts_client.PostsGRPCClientAppConfig `mapstructure:"posts_grpc"`
+	Database   postgres.Config                       `mapstructure:"posts_db"`
 	GrokCfg    grok.GrokClientConfig                 `mapstructure:"posts_grok"`
 }
 

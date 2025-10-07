@@ -13,7 +13,7 @@ import (
 
 func encodeCreatePostResponse(response CreatePostRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *Post:
+	case *PostList:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(201)
 		span.SetStatus(codes.Ok, http.StatusText(201))
@@ -85,7 +85,7 @@ func encodeCreatePostResponse(response CreatePostRes, w http.ResponseWriter, spa
 
 func encodeCreatePostSEOResponse(response CreatePostSEORes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
-	case *Post:
+	case *PostList:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(201)
 		span.SetStatus(codes.Ok, http.StatusText(201))

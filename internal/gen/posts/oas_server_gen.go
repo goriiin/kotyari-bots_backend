@@ -10,7 +10,7 @@ import (
 type Handler interface {
 	// CreatePost implements createPost operation.
 	//
-	// Создать новый пост.
+	// Создать новые посты.
 	//
 	// POST /api/v1/posts
 	CreatePost(ctx context.Context, req *PostInput) (CreatePostRes, error)

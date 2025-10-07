@@ -31,7 +31,7 @@ func (c *codeRecorder) WriteHeader(status int) {
 
 // handleCreatePostRequest handles createPost operation.
 //
-// Создать новый пост.
+// Создать новые посты.
 //
 // POST /api/v1/posts
 func (s *Server) handleCreatePostRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
@@ -126,7 +126,7 @@ func (s *Server) handleCreatePostRequest(args [0]string, argsEscaped bool, w htt
 		mreq := middleware.Request{
 			Context:          ctx,
 			OperationName:    CreatePostOperation,
-			OperationSummary: "Создать новый пост",
+			OperationSummary: "Создать новые посты",
 			OperationID:      "createPost",
 			Body:             request,
 			RawBody:          rawBody,
