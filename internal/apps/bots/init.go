@@ -5,6 +5,7 @@ import (
 	"fmt"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	adapter "github.com/goriiin/kotyari-bots_backend/internal/adapters/profiles"
+	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -19,7 +20,6 @@ import (
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/bots"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
-	"github.com/rs/cors" // <-- 1. Импортируйте пакет
 )
 
 type BotsApp struct {
@@ -39,7 +39,6 @@ func (b *BotsApp) Run() error {
 
 	log.Printf("info config: %v", b.config.Database)
 
-	// Init DB
 	pool, err := postgres.GetPool(ctx, b.config.Database)
 	if err != nil {
 		return fmt.Errorf("postgres.GetPool: %w", err)
@@ -63,20 +62,12 @@ func (b *BotsApp) Run() error {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}
 
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
-		AllowCredentials: true,
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type"},
-	})
-
 	httpAddr := fmt.Sprintf("%s:%d", b.config.API.Host, b.config.API.Port)
 	b.server = &http.Server{
 		Addr:    httpAddr,
-		Handler: c.Handler(svr),
+		Handler: cors.New().Handler(svr),
 	}
 
-	// Run server
 	go func() {
 		log.Printf("Bots service listening on %s", httpAddr)
 		if err := b.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -84,7 +75,6 @@ func (b *BotsApp) Run() error {
 		}
 	}()
 
-	// Graceful shutdown
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig

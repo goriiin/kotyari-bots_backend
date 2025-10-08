@@ -15,8 +15,6 @@ func main() {
 		log.Fatalf("config load: %v", err)
 	}
 
-	log.Println("main.cfg: ", cfg)
-
 	app := bots.NewApp(cfg)
 	if err = app.Run(); err != nil {
 		log.Fatalf("bots app exited with error: %v", err)

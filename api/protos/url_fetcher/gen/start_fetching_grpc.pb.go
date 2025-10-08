@@ -2,15 +2,16 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.32.0
-// source: get_profiles.proto
+// source: start_fetching.proto
 
-package gen
+package url_fetcher
 
 import (
 	context "context"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,16 +20,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProfileService_GetProfile_FullMethodName       = "/profiles.ProfileService/GetProfile"
-	ProfileService_BatchGetProfiles_FullMethodName = "/profiles.ProfileService/BatchGetProfiles"
+	ProfileService_StartFetching_FullMethodName = "/url_fetcher.ProfileService/StartFetching"
 )
 
 // ProfileServiceClient is the client API for ProfileService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProfileServiceClient interface {
-	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*Profile, error)
-	BatchGetProfiles(ctx context.Context, in *BatchGetProfilesRequest, opts ...grpc.CallOption) (*BatchGetProfilesResponse, error)
+	StartFetching(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type profileServiceClient struct {
@@ -39,20 +38,10 @@ func NewProfileServiceClient(cc grpc.ClientConnInterface) ProfileServiceClient {
 	return &profileServiceClient{cc}
 }
 
-func (c *profileServiceClient) GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*Profile, error) {
+func (c *profileServiceClient) StartFetching(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Profile)
-	err := c.cc.Invoke(ctx, ProfileService_GetProfile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *profileServiceClient) BatchGetProfiles(ctx context.Context, in *BatchGetProfilesRequest, opts ...grpc.CallOption) (*BatchGetProfilesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchGetProfilesResponse)
-	err := c.cc.Invoke(ctx, ProfileService_BatchGetProfiles_FullMethodName, in, out, cOpts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ProfileService_StartFetching_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -63,8 +52,7 @@ func (c *profileServiceClient) BatchGetProfiles(ctx context.Context, in *BatchGe
 // All implementations must embed UnimplementedProfileServiceServer
 // for forward compatibility.
 type ProfileServiceServer interface {
-	GetProfile(context.Context, *GetProfileRequest) (*Profile, error)
-	BatchGetProfiles(context.Context, *BatchGetProfilesRequest) (*BatchGetProfilesResponse, error)
+	StartFetching(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedProfileServiceServer()
 }
 
@@ -75,11 +63,8 @@ type ProfileServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProfileServiceServer struct{}
 
-func (UnimplementedProfileServiceServer) GetProfile(context.Context, *GetProfileRequest) (*Profile, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProfile not implemented")
-}
-func (UnimplementedProfileServiceServer) BatchGetProfiles(context.Context, *BatchGetProfilesRequest) (*BatchGetProfilesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BatchGetProfiles not implemented")
+func (UnimplementedProfileServiceServer) StartFetching(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartFetching not implemented")
 }
 func (UnimplementedProfileServiceServer) mustEmbedUnimplementedProfileServiceServer() {}
 func (UnimplementedProfileServiceServer) testEmbeddedByValue()                        {}
@@ -102,38 +87,20 @@ func RegisterProfileServiceServer(s grpc.ServiceRegistrar, srv ProfileServiceSer
 	s.RegisterService(&ProfileService_ServiceDesc, srv)
 }
 
-func _ProfileService_GetProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProfileRequest)
+func _ProfileService_StartFetching_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProfileServiceServer).GetProfile(ctx, in)
+		return srv.(ProfileServiceServer).StartFetching(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProfileService_GetProfile_FullMethodName,
+		FullMethod: ProfileService_StartFetching_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfileServiceServer).GetProfile(ctx, req.(*GetProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ProfileService_BatchGetProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchGetProfilesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ProfileServiceServer).BatchGetProfiles(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ProfileService_BatchGetProfiles_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProfileServiceServer).BatchGetProfiles(ctx, req.(*BatchGetProfilesRequest))
+		return srv.(ProfileServiceServer).StartFetching(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -142,18 +109,14 @@ func _ProfileService_BatchGetProfiles_Handler(srv interface{}, ctx context.Conte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ProfileService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "profiles.ProfileService",
+	ServiceName: "url_fetcher.ProfileService",
 	HandlerType: (*ProfileServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetProfile",
-			Handler:    _ProfileService_GetProfile_Handler,
-		},
-		{
-			MethodName: "BatchGetProfiles",
-			Handler:    _ProfileService_BatchGetProfiles_Handler,
+			MethodName: "StartFetching",
+			Handler:    _ProfileService_StartFetching_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "get_profiles.proto",
+	Metadata: "start_fetching.proto",
 }
