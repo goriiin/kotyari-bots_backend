@@ -11,7 +11,6 @@ import (
 	"github.com/go-faster/errors"
 	"github.com/ogen-go/ogen/conv"
 	ht "github.com/ogen-go/ogen/http"
-	"github.com/ogen-go/ogen/ogenerrors"
 	"github.com/ogen-go/ogen/otelogen"
 	"github.com/ogen-go/ogen/uri"
 	"go.opentelemetry.io/otel/attribute"
@@ -32,55 +31,43 @@ type Invoker interface {
 	//
 	// Привязать профиль к боту.
 	//
-	// PUT /bots/{botId}/profiles/{profileId}
+	// PUT /api/v1/bots/{botId}/profiles/{profileId}
 	AddProfileToBot(ctx context.Context, params AddProfileToBotParams) (AddProfileToBotRes, error)
 	// CreateBot invokes CreateBot operation.
 	//
 	// Создать нового бота.
 	//
-	// POST /bots
+	// POST /api/v1/bots
 	CreateBot(ctx context.Context, request *BotInput) (CreateBotRes, error)
-	// CreateTaskForBotWithProfile invokes CreateTaskForBotWithProfile operation.
-	//
-	// Создать задачу для бота с конкретным профилем.
-	//
-	// POST /bots/{botId}/profiles/{profileId}/tasks
-	CreateTaskForBotWithProfile(ctx context.Context, request *TaskInput, params CreateTaskForBotWithProfileParams) (CreateTaskForBotWithProfileRes, error)
 	// DeleteBotById invokes DeleteBotById operation.
 	//
 	// Удалить бота по ID.
 	//
-	// DELETE /bots/{botId}
+	// DELETE /api/v1/bots/{botId}
 	DeleteBotById(ctx context.Context, params DeleteBotByIdParams) (DeleteBotByIdRes, error)
 	// GetBotById invokes GetBotById operation.
 	//
 	// Получить бота по ID.
 	//
-	// GET /bots/{botId}
+	// GET /api/v1/bots/{botId}
 	GetBotById(ctx context.Context, params GetBotByIdParams) (GetBotByIdRes, error)
 	// GetBotProfiles invokes GetBotProfiles operation.
 	//
 	// Получить список профилей, привязанных к боту.
 	//
-	// GET /bots/{botId}/profiles
+	// GET /api/v1/bots/{botId}/profiles
 	GetBotProfiles(ctx context.Context, params GetBotProfilesParams) (GetBotProfilesRes, error)
-	// GetTaskById invokes GetTaskById operation.
-	//
-	// Получить статус задачи по ID.
-	//
-	// GET /tasks/{taskId}
-	GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error)
 	// ListBots invokes ListBots operation.
 	//
 	// Получить список своих ботов.
 	//
-	// GET /bots
-	ListBots(ctx context.Context, params ListBotsParams) (ListBotsRes, error)
+	// GET /api/v1/bots
+	ListBots(ctx context.Context) (ListBotsRes, error)
 	// RemoveProfileFromBot invokes RemoveProfileFromBot operation.
 	//
 	// Отвязать профиль от бота.
 	//
-	// DELETE /bots/{botId}/profiles/{profileId}
+	// DELETE /api/v1/bots/{botId}/profiles/{profileId}
 	RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (RemoveProfileFromBotRes, error)
 	// SearchBots invokes SearchBots operation.
 	//
@@ -98,14 +85,13 @@ type Invoker interface {
 	//
 	// Полностью обновить бота по ID.
 	//
-	// PUT /bots/{botId}
+	// PUT /api/v1/bots/{botId}
 	UpdateBotById(ctx context.Context, request *BotInput, params UpdateBotByIdParams) (UpdateBotByIdRes, error)
 }
 
 // Client implements OAS client.
 type Client struct {
 	serverURL *url.URL
-	sec       SecuritySource
 	baseClient
 }
 
@@ -114,7 +100,7 @@ var _ Handler = struct {
 }{}
 
 // NewClient initializes new Client defined by OAS.
-func NewClient(serverURL string, sec SecuritySource, opts ...ClientOption) (*Client, error) {
+func NewClient(serverURL string, opts ...ClientOption) (*Client, error) {
 	u, err := url.Parse(serverURL)
 	if err != nil {
 		return nil, err
@@ -127,7 +113,6 @@ func NewClient(serverURL string, sec SecuritySource, opts ...ClientOption) (*Cli
 	}
 	return &Client{
 		serverURL:  u,
-		sec:        sec,
 		baseClient: c,
 	}, nil
 }
@@ -151,7 +136,7 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 //
 // Привязать профиль к боту.
 //
-// PUT /bots/{botId}/profiles/{profileId}
+// PUT /api/v1/bots/{botId}/profiles/{profileId}
 func (c *Client) AddProfileToBot(ctx context.Context, params AddProfileToBotParams) (AddProfileToBotRes, error) {
 	res, err := c.sendAddProfileToBot(ctx, params)
 	return res, err
@@ -161,7 +146,7 @@ func (c *Client) sendAddProfileToBot(ctx context.Context, params AddProfileToBot
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("AddProfileToBot"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}"),
+		semconv.URLTemplateKey.String("/api/v1/bots/{botId}/profiles/{profileId}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -195,7 +180,7 @@ func (c *Client) sendAddProfileToBot(ctx context.Context, params AddProfileToBot
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [4]string
-	pathParts[0] = "/bots/"
+	pathParts[0] = "/api/v1/bots/"
 	{
 		// Encode "botId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -241,51 +226,6 @@ func (c *Client) sendAddProfileToBot(ctx context.Context, params AddProfileToBot
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, AddProfileToBotOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, AddProfileToBotOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -306,7 +246,7 @@ func (c *Client) sendAddProfileToBot(ctx context.Context, params AddProfileToBot
 //
 // Создать нового бота.
 //
-// POST /bots
+// POST /api/v1/bots
 func (c *Client) CreateBot(ctx context.Context, request *BotInput) (CreateBotRes, error) {
 	res, err := c.sendCreateBot(ctx, request)
 	return res, err
@@ -316,7 +256,7 @@ func (c *Client) sendCreateBot(ctx context.Context, request *BotInput) (res Crea
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("CreateBot"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/bots"),
+		semconv.URLTemplateKey.String("/api/v1/bots"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -350,7 +290,7 @@ func (c *Client) sendCreateBot(ctx context.Context, request *BotInput) (res Crea
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/bots"
+	pathParts[0] = "/api/v1/bots"
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
@@ -360,51 +300,6 @@ func (c *Client) sendCreateBot(ctx context.Context, request *BotInput) (res Crea
 	}
 	if err := encodeCreateBotRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, CreateBotOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, CreateBotOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"
@@ -423,170 +318,11 @@ func (c *Client) sendCreateBot(ctx context.Context, request *BotInput) (res Crea
 	return result, nil
 }
 
-// CreateTaskForBotWithProfile invokes CreateTaskForBotWithProfile operation.
-//
-// Создать задачу для бота с конкретным профилем.
-//
-// POST /bots/{botId}/profiles/{profileId}/tasks
-func (c *Client) CreateTaskForBotWithProfile(ctx context.Context, request *TaskInput, params CreateTaskForBotWithProfileParams) (CreateTaskForBotWithProfileRes, error) {
-	res, err := c.sendCreateTaskForBotWithProfile(ctx, request, params)
-	return res, err
-}
-
-func (c *Client) sendCreateTaskForBotWithProfile(ctx context.Context, request *TaskInput, params CreateTaskForBotWithProfileParams) (res CreateTaskForBotWithProfileRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("CreateTaskForBotWithProfile"),
-		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}/tasks"),
-	}
-	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, CreateTaskForBotWithProfileOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [5]string
-	pathParts[0] = "/bots/"
-	{
-		// Encode "botId" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "botId",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.BotId))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		pathParts[1] = encoded
-	}
-	pathParts[2] = "/profiles/"
-	{
-		// Encode "profileId" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "profileId",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.ProfileId))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		pathParts[3] = encoded
-	}
-	pathParts[4] = "/tasks"
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "POST", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-	if err := encodeCreateTaskForBotWithProfileRequest(request, r); err != nil {
-		return res, errors.Wrap(err, "encode request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, CreateTaskForBotWithProfileOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, CreateTaskForBotWithProfileOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	defer resp.Body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeCreateTaskForBotWithProfileResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
 // DeleteBotById invokes DeleteBotById operation.
 //
 // Удалить бота по ID.
 //
-// DELETE /bots/{botId}
+// DELETE /api/v1/bots/{botId}
 func (c *Client) DeleteBotById(ctx context.Context, params DeleteBotByIdParams) (DeleteBotByIdRes, error) {
 	res, err := c.sendDeleteBotById(ctx, params)
 	return res, err
@@ -596,7 +332,7 @@ func (c *Client) sendDeleteBotById(ctx context.Context, params DeleteBotByIdPara
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("DeleteBotById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.URLTemplateKey.String("/bots/{botId}"),
+		semconv.URLTemplateKey.String("/api/v1/bots/{botId}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -630,7 +366,7 @@ func (c *Client) sendDeleteBotById(ctx context.Context, params DeleteBotByIdPara
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/bots/"
+	pathParts[0] = "/api/v1/bots/"
 	{
 		// Encode "botId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -657,51 +393,6 @@ func (c *Client) sendDeleteBotById(ctx context.Context, params DeleteBotByIdPara
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, DeleteBotByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, DeleteBotByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -722,7 +413,7 @@ func (c *Client) sendDeleteBotById(ctx context.Context, params DeleteBotByIdPara
 //
 // Получить бота по ID.
 //
-// GET /bots/{botId}
+// GET /api/v1/bots/{botId}
 func (c *Client) GetBotById(ctx context.Context, params GetBotByIdParams) (GetBotByIdRes, error) {
 	res, err := c.sendGetBotById(ctx, params)
 	return res, err
@@ -732,7 +423,7 @@ func (c *Client) sendGetBotById(ctx context.Context, params GetBotByIdParams) (r
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("GetBotById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/bots/{botId}"),
+		semconv.URLTemplateKey.String("/api/v1/bots/{botId}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -766,7 +457,7 @@ func (c *Client) sendGetBotById(ctx context.Context, params GetBotByIdParams) (r
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/bots/"
+	pathParts[0] = "/api/v1/bots/"
 	{
 		// Encode "botId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -793,51 +484,6 @@ func (c *Client) sendGetBotById(ctx context.Context, params GetBotByIdParams) (r
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, GetBotByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, GetBotByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -858,7 +504,7 @@ func (c *Client) sendGetBotById(ctx context.Context, params GetBotByIdParams) (r
 //
 // Получить список профилей, привязанных к боту.
 //
-// GET /bots/{botId}/profiles
+// GET /api/v1/bots/{botId}/profiles
 func (c *Client) GetBotProfiles(ctx context.Context, params GetBotProfilesParams) (GetBotProfilesRes, error) {
 	res, err := c.sendGetBotProfiles(ctx, params)
 	return res, err
@@ -868,7 +514,7 @@ func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesPa
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("GetBotProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/bots/{botId}/profiles"),
+		semconv.URLTemplateKey.String("/api/v1/bots/{botId}/profiles"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -902,7 +548,7 @@ func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesPa
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [3]string
-	pathParts[0] = "/bots/"
+	pathParts[0] = "/api/v1/bots/"
 	{
 		// Encode "botId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -930,51 +576,6 @@ func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesPa
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, GetBotProfilesOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, GetBotProfilesOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -991,157 +592,21 @@ func (c *Client) sendGetBotProfiles(ctx context.Context, params GetBotProfilesPa
 	return result, nil
 }
 
-// GetTaskById invokes GetTaskById operation.
-//
-// Получить статус задачи по ID.
-//
-// GET /tasks/{taskId}
-func (c *Client) GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error) {
-	res, err := c.sendGetTaskById(ctx, params)
-	return res, err
-}
-
-func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) (res GetTaskByIdRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("GetTaskById"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/tasks/{taskId}"),
-	}
-	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, GetTaskByIdOperation,
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/tasks/"
-	{
-		// Encode "taskId" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "taskId",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.TaskId))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		pathParts[1] = encoded
-	}
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, GetTaskByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, GetTaskByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	defer resp.Body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeGetTaskByIdResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
 // ListBots invokes ListBots operation.
 //
 // Получить список своих ботов.
 //
-// GET /bots
-func (c *Client) ListBots(ctx context.Context, params ListBotsParams) (ListBotsRes, error) {
-	res, err := c.sendListBots(ctx, params)
+// GET /api/v1/bots
+func (c *Client) ListBots(ctx context.Context) (ListBotsRes, error) {
+	res, err := c.sendListBots(ctx)
 	return res, err
 }
 
-func (c *Client) sendListBots(ctx context.Context, params ListBotsParams) (res ListBotsRes, err error) {
+func (c *Client) sendListBots(ctx context.Context) (res ListBotsRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("ListBots"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.URLTemplateKey.String("/bots"),
+		semconv.URLTemplateKey.String("/api/v1/bots"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -1175,96 +640,13 @@ func (c *Client) sendListBots(ctx context.Context, params ListBotsParams) (res L
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [1]string
-	pathParts[0] = "/bots"
+	pathParts[0] = "/api/v1/bots"
 	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeQueryParams"
-	q := uri.NewQueryEncoder()
-	{
-		// Encode "cursor" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "cursor",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Cursor.Get(); ok {
-				return e.EncodeValue(conv.StringToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "limit" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "limit",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Limit.Get(); ok {
-				return e.EncodeValue(conv.IntToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, ListBotsOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, ListBotsOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"
@@ -1287,7 +669,7 @@ func (c *Client) sendListBots(ctx context.Context, params ListBotsParams) (res L
 //
 // Отвязать профиль от бота.
 //
-// DELETE /bots/{botId}/profiles/{profileId}
+// DELETE /api/v1/bots/{botId}/profiles/{profileId}
 func (c *Client) RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (RemoveProfileFromBotRes, error) {
 	res, err := c.sendRemoveProfileFromBot(ctx, params)
 	return res, err
@@ -1297,7 +679,7 @@ func (c *Client) sendRemoveProfileFromBot(ctx context.Context, params RemoveProf
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("RemoveProfileFromBot"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.URLTemplateKey.String("/bots/{botId}/profiles/{profileId}"),
+		semconv.URLTemplateKey.String("/api/v1/bots/{botId}/profiles/{profileId}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -1331,7 +713,7 @@ func (c *Client) sendRemoveProfileFromBot(ctx context.Context, params RemoveProf
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [4]string
-	pathParts[0] = "/bots/"
+	pathParts[0] = "/api/v1/bots/"
 	{
 		// Encode "botId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1377,51 +759,6 @@ func (c *Client) sendRemoveProfileFromBot(ctx context.Context, params RemoveProf
 		return res, errors.Wrap(err, "create request")
 	}
 
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, RemoveProfileFromBotOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, RemoveProfileFromBotOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
-	}
-
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -1452,8 +789,9 @@ func (c *Client) sendSearchBots(ctx context.Context, params SearchBotsParams) (r
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("SearchBots"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/api/v1/bots/search"),
+		semconv.URLTemplateKey.String("/api/v1/bots/search"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -1542,8 +880,9 @@ func (c *Client) sendSummaryBots(ctx context.Context) (res SummaryBotsRes, err e
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("SummaryBots"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/api/v1/bots/summary"),
+		semconv.URLTemplateKey.String("/api/v1/bots/summary"),
 	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
 	// Run stopwatch.
 	startTime := time.Now()
@@ -1604,7 +943,7 @@ func (c *Client) sendSummaryBots(ctx context.Context) (res SummaryBotsRes, err e
 //
 // Полностью обновить бота по ID.
 //
-// PUT /bots/{botId}
+// PUT /api/v1/bots/{botId}
 func (c *Client) UpdateBotById(ctx context.Context, request *BotInput, params UpdateBotByIdParams) (UpdateBotByIdRes, error) {
 	res, err := c.sendUpdateBotById(ctx, request, params)
 	return res, err
@@ -1614,7 +953,7 @@ func (c *Client) sendUpdateBotById(ctx context.Context, request *BotInput, param
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("UpdateBotById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.URLTemplateKey.String("/bots/{botId}"),
+		semconv.URLTemplateKey.String("/api/v1/bots/{botId}"),
 	}
 	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
 
@@ -1648,7 +987,7 @@ func (c *Client) sendUpdateBotById(ctx context.Context, request *BotInput, param
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
 	var pathParts [2]string
-	pathParts[0] = "/bots/"
+	pathParts[0] = "/api/v1/bots/"
 	{
 		// Encode "botId" parameter.
 		e := uri.NewPathEncoder(uri.PathEncoderConfig{
@@ -1676,51 +1015,6 @@ func (c *Client) sendUpdateBotById(ctx context.Context, request *BotInput, param
 	}
 	if err := encodeUpdateBotByIdRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
-	}
-
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			stage = "Security:CookieAuth"
-			switch err := c.securityCookieAuth(ctx, UpdateBotByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 0
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CookieAuth\"")
-			}
-		}
-		{
-			stage = "Security:CsrfAuth"
-			switch err := c.securityCsrfAuth(ctx, UpdateBotByIdOperation, r); {
-			case err == nil: // if NO error
-				satisfied[0] |= 1 << 1
-			case errors.Is(err, ogenerrors.ErrSkipClientSecurity):
-				// Skip this security.
-			default:
-				return res, errors.Wrap(err, "security \"CsrfAuth\"")
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			return res, ogenerrors.ErrSecurityRequirementIsNotSatisfied
-		}
 	}
 
 	stage = "SendRequest"
