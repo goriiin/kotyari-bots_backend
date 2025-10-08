@@ -49,7 +49,10 @@ func (b *BotsApp) Run() error {
 	if err != nil {
 		return fmt.Errorf("grpc.NewClient: %w", err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err = conn.Close()
+		log.Println(err)
+	}(conn)
 	profilesClient := profiles.NewProfilesServiceClient(conn)
 
 	botsRepo := repo.NewBotsRepository(pool)
