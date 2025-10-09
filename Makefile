@@ -48,7 +48,6 @@ $(ENTITIES):
 
 proto-build: $(ENTITIES)
 
-
 api: install-ogen
 	@echo "Начинаю генерацию кода для сервисов: $(SERVICES)"
 	$(foreach service,$(SERVICES),$(call generate-service,$(service)))
@@ -99,14 +98,42 @@ format-check:
 
 check: lint format-check
 
+bots-up:
+	@echo "Starting bots service and dependencies..."
+	docker-compose -f docker-compose.bots.yml up -d --build
+
+bots-down:
+	@echo "Stopping bots service and dependencies..."
+	docker-compose -f docker-compose.bots.yml down
+
+bots-reboot:
+	@echo "Rebooting bots service and dependencies..."
+	$(MAKE) bots-down
+	$(MAKE) bots-up
+
 example-run:
-	@go run cmd/main/main.go
+	@go run cmd/example/main.go
 example-run-local:  ## Запустить в local режиме
-	@go run cmd/main/main.go --env=local --config="./configs/local-config.yaml"
+	@go run cmd/example/main.go --env=local --config="./configs/local-config.yaml"
 
-example-run-prod:  ## Запустить в production режиме
-	@go run cmd/main/main.go --env=prod
+example-run-prod:
+	@go run cmd/example/main.go --env=prod
 
+bots-migrate-create: install-migrate
+	@read -p "Enter migration name: " name; \
+	migrate create -ext sql -dir assets/migrations/bots -seq $$name
+
+bots-migrate-up: ## Применить миграции для сервиса bots
+	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local-config.yaml" up
+
+bots-migrate-down: ## Откатить миграции для сервиса bots
+	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local-config.yaml" down
+
+install-migrate:
+	@if ! command -v migrate &> /dev/null; then \
+		echo "migrate CLI not found. Installing..."; \
+		go install -tags 'pgx5' github.com/golang-migrate/migrate/v4/cmd/migrate@latest; \
+	fi
 
 .PHONY: download-lint download-gci lint format format-check check help api
 

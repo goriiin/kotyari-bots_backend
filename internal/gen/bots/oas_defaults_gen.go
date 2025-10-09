@@ -10,7 +10,7 @@ func (s *Bot) setDefaults() {
 	}
 	{
 		val := bool(false)
-		s.AutoPublish = val
+		s.AutoPublish.SetTo(val)
 	}
 }
 

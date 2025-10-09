@@ -177,7 +177,9 @@ func (cl *ConfigLoader) loadEnvironmentVariables() {
 		viperKey = strings.ReplaceAll(viperKey, "_", ".")
 
 		cl.viper.Set(viperKey, value)
-		log.Printf("Set %s = %s", viperKey, value)
+		if cl.environment == envLocal {
+			log.Printf("Set %s = %s", viperKey, value)
+		}
 	}
 }
 

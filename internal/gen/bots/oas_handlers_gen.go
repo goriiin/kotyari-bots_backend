@@ -29,18 +29,18 @@ func (c *codeRecorder) WriteHeader(status int) {
 	c.ResponseWriter.WriteHeader(status)
 }
 
-// handleAddProfileToBotRequest handles addProfileToBot operation.
+// handleAddProfileToBotRequest handles AddProfileToBot operation.
 //
 // Привязать профиль к боту.
 //
-// PUT /bots/{botId}/profiles/{profileId}
+// PUT /api/v1/bots/{botId}/profiles/{profileId}
 func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("addProfileToBot"),
+		otelogen.OperationID("AddProfileToBot"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/{botId}/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.
@@ -100,71 +100,9 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: AddProfileToBotOperation,
-			ID:   "addProfileToBot",
+			ID:   "AddProfileToBot",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, AddProfileToBotOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, AddProfileToBotOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeAddProfileToBotParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -184,7 +122,7 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 			Context:          ctx,
 			OperationName:    AddProfileToBotOperation,
 			OperationSummary: "Привязать профиль к боту",
-			OperationID:      "addProfileToBot",
+			OperationID:      "AddProfileToBot",
 			Body:             nil,
 			RawBody:          rawBody,
 			Params: middleware.Parameters{
@@ -236,22 +174,22 @@ func (s *Server) handleAddProfileToBotRequest(args [2]string, argsEscaped bool, 
 	}
 }
 
-// handleCreateMyBotRequest handles createMyBot operation.
+// handleCreateBotRequest handles CreateBot operation.
 //
 // Создать нового бота.
 //
-// POST /bots
-func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /api/v1/bots
+func (s *Server) handleCreateBotRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createMyBot"),
+		otelogen.OperationID("CreateBot"),
 		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/bots"),
+		semconv.HTTPRouteKey.String("/api/v1/bots"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), CreateMyBotOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), CreateBotOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -306,75 +244,13 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: CreateMyBotOperation,
-			ID:   "createMyBot",
+			Name: CreateBotOperation,
+			ID:   "CreateBot",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, CreateMyBotOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, CreateMyBotOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 
 	var rawBody []byte
-	request, rawBody, close, err := s.decodeCreateMyBotRequest(r)
+	request, rawBody, close, err := s.decodeCreateBotRequest(r)
 	if err != nil {
 		err = &ogenerrors.DecodeRequestError{
 			OperationContext: opErrContext,
@@ -390,13 +266,13 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		}
 	}()
 
-	var response CreateMyBotRes
+	var response CreateBotRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    CreateMyBotOperation,
+			OperationName:    CreateBotOperation,
 			OperationSummary: "Создать нового бота",
-			OperationID:      "createMyBot",
+			OperationID:      "CreateBot",
 			Body:             request,
 			RawBody:          rawBody,
 			Params:           middleware.Parameters{},
@@ -406,7 +282,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		type (
 			Request  = *BotInput
 			Params   = struct{}
-			Response = CreateMyBotRes
+			Response = CreateBotRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -417,12 +293,12 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.CreateMyBot(ctx, request)
+				response, err = s.h.CreateBot(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.CreateMyBot(ctx, request)
+		response, err = s.h.CreateBot(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -430,7 +306,7 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 		return
 	}
 
-	if err := encodeCreateMyBotResponse(response, w, span); err != nil {
+	if err := encodeCreateBotResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -439,240 +315,18 @@ func (s *Server) handleCreateMyBotRequest(args [0]string, argsEscaped bool, w ht
 	}
 }
 
-// handleCreateTaskForBotWithProfileRequest handles createTaskForBotWithProfile operation.
-//
-// Создать задачу для бота с конкретным профилем.
-//
-// POST /bots/{botId}/profiles/{profileId}/tasks
-func (s *Server) handleCreateTaskForBotWithProfileRequest(args [2]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
-	statusWriter := &codeRecorder{ResponseWriter: w}
-	w = statusWriter
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("createTaskForBotWithProfile"),
-		semconv.HTTPRequestMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}/tasks"),
-	}
-
-	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), CreateTaskForBotWithProfileOperation,
-		trace.WithAttributes(otelAttrs...),
-		serverSpanKind,
-	)
-	defer span.End()
-
-	// Add Labeler to context.
-	labeler := &Labeler{attrs: otelAttrs}
-	ctx = contextWithLabeler(ctx, labeler)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		elapsedDuration := time.Since(startTime)
-
-		attrSet := labeler.AttributeSet()
-		attrs := attrSet.ToSlice()
-		code := statusWriter.status
-		if code != 0 {
-			codeAttr := semconv.HTTPResponseStatusCode(code)
-			attrs = append(attrs, codeAttr)
-			span.SetAttributes(codeAttr)
-		}
-		attrOpt := metric.WithAttributes(attrs...)
-
-		// Increment request counter.
-		s.requests.Add(ctx, 1, attrOpt)
-
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		s.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), attrOpt)
-	}()
-
-	var (
-		recordError = func(stage string, err error) {
-			span.RecordError(err)
-
-			// https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
-			// Span Status MUST be left unset if HTTP status code was in the 1xx, 2xx or 3xx ranges,
-			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
-			// max redirects exceeded), in which case status MUST be set to Error.
-			code := statusWriter.status
-			if code < 100 || code >= 500 {
-				span.SetStatus(codes.Error, stage)
-			}
-
-			attrSet := labeler.AttributeSet()
-			attrs := attrSet.ToSlice()
-			if code != 0 {
-				attrs = append(attrs, semconv.HTTPResponseStatusCode(code))
-			}
-
-			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
-		}
-		err          error
-		opErrContext = ogenerrors.OperationContext{
-			Name: CreateTaskForBotWithProfileOperation,
-			ID:   "createTaskForBotWithProfile",
-		}
-	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, CreateTaskForBotWithProfileOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, CreateTaskForBotWithProfileOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
-	params, err := decodeCreateTaskForBotWithProfileParams(args, argsEscaped, r)
-	if err != nil {
-		err = &ogenerrors.DecodeParamsError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeParams", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-
-	var rawBody []byte
-	request, rawBody, close, err := s.decodeCreateTaskForBotWithProfileRequest(r)
-	if err != nil {
-		err = &ogenerrors.DecodeRequestError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeRequest", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-	defer func() {
-		if err := close(); err != nil {
-			recordError("CloseRequest", err)
-		}
-	}()
-
-	var response CreateTaskForBotWithProfileRes
-	if m := s.cfg.Middleware; m != nil {
-		mreq := middleware.Request{
-			Context:          ctx,
-			OperationName:    CreateTaskForBotWithProfileOperation,
-			OperationSummary: "Создать задачу для бота с конкретным профилем",
-			OperationID:      "createTaskForBotWithProfile",
-			Body:             request,
-			RawBody:          rawBody,
-			Params: middleware.Parameters{
-				{
-					Name: "botId",
-					In:   "path",
-				}: params.BotId,
-				{
-					Name: "profileId",
-					In:   "path",
-				}: params.ProfileId,
-			},
-			Raw: r,
-		}
-
-		type (
-			Request  = *TaskInput
-			Params   = CreateTaskForBotWithProfileParams
-			Response = CreateTaskForBotWithProfileRes
-		)
-		response, err = middleware.HookMiddleware[
-			Request,
-			Params,
-			Response,
-		](
-			m,
-			mreq,
-			unpackCreateTaskForBotWithProfileParams,
-			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.CreateTaskForBotWithProfile(ctx, request, params)
-				return response, err
-			},
-		)
-	} else {
-		response, err = s.h.CreateTaskForBotWithProfile(ctx, request, params)
-	}
-	if err != nil {
-		defer recordError("Internal", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-
-	if err := encodeCreateTaskForBotWithProfileResponse(response, w, span); err != nil {
-		defer recordError("EncodeResponse", err)
-		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
-			s.cfg.ErrorHandler(ctx, w, r, err)
-		}
-		return
-	}
-}
-
-// handleDeleteBotByIdRequest handles deleteBotById operation.
+// handleDeleteBotByIdRequest handles DeleteBotById operation.
 //
 // Удалить бота по ID.
 //
-// DELETE /bots/{botId}
+// DELETE /api/v1/bots/{botId}
 func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("deleteBotById"),
+		otelogen.OperationID("DeleteBotById"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/bots/{botId}"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/{botId}"),
 	}
 
 	// Start a span for this request.
@@ -732,71 +386,9 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: DeleteBotByIdOperation,
-			ID:   "deleteBotById",
+			ID:   "DeleteBotById",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, DeleteBotByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, DeleteBotByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeDeleteBotByIdParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -816,7 +408,7 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 			Context:          ctx,
 			OperationName:    DeleteBotByIdOperation,
 			OperationSummary: "Удалить бота по ID",
-			OperationID:      "deleteBotById",
+			OperationID:      "DeleteBotById",
 			Body:             nil,
 			RawBody:          rawBody,
 			Params: middleware.Parameters{
@@ -864,18 +456,18 @@ func (s *Server) handleDeleteBotByIdRequest(args [1]string, argsEscaped bool, w 
 	}
 }
 
-// handleGetBotByIdRequest handles getBotById operation.
+// handleGetBotByIdRequest handles GetBotById operation.
 //
 // Получить бота по ID.
 //
-// GET /bots/{botId}
+// GET /api/v1/bots/{botId}
 func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getBotById"),
+		otelogen.OperationID("GetBotById"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/bots/{botId}"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/{botId}"),
 	}
 
 	// Start a span for this request.
@@ -935,71 +527,9 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: GetBotByIdOperation,
-			ID:   "getBotById",
+			ID:   "GetBotById",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, GetBotByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, GetBotByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeGetBotByIdParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1019,7 +549,7 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 			Context:          ctx,
 			OperationName:    GetBotByIdOperation,
 			OperationSummary: "Получить бота по ID",
-			OperationID:      "getBotById",
+			OperationID:      "GetBotById",
 			Body:             nil,
 			RawBody:          rawBody,
 			Params: middleware.Parameters{
@@ -1067,18 +597,18 @@ func (s *Server) handleGetBotByIdRequest(args [1]string, argsEscaped bool, w htt
 	}
 }
 
-// handleGetBotProfilesRequest handles getBotProfiles operation.
+// handleGetBotProfilesRequest handles GetBotProfiles operation.
 //
 // Получить список профилей, привязанных к боту.
 //
-// GET /bots/{botId}/profiles
+// GET /api/v1/bots/{botId}/profiles
 func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getBotProfiles"),
+		otelogen.OperationID("GetBotProfiles"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/{botId}/profiles"),
 	}
 
 	// Start a span for this request.
@@ -1138,71 +668,9 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: GetBotProfilesOperation,
-			ID:   "getBotProfiles",
+			ID:   "GetBotProfiles",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, GetBotProfilesOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, GetBotProfilesOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeGetBotProfilesParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1222,7 +690,7 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 			Context:          ctx,
 			OperationName:    GetBotProfilesOperation,
 			OperationSummary: "Получить список профилей, привязанных к боту",
-			OperationID:      "getBotProfiles",
+			OperationID:      "GetBotProfiles",
 			Body:             nil,
 			RawBody:          rawBody,
 			Params: middleware.Parameters{
@@ -1230,14 +698,6 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 					Name: "botId",
 					In:   "path",
 				}: params.BotId,
-				{
-					Name: "cursor",
-					In:   "query",
-				}: params.Cursor,
-				{
-					Name: "limit",
-					In:   "query",
-				}: params.Limit,
 			},
 			Raw: r,
 		}
@@ -1278,225 +738,22 @@ func (s *Server) handleGetBotProfilesRequest(args [1]string, argsEscaped bool, w
 	}
 }
 
-// handleGetTaskByIdRequest handles getTaskById operation.
-//
-// Получить статус задачи по ID.
-//
-// GET /tasks/{taskId}
-func (s *Server) handleGetTaskByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
-	statusWriter := &codeRecorder{ResponseWriter: w}
-	w = statusWriter
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getTaskById"),
-		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
-	}
-
-	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), GetTaskByIdOperation,
-		trace.WithAttributes(otelAttrs...),
-		serverSpanKind,
-	)
-	defer span.End()
-
-	// Add Labeler to context.
-	labeler := &Labeler{attrs: otelAttrs}
-	ctx = contextWithLabeler(ctx, labeler)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		elapsedDuration := time.Since(startTime)
-
-		attrSet := labeler.AttributeSet()
-		attrs := attrSet.ToSlice()
-		code := statusWriter.status
-		if code != 0 {
-			codeAttr := semconv.HTTPResponseStatusCode(code)
-			attrs = append(attrs, codeAttr)
-			span.SetAttributes(codeAttr)
-		}
-		attrOpt := metric.WithAttributes(attrs...)
-
-		// Increment request counter.
-		s.requests.Add(ctx, 1, attrOpt)
-
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		s.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), attrOpt)
-	}()
-
-	var (
-		recordError = func(stage string, err error) {
-			span.RecordError(err)
-
-			// https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
-			// Span Status MUST be left unset if HTTP status code was in the 1xx, 2xx or 3xx ranges,
-			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
-			// max redirects exceeded), in which case status MUST be set to Error.
-			code := statusWriter.status
-			if code < 100 || code >= 500 {
-				span.SetStatus(codes.Error, stage)
-			}
-
-			attrSet := labeler.AttributeSet()
-			attrs := attrSet.ToSlice()
-			if code != 0 {
-				attrs = append(attrs, semconv.HTTPResponseStatusCode(code))
-			}
-
-			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
-		}
-		err          error
-		opErrContext = ogenerrors.OperationContext{
-			Name: GetTaskByIdOperation,
-			ID:   "getTaskById",
-		}
-	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, GetTaskByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, GetTaskByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
-	params, err := decodeGetTaskByIdParams(args, argsEscaped, r)
-	if err != nil {
-		err = &ogenerrors.DecodeParamsError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeParams", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-
-	var rawBody []byte
-
-	var response GetTaskByIdRes
-	if m := s.cfg.Middleware; m != nil {
-		mreq := middleware.Request{
-			Context:          ctx,
-			OperationName:    GetTaskByIdOperation,
-			OperationSummary: "Получить статус задачи по ID",
-			OperationID:      "getTaskById",
-			Body:             nil,
-			RawBody:          rawBody,
-			Params: middleware.Parameters{
-				{
-					Name: "taskId",
-					In:   "path",
-				}: params.TaskId,
-			},
-			Raw: r,
-		}
-
-		type (
-			Request  = struct{}
-			Params   = GetTaskByIdParams
-			Response = GetTaskByIdRes
-		)
-		response, err = middleware.HookMiddleware[
-			Request,
-			Params,
-			Response,
-		](
-			m,
-			mreq,
-			unpackGetTaskByIdParams,
-			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.GetTaskById(ctx, params)
-				return response, err
-			},
-		)
-	} else {
-		response, err = s.h.GetTaskById(ctx, params)
-	}
-	if err != nil {
-		defer recordError("Internal", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-
-	if err := encodeGetTaskByIdResponse(response, w, span); err != nil {
-		defer recordError("EncodeResponse", err)
-		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
-			s.cfg.ErrorHandler(ctx, w, r, err)
-		}
-		return
-	}
-}
-
-// handleListMyBotsRequest handles listMyBots operation.
+// handleListBotsRequest handles ListBots operation.
 //
 // Получить список своих ботов.
 //
-// GET /bots
-func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// GET /api/v1/bots
+func (s *Server) handleListBotsRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("listMyBots"),
+		otelogen.OperationID("ListBots"),
 		semconv.HTTPRequestMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/bots"),
+		semconv.HTTPRouteKey.String("/api/v1/bots"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), ListMyBotsOperation,
+	ctx, span := s.cfg.Tracer.Start(r.Context(), ListBotsOperation,
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -1549,113 +806,28 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 
 			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
 		}
-		err          error
-		opErrContext = ogenerrors.OperationContext{
-			Name: ListMyBotsOperation,
-			ID:   "listMyBots",
-		}
+		err error
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, ListMyBotsOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, ListMyBotsOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
-	params, err := decodeListMyBotsParams(args, argsEscaped, r)
-	if err != nil {
-		err = &ogenerrors.DecodeParamsError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeParams", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
 
 	var rawBody []byte
 
-	var response ListMyBotsRes
+	var response ListBotsRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    ListMyBotsOperation,
+			OperationName:    ListBotsOperation,
 			OperationSummary: "Получить список своих ботов",
-			OperationID:      "listMyBots",
+			OperationID:      "ListBots",
 			Body:             nil,
 			RawBody:          rawBody,
-			Params: middleware.Parameters{
-				{
-					Name: "cursor",
-					In:   "query",
-				}: params.Cursor,
-				{
-					Name: "limit",
-					In:   "query",
-				}: params.Limit,
-			},
-			Raw: r,
+			Params:           middleware.Parameters{},
+			Raw:              r,
 		}
 
 		type (
 			Request  = struct{}
-			Params   = ListMyBotsParams
-			Response = ListMyBotsRes
+			Params   = struct{}
+			Response = ListBotsRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -1664,14 +836,14 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 		](
 			m,
 			mreq,
-			unpackListMyBotsParams,
+			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.ListMyBots(ctx, params)
+				response, err = s.h.ListBots(ctx)
 				return response, err
 			},
 		)
 	} else {
-		response, err = s.h.ListMyBots(ctx, params)
+		response, err = s.h.ListBots(ctx)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -1679,7 +851,7 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 		return
 	}
 
-	if err := encodeListMyBotsResponse(response, w, span); err != nil {
+	if err := encodeListBotsResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -1688,18 +860,18 @@ func (s *Server) handleListMyBotsRequest(args [0]string, argsEscaped bool, w htt
 	}
 }
 
-// handleRemoveProfileFromBotRequest handles removeProfileFromBot operation.
+// handleRemoveProfileFromBotRequest handles RemoveProfileFromBot operation.
 //
 // Отвязать профиль от бота.
 //
-// DELETE /bots/{botId}/profiles/{profileId}
+// DELETE /api/v1/bots/{botId}/profiles/{profileId}
 func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("removeProfileFromBot"),
+		otelogen.OperationID("RemoveProfileFromBot"),
 		semconv.HTTPRequestMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/bots/{botId}/profiles/{profileId}"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/{botId}/profiles/{profileId}"),
 	}
 
 	// Start a span for this request.
@@ -1759,71 +931,9 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: RemoveProfileFromBotOperation,
-			ID:   "removeProfileFromBot",
+			ID:   "RemoveProfileFromBot",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, RemoveProfileFromBotOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, RemoveProfileFromBotOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeRemoveProfileFromBotParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -1843,7 +953,7 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 			Context:          ctx,
 			OperationName:    RemoveProfileFromBotOperation,
 			OperationSummary: "Отвязать профиль от бота",
-			OperationID:      "removeProfileFromBot",
+			OperationID:      "RemoveProfileFromBot",
 			Body:             nil,
 			RawBody:          rawBody,
 			Params: middleware.Parameters{
@@ -1895,18 +1005,281 @@ func (s *Server) handleRemoveProfileFromBotRequest(args [2]string, argsEscaped b
 	}
 }
 
-// handleUpdateBotByIdRequest handles updateBotById operation.
+// handleSearchBotsRequest handles SearchBots operation.
+//
+// Поиск ботов по названию или системному промпту.
+//
+// GET /api/v1/bots/search
+func (s *Server) handleSearchBotsRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	statusWriter := &codeRecorder{ResponseWriter: w}
+	w = statusWriter
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("SearchBots"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/search"),
+	}
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), SearchBotsOperation,
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Add Labeler to context.
+	labeler := &Labeler{attrs: otelAttrs}
+	ctx = contextWithLabeler(ctx, labeler)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+
+		attrSet := labeler.AttributeSet()
+		attrs := attrSet.ToSlice()
+		code := statusWriter.status
+		if code != 0 {
+			codeAttr := semconv.HTTPResponseStatusCode(code)
+			attrs = append(attrs, codeAttr)
+			span.SetAttributes(codeAttr)
+		}
+		attrOpt := metric.WithAttributes(attrs...)
+
+		// Increment request counter.
+		s.requests.Add(ctx, 1, attrOpt)
+
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), attrOpt)
+	}()
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+
+			// https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
+			// Span Status MUST be left unset if HTTP status code was in the 1xx, 2xx or 3xx ranges,
+			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
+			// max redirects exceeded), in which case status MUST be set to Error.
+			code := statusWriter.status
+			if code < 100 || code >= 500 {
+				span.SetStatus(codes.Error, stage)
+			}
+
+			attrSet := labeler.AttributeSet()
+			attrs := attrSet.ToSlice()
+			if code != 0 {
+				attrs = append(attrs, semconv.HTTPResponseStatusCode(code))
+			}
+
+			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
+		}
+		err          error
+		opErrContext = ogenerrors.OperationContext{
+			Name: SearchBotsOperation,
+			ID:   "SearchBots",
+		}
+	)
+	params, err := decodeSearchBotsParams(args, argsEscaped, r)
+	if err != nil {
+		err = &ogenerrors.DecodeParamsError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		defer recordError("DecodeParams", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	var rawBody []byte
+
+	var response SearchBotsRes
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    SearchBotsOperation,
+			OperationSummary: "Поиск ботов по названию или системному промпту",
+			OperationID:      "SearchBots",
+			Body:             nil,
+			RawBody:          rawBody,
+			Params: middleware.Parameters{
+				{
+					Name: "q",
+					In:   "query",
+				}: params.Q,
+			},
+			Raw: r,
+		}
+
+		type (
+			Request  = struct{}
+			Params   = SearchBotsParams
+			Response = SearchBotsRes
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			unpackSearchBotsParams,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				response, err = s.h.SearchBots(ctx, params)
+				return response, err
+			},
+		)
+	} else {
+		response, err = s.h.SearchBots(ctx, params)
+	}
+	if err != nil {
+		defer recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodeSearchBotsResponse(response, w, span); err != nil {
+		defer recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
+// handleSummaryBotsRequest handles SummaryBots operation.
+//
+// Получить сводную информацию по ботам.
+//
+// GET /api/v1/bots/summary
+func (s *Server) handleSummaryBotsRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	statusWriter := &codeRecorder{ResponseWriter: w}
+	w = statusWriter
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("SummaryBots"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/summary"),
+	}
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), SummaryBotsOperation,
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Add Labeler to context.
+	labeler := &Labeler{attrs: otelAttrs}
+	ctx = contextWithLabeler(ctx, labeler)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+
+		attrSet := labeler.AttributeSet()
+		attrs := attrSet.ToSlice()
+		code := statusWriter.status
+		if code != 0 {
+			codeAttr := semconv.HTTPResponseStatusCode(code)
+			attrs = append(attrs, codeAttr)
+			span.SetAttributes(codeAttr)
+		}
+		attrOpt := metric.WithAttributes(attrs...)
+
+		// Increment request counter.
+		s.requests.Add(ctx, 1, attrOpt)
+
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), attrOpt)
+	}()
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+
+			// https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
+			// Span Status MUST be left unset if HTTP status code was in the 1xx, 2xx or 3xx ranges,
+			// unless there was another error (e.g., network error receiving the response body; or 3xx codes with
+			// max redirects exceeded), in which case status MUST be set to Error.
+			code := statusWriter.status
+			if code < 100 || code >= 500 {
+				span.SetStatus(codes.Error, stage)
+			}
+
+			attrSet := labeler.AttributeSet()
+			attrs := attrSet.ToSlice()
+			if code != 0 {
+				attrs = append(attrs, semconv.HTTPResponseStatusCode(code))
+			}
+
+			s.errors.Add(ctx, 1, metric.WithAttributes(attrs...))
+		}
+		err error
+	)
+
+	var rawBody []byte
+
+	var response SummaryBotsRes
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    SummaryBotsOperation,
+			OperationSummary: "Получить сводную информацию по ботам",
+			OperationID:      "SummaryBots",
+			Body:             nil,
+			RawBody:          rawBody,
+			Params:           middleware.Parameters{},
+			Raw:              r,
+		}
+
+		type (
+			Request  = struct{}
+			Params   = struct{}
+			Response = SummaryBotsRes
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			nil,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				response, err = s.h.SummaryBots(ctx)
+				return response, err
+			},
+		)
+	} else {
+		response, err = s.h.SummaryBots(ctx)
+	}
+	if err != nil {
+		defer recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodeSummaryBotsResponse(response, w, span); err != nil {
+		defer recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
+// handleUpdateBotByIdRequest handles UpdateBotById operation.
 //
 // Полностью обновить бота по ID.
 //
-// PUT /bots/{botId}
+// PUT /api/v1/bots/{botId}
 func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("updateBotById"),
+		otelogen.OperationID("UpdateBotById"),
 		semconv.HTTPRequestMethodKey.String("PUT"),
-		semconv.HTTPRouteKey.String("/bots/{botId}"),
+		semconv.HTTPRouteKey.String("/api/v1/bots/{botId}"),
 	}
 
 	// Start a span for this request.
@@ -1966,71 +1339,9 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 		err          error
 		opErrContext = ogenerrors.OperationContext{
 			Name: UpdateBotByIdOperation,
-			ID:   "updateBotById",
+			ID:   "UpdateBotById",
 		}
 	)
-	{
-		type bitset = [1]uint8
-		var satisfied bitset
-		{
-			sctx, ok, err := s.securityCookieAuth(ctx, UpdateBotByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CookieAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CookieAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 0
-				ctx = sctx
-			}
-		}
-		{
-			sctx, ok, err := s.securityCsrfAuth(ctx, UpdateBotByIdOperation, r)
-			if err != nil {
-				err = &ogenerrors.SecurityError{
-					OperationContext: opErrContext,
-					Security:         "CsrfAuth",
-					Err:              err,
-				}
-				defer recordError("Security:CsrfAuth", err)
-				s.cfg.ErrorHandler(ctx, w, r, err)
-				return
-			}
-			if ok {
-				satisfied[0] |= 1 << 1
-				ctx = sctx
-			}
-		}
-
-		if ok := func() bool {
-		nextRequirement:
-			for _, requirement := range []bitset{
-				{0b00000001},
-				{0b00000010},
-			} {
-				for i, mask := range requirement {
-					if satisfied[i]&mask != mask {
-						continue nextRequirement
-					}
-				}
-				return true
-			}
-			return false
-		}(); !ok {
-			err = &ogenerrors.SecurityError{
-				OperationContext: opErrContext,
-				Err:              ogenerrors.ErrSecurityRequirementIsNotSatisfied,
-			}
-			defer recordError("Security", err)
-			s.cfg.ErrorHandler(ctx, w, r, err)
-			return
-		}
-	}
 	params, err := decodeUpdateBotByIdParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
@@ -2065,7 +1376,7 @@ func (s *Server) handleUpdateBotByIdRequest(args [1]string, argsEscaped bool, w 
 			Context:          ctx,
 			OperationName:    UpdateBotByIdOperation,
 			OperationSummary: "Полностью обновить бота по ID",
-			OperationID:      "updateBotById",
+			OperationID:      "UpdateBotById",
 			Body:             request,
 			RawBody:          rawBody,
 			Params: middleware.Parameters{

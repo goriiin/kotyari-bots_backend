@@ -6,14 +6,14 @@ package bots
 type OperationName = string
 
 const (
-	AddProfileToBotOperation             OperationName = "AddProfileToBot"
-	CreateMyBotOperation                 OperationName = "CreateMyBot"
-	CreateTaskForBotWithProfileOperation OperationName = "CreateTaskForBotWithProfile"
-	DeleteBotByIdOperation               OperationName = "DeleteBotById"
-	GetBotByIdOperation                  OperationName = "GetBotById"
-	GetBotProfilesOperation              OperationName = "GetBotProfiles"
-	GetTaskByIdOperation                 OperationName = "GetTaskById"
-	ListMyBotsOperation                  OperationName = "ListMyBots"
-	RemoveProfileFromBotOperation        OperationName = "RemoveProfileFromBot"
-	UpdateBotByIdOperation               OperationName = "UpdateBotById"
+	AddProfileToBotOperation      OperationName = "AddProfileToBot"
+	CreateBotOperation            OperationName = "CreateBot"
+	DeleteBotByIdOperation        OperationName = "DeleteBotById"
+	GetBotByIdOperation           OperationName = "GetBotById"
+	GetBotProfilesOperation       OperationName = "GetBotProfiles"
+	ListBotsOperation             OperationName = "ListBots"
+	RemoveProfileFromBotOperation OperationName = "RemoveProfileFromBot"
+	SearchBotsOperation           OperationName = "SearchBots"
+	SummaryBotsOperation          OperationName = "SummaryBots"
+	UpdateBotByIdOperation        OperationName = "UpdateBotById"
 )
