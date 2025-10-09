@@ -2,7 +2,12 @@ local_bots_api:
   host: "0.0.0.0"
   port: 8001
 
-local_profiles_api:
+local_bots_grpc:
+  host: "0.0.0.0"
   port: 8002
 
-local_profiles_svc_addr: "profiles_svc:8002"
+local_profiles_api:
+  host: "profiles"
+  port: 8003
+
+local_profiles_svc_addr: "profiles:8003"

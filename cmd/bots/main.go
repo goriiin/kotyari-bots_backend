@@ -10,7 +10,7 @@ import (
 var Config = "bots-local"
 
 func main() {
-	cfg, err := config.New[bots.BotsAppConfig]()
+	cfg, err := config.New[bots.AppConfig]()
 	if err != nil {
 		log.Fatalf("config load: %v", err)
 	}

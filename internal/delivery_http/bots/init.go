@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
 type usecase interface {
 	Create(ctx context.Context, name string, systemPromt string) (model.Bot, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	Get(ctx context.Context, id uuid.UUID) (model.Bot, error)
+	GetWithProfiles(ctx context.Context, id uuid.UUID) (model.Bot, []model.Profile, error)
 	List(ctx context.Context) ([]model.Bot, error)
 	Update(ctx context.Context, bot model.Bot) (model.Bot, error)
 	AddProfileToBot(ctx context.Context, botID, profileID uuid.UUID) error
@@ -21,13 +20,9 @@ type usecase interface {
 }
 
 type Handler struct {
-	u      usecase
-	client profiles.ProfilesServiceClient
+	u usecase
 }
 
-func NewHandler(usecase usecase, client profiles.ProfilesServiceClient) *Handler {
-	return &Handler{
-		u:      usecase,
-		client: client,
-	}
+func NewHandler(usecase usecase) *Handler {
+	return &Handler{u: usecase}
 }

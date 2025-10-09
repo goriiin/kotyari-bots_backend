@@ -23,14 +23,20 @@ type profileValidator interface {
 	ValidateProfileExists(ctx context.Context, profileID uuid.UUID) error
 }
 
+type profileGateway interface {
+	GetProfilesByIDs(ctx context.Context, ids []uuid.UUID) ([]model.Profile, error)
+}
+
 type Service struct {
 	repo repository
 	pv   profileValidator
+	pg   profileGateway
 }
 
-func NewService(r repository, pv profileValidator) *Service {
+func NewService(r repository, pv profileValidator, pg profileGateway) *Service {
 	return &Service{
 		repo: r,
 		pv:   pv,
+		pg:   pg,
 	}
 }

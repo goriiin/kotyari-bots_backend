@@ -1,4 +1,4 @@
-package profiles
+package profiles_validator
 
 import profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 

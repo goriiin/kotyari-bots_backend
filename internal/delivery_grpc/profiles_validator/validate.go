@@ -1,4 +1,4 @@
-package profiles
+package profiles_validator
 
 import (
 	"context"

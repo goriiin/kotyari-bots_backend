@@ -2,16 +2,13 @@ package bots
 
 import (
 	"context"
-	"log"
 
 	"github.com/go-faster/errors"
-	"github.com/google/uuid"
-	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
-	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
 )
 
+// TODO: Уточнить по ревью: "Вынести эту логику в ErrorHandler фреймворка ogen или в отдельную middleware/функцию-хелпер."
 func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBotParams) (gen.AddProfileToBotRes, error) {
 	err := h.u.AddProfileToBot(ctx, params.BotId, params.ProfileId)
 	if err != nil {
@@ -39,7 +36,7 @@ func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBo
 }
 
 func (h *Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesParams) (gen.GetBotProfilesRes, error) {
-	bot, err := h.u.Get(ctx, params.BotId)
+	bot, profiles, err := h.u.GetWithProfiles(ctx, params.BotId)
 	if err != nil {
 		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.GetBotProfilesNotFound{
@@ -47,59 +44,23 @@ func (h *Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesP
 				Message:   "bot not found",
 			}, nil
 		}
-		return &gen.GetBotProfilesInternalServerError{
-			ErrorCode: constants.InternalMsg,
-			Message:   err.Error(),
-		}, nil
-	}
-
-	if len(bot.ProfileIDs) == 0 {
-		return &gen.ProfileList{
-			Data: []gen.Profile{},
-		}, nil
-	}
-
-	profileIDsStr := make([]string, len(bot.ProfileIDs))
-	for i, pid := range bot.ProfileIDs {
-		profileIDsStr[i] = pid.String()
-	}
-
-	grpcResp, err := h.client.GetProfiles(ctx, &profiles.GetProfilesRequest{
-		ProfileIds: profileIDsStr,
-	})
-	if err != nil {
-		domainErr := ierrors.GRPCToDomainError(err)
-		log.Printf("failed to get profiles for bot %s: %v", bot.ID, domainErr)
-
-		if errors.Is(domainErr, constants.ErrServiceUnavailable) {
+		if errors.Is(err, constants.ErrServiceUnavailable) {
 			return &gen.GetBotProfilesInternalServerError{
 				ErrorCode: constants.ServiceUnavailableMsg,
 				Message:   "profiles service is unavailable",
 			}, nil
 		}
-		return nil, domainErr
+		return nil, err
 	}
 
-	genProfiles := make([]gen.Profile, len(grpcResp.Profiles))
-	for i, p := range grpcResp.Profiles {
-		profileUUID, err := uuid.Parse(p.Id)
-		if err != nil {
-			log.Printf("error parsing profile UUID from gRPC response: %v", err)
-			continue
-		}
-		genProfiles[i] = gen.Profile{
-			ID:           profileUUID,
-			Name:         p.Name,
-			Email:        p.Email,
-			SystemPrompt: gen.NewOptString(p.Prompt),
-		}
-	}
+	dto := modelToDTO(&bot, profiles)
 
 	return &gen.ProfileList{
-		Data: genProfiles,
+		Data: dto.Profiles,
 	}, nil
 }
 
+// TODO: Уточнить по ревью: "Вынести эту логику в ErrorHandler фреймворка ogen или в отдельную middleware/функцию-хелпер."
 func (h *Handler) RemoveProfileFromBot(ctx context.Context, params gen.RemoveProfileFromBotParams) (gen.RemoveProfileFromBotRes, error) {
 	err := h.u.RemoveProfileFromBot(ctx, params.BotId, params.ProfileId)
 	if err != nil {

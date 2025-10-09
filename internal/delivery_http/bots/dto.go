@@ -6,12 +6,19 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
-func modelToDTO(bot *model.Bot, profiles []gen.Profile) *gen.Bot {
+func modelToDTO(bot *model.Bot, profiles []model.Profile) *gen.Bot {
 	if bot == nil {
 		return nil
 	}
-	if profiles == nil {
-		profiles = []gen.Profile{}
+
+	genProfiles := make([]gen.Profile, len(profiles))
+	for i, p := range profiles {
+		genProfiles[i] = gen.Profile{
+			ID:           p.ID,
+			Name:         p.Name,
+			Email:        p.Email,
+			SystemPrompt: gen.NewOptString(p.SystemPromt),
+		}
 	}
 
 	return &gen.Bot{
@@ -19,8 +26,8 @@ func modelToDTO(bot *model.Bot, profiles []gen.Profile) *gen.Bot {
 		Name:               bot.Name,
 		SystemPrompt:       gen.NewOptString(bot.SystemPrompt),
 		ModerationRequired: bot.ModerationRequired,
-		Profiles:           profiles,
-		ProfilesCount:      bot.ProfilesCount,
+		Profiles:           genProfiles,
+		ProfilesCount:      len(genProfiles),
 		CreatedAt:          bot.CreatedAt,
 		UpdatedAt:          bot.UpdateAt,
 	}
