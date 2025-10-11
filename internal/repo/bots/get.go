@@ -10,19 +10,23 @@ import (
 )
 
 func (r *BotsRepository) Get(ctx context.Context, id uuid.UUID) (model.Bot, error) {
-	var out model.Bot
-	err := r.db.QueryRow(ctx,
+	rows, err := r.db.Query(ctx,
 		`
 			select id, bot_name, system_prompt, moderation_required, profile_ids, profiles_count, created_at, updated_at 
-			from bots where id=$1
+			from bots where id=$1 and is_deleted = false
 			`,
-		id).
-		Scan(&out.ID, &out.Name, &out.SystemPrompt, &out.ModerationRequired, &out.ProfileIDs, &out.ProfilesCount, &out.CreatedAt, &out.UpdateAt)
+		id)
+	if err != nil {
+		return model.Bot{}, err
+	}
+
+	dto, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[botDTO])
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return model.Bot{}, constants.ErrNotFound
 		}
 		return model.Bot{}, err
 	}
-	return out, nil
+
+	return dto.toModel(), nil
 }
