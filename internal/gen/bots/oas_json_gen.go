@@ -182,8 +182,18 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 		e.Str(s.Name)
 	}
 	{
-		e.FieldStart("email")
-		e.Str(s.Email)
+		if s.Profiles != nil {
+			e.FieldStart("profiles")
+			e.ArrStart()
+			for _, elem := range s.Profiles {
+				elem.Encode(e)
+			}
+			e.ArrEnd()
+		}
+	}
+	{
+		e.FieldStart("profilesCount")
+		e.Int(s.ProfilesCount)
 	}
 	{
 		if s.SystemPrompt.Set {
@@ -196,8 +206,10 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 		e.Bool(s.ModerationRequired)
 	}
 	{
-		e.FieldStart("autoPublish")
-		e.Bool(s.AutoPublish)
+		if s.AutoPublish.Set {
+			e.FieldStart("autoPublish")
+			s.AutoPublish.Encode(e)
+		}
 	}
 	{
 		e.FieldStart("createdAt")
@@ -209,15 +221,16 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfBot = [8]string{
+var jsonFieldsNameOfBot = [9]string{
 	0: "id",
 	1: "name",
-	2: "email",
-	3: "systemPrompt",
-	4: "moderationRequired",
-	5: "autoPublish",
-	6: "createdAt",
-	7: "updatedAt",
+	2: "profiles",
+	3: "profilesCount",
+	4: "systemPrompt",
+	5: "moderationRequired",
+	6: "autoPublish",
+	7: "createdAt",
+	8: "updatedAt",
 }
 
 // Decode decodes Bot from json.
@@ -225,7 +238,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode Bot to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 	s.setDefaults()
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
@@ -254,17 +267,34 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"name\"")
 			}
-		case "email":
-			requiredBitSet[0] |= 1 << 2
+		case "profiles":
 			if err := func() error {
-				v, err := d.Str()
-				s.Email = string(v)
+				s.Profiles = make([]Profile, 0)
+				if err := d.Arr(func(d *jx.Decoder) error {
+					var elem Profile
+					if err := elem.Decode(d); err != nil {
+						return err
+					}
+					s.Profiles = append(s.Profiles, elem)
+					return nil
+				}); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"profiles\"")
+			}
+		case "profilesCount":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Int()
+				s.ProfilesCount = int(v)
 				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"email\"")
+				return errors.Wrap(err, "decode field \"profilesCount\"")
 			}
 		case "systemPrompt":
 			if err := func() error {
@@ -277,7 +307,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"systemPrompt\"")
 			}
 		case "moderationRequired":
-			requiredBitSet[0] |= 1 << 4
+			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
 				v, err := d.Bool()
 				s.ModerationRequired = bool(v)
@@ -289,11 +319,9 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"moderationRequired\"")
 			}
 		case "autoPublish":
-			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
-				v, err := d.Bool()
-				s.AutoPublish = bool(v)
-				if err != nil {
+				s.AutoPublish.Reset()
+				if err := s.AutoPublish.Decode(d); err != nil {
 					return err
 				}
 				return nil
@@ -301,7 +329,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"autoPublish\"")
 			}
 		case "createdAt":
-			requiredBitSet[0] |= 1 << 6
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -313,7 +341,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"createdAt\"")
 			}
 		case "updatedAt":
-			requiredBitSet[0] |= 1 << 7
+			requiredBitSet[1] |= 1 << 0
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.UpdatedAt = v
@@ -333,8 +361,9 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
-		0b11110111,
+	for i, mask := range [2]uint8{
+		0b10101011,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -394,10 +423,6 @@ func (s *BotInput) encodeFields(e *jx.Encoder) {
 		e.Str(s.Name)
 	}
 	{
-		e.FieldStart("email")
-		e.Str(s.Email)
-	}
-	{
 		if s.SystemPrompt.Set {
 			e.FieldStart("systemPrompt")
 			s.SystemPrompt.Encode(e)
@@ -417,12 +442,11 @@ func (s *BotInput) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfBotInput = [5]string{
+var jsonFieldsNameOfBotInput = [4]string{
 	0: "name",
-	1: "email",
-	2: "systemPrompt",
-	3: "moderationRequired",
-	4: "autoPublish",
+	1: "systemPrompt",
+	2: "moderationRequired",
+	3: "autoPublish",
 }
 
 // Decode decodes BotInput from json.
@@ -446,18 +470,6 @@ func (s *BotInput) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"name\"")
-			}
-		case "email":
-			requiredBitSet[0] |= 1 << 1
-			if err := func() error {
-				v, err := d.Str()
-				s.Email = string(v)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"email\"")
 			}
 		case "systemPrompt":
 			if err := func() error {
@@ -499,7 +511,7 @@ func (s *BotInput) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000011,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -636,55 +648,130 @@ func (s *BotList) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes CreateMyBotBadRequest as json.
-func (s *CreateMyBotBadRequest) Encode(e *jx.Encoder) {
-	unwrapped := (*Error)(s)
-
-	unwrapped.Encode(e)
+// Encode implements json.Marshaler.
+func (s *BotsSummary) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
 }
 
-// Decode decodes CreateMyBotBadRequest from json.
-func (s *CreateMyBotBadRequest) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode CreateMyBotBadRequest to nil")
+// encodeFields encodes fields.
+func (s *BotsSummary) encodeFields(e *jx.Encoder) {
+	{
+		e.FieldStart("totalBots")
+		e.Int64(s.TotalBots)
 	}
-	var unwrapped Error
-	if err := func() error {
-		if err := unwrapped.Decode(d); err != nil {
-			return err
+	{
+		e.FieldStart("totalProfilesAttached")
+		e.Int64(s.TotalProfilesAttached)
+	}
+}
+
+var jsonFieldsNameOfBotsSummary = [2]string{
+	0: "totalBots",
+	1: "totalProfilesAttached",
+}
+
+// Decode decodes BotsSummary from json.
+func (s *BotsSummary) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode BotsSummary to nil")
+	}
+	var requiredBitSet [1]uint8
+
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		switch string(k) {
+		case "totalBots":
+			requiredBitSet[0] |= 1 << 0
+			if err := func() error {
+				v, err := d.Int64()
+				s.TotalBots = int64(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"totalBots\"")
+			}
+		case "totalProfilesAttached":
+			requiredBitSet[0] |= 1 << 1
+			if err := func() error {
+				v, err := d.Int64()
+				s.TotalProfilesAttached = int64(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"totalProfilesAttached\"")
+			}
+		default:
+			return d.Skip()
 		}
 		return nil
-	}(); err != nil {
-		return errors.Wrap(err, "alias")
+	}); err != nil {
+		return errors.Wrap(err, "decode BotsSummary")
 	}
-	*s = CreateMyBotBadRequest(unwrapped)
+	// Validate required fields.
+	var failures []validate.FieldError
+	for i, mask := range [1]uint8{
+		0b00000011,
+	} {
+		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
+			// Mask only required fields and check equality to mask using XOR.
+			//
+			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
+			// Bits of fields which would be set are actually bits of missed fields.
+			missed := bits.OnesCount8(result)
+			for bitN := 0; bitN < missed; bitN++ {
+				bitIdx := bits.TrailingZeros8(result)
+				fieldIdx := i*8 + bitIdx
+				var name string
+				if fieldIdx < len(jsonFieldsNameOfBotsSummary) {
+					name = jsonFieldsNameOfBotsSummary[fieldIdx]
+				} else {
+					name = strconv.Itoa(fieldIdx)
+				}
+				failures = append(failures, validate.FieldError{
+					Name:  name,
+					Error: validate.ErrFieldRequired,
+				})
+				// Reset bit.
+				result &^= 1 << bitIdx
+			}
+		}
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *CreateMyBotBadRequest) MarshalJSON() ([]byte, error) {
+func (s *BotsSummary) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateMyBotBadRequest) UnmarshalJSON(data []byte) error {
+func (s *BotsSummary) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode encodes CreateMyBotConflict as json.
-func (s *CreateMyBotConflict) Encode(e *jx.Encoder) {
+// Encode encodes CreateBotBadRequest as json.
+func (s *CreateBotBadRequest) Encode(e *jx.Encoder) {
 	unwrapped := (*Error)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes CreateMyBotConflict from json.
-func (s *CreateMyBotConflict) Decode(d *jx.Decoder) error {
+// Decode decodes CreateBotBadRequest from json.
+func (s *CreateBotBadRequest) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode CreateMyBotConflict to nil")
+		return errors.New("invalid: unable to decode CreateBotBadRequest to nil")
 	}
 	var unwrapped Error
 	if err := func() error {
@@ -695,34 +782,34 @@ func (s *CreateMyBotConflict) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = CreateMyBotConflict(unwrapped)
+	*s = CreateBotBadRequest(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *CreateMyBotConflict) MarshalJSON() ([]byte, error) {
+func (s *CreateBotBadRequest) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateMyBotConflict) UnmarshalJSON(data []byte) error {
+func (s *CreateBotBadRequest) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode encodes CreateMyBotInternalServerError as json.
-func (s *CreateMyBotInternalServerError) Encode(e *jx.Encoder) {
+// Encode encodes CreateBotConflict as json.
+func (s *CreateBotConflict) Encode(e *jx.Encoder) {
 	unwrapped := (*Error)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes CreateMyBotInternalServerError from json.
-func (s *CreateMyBotInternalServerError) Decode(d *jx.Decoder) error {
+// Decode decodes CreateBotConflict from json.
+func (s *CreateBotConflict) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode CreateMyBotInternalServerError to nil")
+		return errors.New("invalid: unable to decode CreateBotConflict to nil")
 	}
 	var unwrapped Error
 	if err := func() error {
@@ -733,34 +820,34 @@ func (s *CreateMyBotInternalServerError) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = CreateMyBotInternalServerError(unwrapped)
+	*s = CreateBotConflict(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *CreateMyBotInternalServerError) MarshalJSON() ([]byte, error) {
+func (s *CreateBotConflict) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateMyBotInternalServerError) UnmarshalJSON(data []byte) error {
+func (s *CreateBotConflict) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode encodes CreateMyBotUnauthorized as json.
-func (s *CreateMyBotUnauthorized) Encode(e *jx.Encoder) {
+// Encode encodes CreateBotInternalServerError as json.
+func (s *CreateBotInternalServerError) Encode(e *jx.Encoder) {
 	unwrapped := (*Error)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes CreateMyBotUnauthorized from json.
-func (s *CreateMyBotUnauthorized) Decode(d *jx.Decoder) error {
+// Decode decodes CreateBotInternalServerError from json.
+func (s *CreateBotInternalServerError) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode CreateMyBotUnauthorized to nil")
+		return errors.New("invalid: unable to decode CreateBotInternalServerError to nil")
 	}
 	var unwrapped Error
 	if err := func() error {
@@ -771,34 +858,34 @@ func (s *CreateMyBotUnauthorized) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = CreateMyBotUnauthorized(unwrapped)
+	*s = CreateBotInternalServerError(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *CreateMyBotUnauthorized) MarshalJSON() ([]byte, error) {
+func (s *CreateBotInternalServerError) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateMyBotUnauthorized) UnmarshalJSON(data []byte) error {
+func (s *CreateBotInternalServerError) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode encodes CreateTaskForBotWithProfileBadRequest as json.
-func (s *CreateTaskForBotWithProfileBadRequest) Encode(e *jx.Encoder) {
+// Encode encodes CreateBotUnauthorized as json.
+func (s *CreateBotUnauthorized) Encode(e *jx.Encoder) {
 	unwrapped := (*Error)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes CreateTaskForBotWithProfileBadRequest from json.
-func (s *CreateTaskForBotWithProfileBadRequest) Decode(d *jx.Decoder) error {
+// Decode decodes CreateBotUnauthorized from json.
+func (s *CreateBotUnauthorized) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode CreateTaskForBotWithProfileBadRequest to nil")
+		return errors.New("invalid: unable to decode CreateBotUnauthorized to nil")
 	}
 	var unwrapped Error
 	if err := func() error {
@@ -809,133 +896,19 @@ func (s *CreateTaskForBotWithProfileBadRequest) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = CreateTaskForBotWithProfileBadRequest(unwrapped)
+	*s = CreateBotUnauthorized(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *CreateTaskForBotWithProfileBadRequest) MarshalJSON() ([]byte, error) {
+func (s *CreateBotUnauthorized) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateTaskForBotWithProfileBadRequest) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes CreateTaskForBotWithProfileInternalServerError as json.
-func (s *CreateTaskForBotWithProfileInternalServerError) Encode(e *jx.Encoder) {
-	unwrapped := (*Error)(s)
-
-	unwrapped.Encode(e)
-}
-
-// Decode decodes CreateTaskForBotWithProfileInternalServerError from json.
-func (s *CreateTaskForBotWithProfileInternalServerError) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode CreateTaskForBotWithProfileInternalServerError to nil")
-	}
-	var unwrapped Error
-	if err := func() error {
-		if err := unwrapped.Decode(d); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		return errors.Wrap(err, "alias")
-	}
-	*s = CreateTaskForBotWithProfileInternalServerError(unwrapped)
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s *CreateTaskForBotWithProfileInternalServerError) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateTaskForBotWithProfileInternalServerError) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes CreateTaskForBotWithProfileNotFound as json.
-func (s *CreateTaskForBotWithProfileNotFound) Encode(e *jx.Encoder) {
-	unwrapped := (*Error)(s)
-
-	unwrapped.Encode(e)
-}
-
-// Decode decodes CreateTaskForBotWithProfileNotFound from json.
-func (s *CreateTaskForBotWithProfileNotFound) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode CreateTaskForBotWithProfileNotFound to nil")
-	}
-	var unwrapped Error
-	if err := func() error {
-		if err := unwrapped.Decode(d); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		return errors.Wrap(err, "alias")
-	}
-	*s = CreateTaskForBotWithProfileNotFound(unwrapped)
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s *CreateTaskForBotWithProfileNotFound) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateTaskForBotWithProfileNotFound) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes CreateTaskForBotWithProfileUnauthorized as json.
-func (s *CreateTaskForBotWithProfileUnauthorized) Encode(e *jx.Encoder) {
-	unwrapped := (*Error)(s)
-
-	unwrapped.Encode(e)
-}
-
-// Decode decodes CreateTaskForBotWithProfileUnauthorized from json.
-func (s *CreateTaskForBotWithProfileUnauthorized) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode CreateTaskForBotWithProfileUnauthorized to nil")
-	}
-	var unwrapped Error
-	if err := func() error {
-		if err := unwrapped.Decode(d); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		return errors.Wrap(err, "alias")
-	}
-	*s = CreateTaskForBotWithProfileUnauthorized(unwrapped)
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s *CreateTaskForBotWithProfileUnauthorized) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *CreateTaskForBotWithProfileUnauthorized) UnmarshalJSON(data []byte) error {
+func (s *CreateBotUnauthorized) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -1240,6 +1213,44 @@ func (s *ErrorDetails) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
+// Encode encodes GetBotByIdBadRequest as json.
+func (s *GetBotByIdBadRequest) Encode(e *jx.Encoder) {
+	unwrapped := (*Error)(s)
+
+	unwrapped.Encode(e)
+}
+
+// Decode decodes GetBotByIdBadRequest from json.
+func (s *GetBotByIdBadRequest) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode GetBotByIdBadRequest to nil")
+	}
+	var unwrapped Error
+	if err := func() error {
+		if err := unwrapped.Decode(d); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return errors.Wrap(err, "alias")
+	}
+	*s = GetBotByIdBadRequest(unwrapped)
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s *GetBotByIdBadRequest) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *GetBotByIdBadRequest) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode encodes GetBotByIdInternalServerError as json.
 func (s *GetBotByIdInternalServerError) Encode(e *jx.Encoder) {
 	unwrapped := (*Error)(s)
@@ -1468,17 +1479,17 @@ func (s *GetBotProfilesUnauthorized) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode encodes GetTaskByIdInternalServerError as json.
-func (s *GetTaskByIdInternalServerError) Encode(e *jx.Encoder) {
+// Encode encodes ListBotsInternalServerError as json.
+func (s *ListBotsInternalServerError) Encode(e *jx.Encoder) {
 	unwrapped := (*Error)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes GetTaskByIdInternalServerError from json.
-func (s *GetTaskByIdInternalServerError) Decode(d *jx.Decoder) error {
+// Decode decodes ListBotsInternalServerError from json.
+func (s *ListBotsInternalServerError) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode GetTaskByIdInternalServerError to nil")
+		return errors.New("invalid: unable to decode ListBotsInternalServerError to nil")
 	}
 	var unwrapped Error
 	if err := func() error {
@@ -1489,34 +1500,34 @@ func (s *GetTaskByIdInternalServerError) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = GetTaskByIdInternalServerError(unwrapped)
+	*s = ListBotsInternalServerError(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *GetTaskByIdInternalServerError) MarshalJSON() ([]byte, error) {
+func (s *ListBotsInternalServerError) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *GetTaskByIdInternalServerError) UnmarshalJSON(data []byte) error {
+func (s *ListBotsInternalServerError) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode encodes GetTaskByIdNotFound as json.
-func (s *GetTaskByIdNotFound) Encode(e *jx.Encoder) {
+// Encode encodes ListBotsUnauthorized as json.
+func (s *ListBotsUnauthorized) Encode(e *jx.Encoder) {
 	unwrapped := (*Error)(s)
 
 	unwrapped.Encode(e)
 }
 
-// Decode decodes GetTaskByIdNotFound from json.
-func (s *GetTaskByIdNotFound) Decode(d *jx.Decoder) error {
+// Decode decodes ListBotsUnauthorized from json.
+func (s *ListBotsUnauthorized) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode GetTaskByIdNotFound to nil")
+		return errors.New("invalid: unable to decode ListBotsUnauthorized to nil")
 	}
 	var unwrapped Error
 	if err := func() error {
@@ -1527,133 +1538,19 @@ func (s *GetTaskByIdNotFound) Decode(d *jx.Decoder) error {
 	}(); err != nil {
 		return errors.Wrap(err, "alias")
 	}
-	*s = GetTaskByIdNotFound(unwrapped)
+	*s = ListBotsUnauthorized(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *GetTaskByIdNotFound) MarshalJSON() ([]byte, error) {
+func (s *ListBotsUnauthorized) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *GetTaskByIdNotFound) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes GetTaskByIdUnauthorized as json.
-func (s *GetTaskByIdUnauthorized) Encode(e *jx.Encoder) {
-	unwrapped := (*Error)(s)
-
-	unwrapped.Encode(e)
-}
-
-// Decode decodes GetTaskByIdUnauthorized from json.
-func (s *GetTaskByIdUnauthorized) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode GetTaskByIdUnauthorized to nil")
-	}
-	var unwrapped Error
-	if err := func() error {
-		if err := unwrapped.Decode(d); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		return errors.Wrap(err, "alias")
-	}
-	*s = GetTaskByIdUnauthorized(unwrapped)
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s *GetTaskByIdUnauthorized) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *GetTaskByIdUnauthorized) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes ListMyBotsInternalServerError as json.
-func (s *ListMyBotsInternalServerError) Encode(e *jx.Encoder) {
-	unwrapped := (*Error)(s)
-
-	unwrapped.Encode(e)
-}
-
-// Decode decodes ListMyBotsInternalServerError from json.
-func (s *ListMyBotsInternalServerError) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode ListMyBotsInternalServerError to nil")
-	}
-	var unwrapped Error
-	if err := func() error {
-		if err := unwrapped.Decode(d); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		return errors.Wrap(err, "alias")
-	}
-	*s = ListMyBotsInternalServerError(unwrapped)
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s *ListMyBotsInternalServerError) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *ListMyBotsInternalServerError) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes ListMyBotsUnauthorized as json.
-func (s *ListMyBotsUnauthorized) Encode(e *jx.Encoder) {
-	unwrapped := (*Error)(s)
-
-	unwrapped.Encode(e)
-}
-
-// Decode decodes ListMyBotsUnauthorized from json.
-func (s *ListMyBotsUnauthorized) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode ListMyBotsUnauthorized to nil")
-	}
-	var unwrapped Error
-	if err := func() error {
-		if err := unwrapped.Decode(d); err != nil {
-			return err
-		}
-		return nil
-	}(); err != nil {
-		return errors.Wrap(err, "alias")
-	}
-	*s = ListMyBotsUnauthorized(unwrapped)
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s *ListMyBotsUnauthorized) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *ListMyBotsUnauthorized) UnmarshalJSON(data []byte) error {
+func (s *ListBotsUnauthorized) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
@@ -1831,15 +1728,17 @@ func (s *Profile) encodeFields(e *jx.Encoder) {
 		e.Str(s.Name)
 	}
 	{
-		e.FieldStart("email")
-		e.Str(s.Email)
+		if s.SystemPrompt.Set {
+			e.FieldStart("systemPrompt")
+			s.SystemPrompt.Encode(e)
+		}
 	}
 }
 
 var jsonFieldsNameOfProfile = [3]string{
 	0: "id",
 	1: "name",
-	2: "email",
+	2: "systemPrompt",
 }
 
 // Decode decodes Profile from json.
@@ -1875,17 +1774,15 @@ func (s *Profile) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"name\"")
 			}
-		case "email":
-			requiredBitSet[0] |= 1 << 2
+		case "systemPrompt":
 			if err := func() error {
-				v, err := d.Str()
-				s.Email = string(v)
-				if err != nil {
+				s.SystemPrompt.Reset()
+				if err := s.SystemPrompt.Decode(d); err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"email\"")
+				return errors.Wrap(err, "decode field \"systemPrompt\"")
 			}
 		default:
 			return d.Skip()
@@ -1897,7 +1794,7 @@ func (s *Profile) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00000011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1962,17 +1859,10 @@ func (s *ProfileList) encodeFields(e *jx.Encoder) {
 			e.ArrEnd()
 		}
 	}
-	{
-		if s.NextCursor.Set {
-			e.FieldStart("nextCursor")
-			s.NextCursor.Encode(e)
-		}
-	}
 }
 
-var jsonFieldsNameOfProfileList = [2]string{
+var jsonFieldsNameOfProfileList = [1]string{
 	0: "data",
-	1: "nextCursor",
 }
 
 // Decode decodes ProfileList from json.
@@ -1999,16 +1889,6 @@ func (s *ProfileList) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"data\"")
-			}
-		case "nextCursor":
-			if err := func() error {
-				s.NextCursor.Reset()
-				if err := s.NextCursor.Decode(d); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"nextCursor\"")
 			}
 		default:
 			return d.Skip()
@@ -2148,338 +2028,78 @@ func (s *RemoveProfileFromBotUnauthorized) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
-// Encode implements json.Marshaler.
-func (s *Task) Encode(e *jx.Encoder) {
-	e.ObjStart()
-	s.encodeFields(e)
-	e.ObjEnd()
+// Encode encodes SearchBotsBadRequest as json.
+func (s *SearchBotsBadRequest) Encode(e *jx.Encoder) {
+	unwrapped := (*Error)(s)
+
+	unwrapped.Encode(e)
 }
 
-// encodeFields encodes fields.
-func (s *Task) encodeFields(e *jx.Encoder) {
-	{
-		e.FieldStart("id")
-		json.EncodeUUID(e, s.ID)
-	}
-	{
-		e.FieldStart("botId")
-		json.EncodeUUID(e, s.BotId)
-	}
-	{
-		e.FieldStart("profileId")
-		json.EncodeUUID(e, s.ProfileId)
-	}
-	{
-		e.FieldStart("status")
-		s.Status.Encode(e)
-	}
-	{
-		if s.ErrorMessage.Set {
-			e.FieldStart("errorMessage")
-			s.ErrorMessage.Encode(e)
-		}
-	}
-	{
-		e.FieldStart("createdAt")
-		json.EncodeDateTime(e, s.CreatedAt)
-	}
-	{
-		e.FieldStart("updatedAt")
-		json.EncodeDateTime(e, s.UpdatedAt)
-	}
-}
-
-var jsonFieldsNameOfTask = [7]string{
-	0: "id",
-	1: "botId",
-	2: "profileId",
-	3: "status",
-	4: "errorMessage",
-	5: "createdAt",
-	6: "updatedAt",
-}
-
-// Decode decodes Task from json.
-func (s *Task) Decode(d *jx.Decoder) error {
+// Decode decodes SearchBotsBadRequest from json.
+func (s *SearchBotsBadRequest) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode Task to nil")
+		return errors.New("invalid: unable to decode SearchBotsBadRequest to nil")
 	}
-	var requiredBitSet [1]uint8
-
-	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
-		switch string(k) {
-		case "id":
-			requiredBitSet[0] |= 1 << 0
-			if err := func() error {
-				v, err := json.DecodeUUID(d)
-				s.ID = v
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"id\"")
-			}
-		case "botId":
-			requiredBitSet[0] |= 1 << 1
-			if err := func() error {
-				v, err := json.DecodeUUID(d)
-				s.BotId = v
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"botId\"")
-			}
-		case "profileId":
-			requiredBitSet[0] |= 1 << 2
-			if err := func() error {
-				v, err := json.DecodeUUID(d)
-				s.ProfileId = v
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"profileId\"")
-			}
-		case "status":
-			requiredBitSet[0] |= 1 << 3
-			if err := func() error {
-				if err := s.Status.Decode(d); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"status\"")
-			}
-		case "errorMessage":
-			if err := func() error {
-				s.ErrorMessage.Reset()
-				if err := s.ErrorMessage.Decode(d); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"errorMessage\"")
-			}
-		case "createdAt":
-			requiredBitSet[0] |= 1 << 5
-			if err := func() error {
-				v, err := json.DecodeDateTime(d)
-				s.CreatedAt = v
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"createdAt\"")
-			}
-		case "updatedAt":
-			requiredBitSet[0] |= 1 << 6
-			if err := func() error {
-				v, err := json.DecodeDateTime(d)
-				s.UpdatedAt = v
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"updatedAt\"")
-			}
-		default:
-			return d.Skip()
+	var unwrapped Error
+	if err := func() error {
+		if err := unwrapped.Decode(d); err != nil {
+			return err
 		}
 		return nil
-	}); err != nil {
-		return errors.Wrap(err, "decode Task")
+	}(); err != nil {
+		return errors.Wrap(err, "alias")
 	}
-	// Validate required fields.
-	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
-		0b01101111,
-	} {
-		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
-			// Mask only required fields and check equality to mask using XOR.
-			//
-			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
-			// Bits of fields which would be set are actually bits of missed fields.
-			missed := bits.OnesCount8(result)
-			for bitN := 0; bitN < missed; bitN++ {
-				bitIdx := bits.TrailingZeros8(result)
-				fieldIdx := i*8 + bitIdx
-				var name string
-				if fieldIdx < len(jsonFieldsNameOfTask) {
-					name = jsonFieldsNameOfTask[fieldIdx]
-				} else {
-					name = strconv.Itoa(fieldIdx)
-				}
-				failures = append(failures, validate.FieldError{
-					Name:  name,
-					Error: validate.ErrFieldRequired,
-				})
-				// Reset bit.
-				result &^= 1 << bitIdx
-			}
-		}
-	}
-	if len(failures) > 0 {
-		return &validate.Error{Fields: failures}
-	}
-
+	*s = SearchBotsBadRequest(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *Task) MarshalJSON() ([]byte, error) {
+func (s *SearchBotsBadRequest) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *Task) UnmarshalJSON(data []byte) error {
+func (s *SearchBotsBadRequest) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }
 
-// Encode implements json.Marshaler.
-func (s *TaskInput) Encode(e *jx.Encoder) {
-	e.ObjStart()
-	s.encodeFields(e)
-	e.ObjEnd()
+// Encode encodes SearchBotsInternalServerError as json.
+func (s *SearchBotsInternalServerError) Encode(e *jx.Encoder) {
+	unwrapped := (*Error)(s)
+
+	unwrapped.Encode(e)
 }
 
-// encodeFields encodes fields.
-func (s *TaskInput) encodeFields(e *jx.Encoder) {
-	{
-		e.FieldStart("description")
-		e.Str(s.Description)
-	}
-}
-
-var jsonFieldsNameOfTaskInput = [1]string{
-	0: "description",
-}
-
-// Decode decodes TaskInput from json.
-func (s *TaskInput) Decode(d *jx.Decoder) error {
+// Decode decodes SearchBotsInternalServerError from json.
+func (s *SearchBotsInternalServerError) Decode(d *jx.Decoder) error {
 	if s == nil {
-		return errors.New("invalid: unable to decode TaskInput to nil")
+		return errors.New("invalid: unable to decode SearchBotsInternalServerError to nil")
 	}
-	var requiredBitSet [1]uint8
-
-	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
-		switch string(k) {
-		case "description":
-			requiredBitSet[0] |= 1 << 0
-			if err := func() error {
-				v, err := d.Str()
-				s.Description = string(v)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"description\"")
-			}
-		default:
-			return d.Skip()
+	var unwrapped Error
+	if err := func() error {
+		if err := unwrapped.Decode(d); err != nil {
+			return err
 		}
 		return nil
-	}); err != nil {
-		return errors.Wrap(err, "decode TaskInput")
+	}(); err != nil {
+		return errors.Wrap(err, "alias")
 	}
-	// Validate required fields.
-	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
-		0b00000001,
-	} {
-		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
-			// Mask only required fields and check equality to mask using XOR.
-			//
-			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
-			// Bits of fields which would be set are actually bits of missed fields.
-			missed := bits.OnesCount8(result)
-			for bitN := 0; bitN < missed; bitN++ {
-				bitIdx := bits.TrailingZeros8(result)
-				fieldIdx := i*8 + bitIdx
-				var name string
-				if fieldIdx < len(jsonFieldsNameOfTaskInput) {
-					name = jsonFieldsNameOfTaskInput[fieldIdx]
-				} else {
-					name = strconv.Itoa(fieldIdx)
-				}
-				failures = append(failures, validate.FieldError{
-					Name:  name,
-					Error: validate.ErrFieldRequired,
-				})
-				// Reset bit.
-				result &^= 1 << bitIdx
-			}
-		}
-	}
-	if len(failures) > 0 {
-		return &validate.Error{Fields: failures}
-	}
-
+	*s = SearchBotsInternalServerError(unwrapped)
 	return nil
 }
 
 // MarshalJSON implements stdjson.Marshaler.
-func (s *TaskInput) MarshalJSON() ([]byte, error) {
+func (s *SearchBotsInternalServerError) MarshalJSON() ([]byte, error) {
 	e := jx.Encoder{}
 	s.Encode(&e)
 	return e.Bytes(), nil
 }
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *TaskInput) UnmarshalJSON(data []byte) error {
-	d := jx.DecodeBytes(data)
-	return s.Decode(d)
-}
-
-// Encode encodes TaskStatus as json.
-func (s TaskStatus) Encode(e *jx.Encoder) {
-	e.Str(string(s))
-}
-
-// Decode decodes TaskStatus from json.
-func (s *TaskStatus) Decode(d *jx.Decoder) error {
-	if s == nil {
-		return errors.New("invalid: unable to decode TaskStatus to nil")
-	}
-	v, err := d.StrBytes()
-	if err != nil {
-		return err
-	}
-	// Try to use constant string.
-	switch TaskStatus(v) {
-	case TaskStatusPending:
-		*s = TaskStatusPending
-	case TaskStatusRunning:
-		*s = TaskStatusRunning
-	case TaskStatusCompleted:
-		*s = TaskStatusCompleted
-	case TaskStatusFailed:
-		*s = TaskStatusFailed
-	default:
-		*s = TaskStatus(v)
-	}
-
-	return nil
-}
-
-// MarshalJSON implements stdjson.Marshaler.
-func (s TaskStatus) MarshalJSON() ([]byte, error) {
-	e := jx.Encoder{}
-	s.Encode(&e)
-	return e.Bytes(), nil
-}
-
-// UnmarshalJSON implements stdjson.Unmarshaler.
-func (s *TaskStatus) UnmarshalJSON(data []byte) error {
+func (s *SearchBotsInternalServerError) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }

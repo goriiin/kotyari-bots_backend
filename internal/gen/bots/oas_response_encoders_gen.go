@@ -7,8 +7,6 @@ import (
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
-	"github.com/ogen-go/ogen/conv"
-	"github.com/ogen-go/ogen/uri"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -78,7 +76,7 @@ func encodeAddProfileToBotResponse(response AddProfileToBotRes, w http.ResponseW
 	}
 }
 
-func encodeCreateMyBotResponse(response CreateMyBotRes, w http.ResponseWriter, span trace.Span) error {
+func encodeCreateBotResponse(response CreateBotRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *Bot:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -93,7 +91,7 @@ func encodeCreateMyBotResponse(response CreateMyBotRes, w http.ResponseWriter, s
 
 		return nil
 
-	case *CreateMyBotBadRequest:
+	case *CreateBotBadRequest:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(400)
 		span.SetStatus(codes.Error, http.StatusText(400))
@@ -106,7 +104,7 @@ func encodeCreateMyBotResponse(response CreateMyBotRes, w http.ResponseWriter, s
 
 		return nil
 
-	case *CreateMyBotUnauthorized:
+	case *CreateBotUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -119,7 +117,7 @@ func encodeCreateMyBotResponse(response CreateMyBotRes, w http.ResponseWriter, s
 
 		return nil
 
-	case *CreateMyBotConflict:
+	case *CreateBotConflict:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(409)
 		span.SetStatus(codes.Error, http.StatusText(409))
@@ -132,91 +130,7 @@ func encodeCreateMyBotResponse(response CreateMyBotRes, w http.ResponseWriter, s
 
 		return nil
 
-	case *CreateMyBotInternalServerError:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(500)
-		span.SetStatus(codes.Error, http.StatusText(500))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	default:
-		return errors.Errorf("unexpected response type: %T", response)
-	}
-}
-
-func encodeCreateTaskForBotWithProfileResponse(response CreateTaskForBotWithProfileRes, w http.ResponseWriter, span trace.Span) error {
-	switch response := response.(type) {
-	case *AcceptedTask:
-		// Encoding response headers.
-		{
-			h := uri.NewHeaderEncoder(w.Header())
-			// Encode "Location" header.
-			{
-				cfg := uri.HeaderParameterEncodingConfig{
-					Name:    "Location",
-					Explode: false,
-				}
-				if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
-					if val, ok := response.Location.Get(); ok {
-						return e.EncodeValue(conv.StringToString(val))
-					}
-					return nil
-				}); err != nil {
-					return errors.Wrap(err, "encode Location header")
-				}
-			}
-		}
-		w.WriteHeader(202)
-		span.SetStatus(codes.Ok, http.StatusText(202))
-
-		return nil
-
-	case *CreateTaskForBotWithProfileBadRequest:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(400)
-		span.SetStatus(codes.Error, http.StatusText(400))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *CreateTaskForBotWithProfileUnauthorized:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(401)
-		span.SetStatus(codes.Error, http.StatusText(401))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *CreateTaskForBotWithProfileNotFound:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(404)
-		span.SetStatus(codes.Error, http.StatusText(404))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *CreateTaskForBotWithProfileInternalServerError:
+	case *CreateBotInternalServerError:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(500)
 		span.SetStatus(codes.Error, http.StatusText(500))
@@ -292,6 +206,19 @@ func encodeGetBotByIdResponse(response GetBotByIdRes, w http.ResponseWriter, spa
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(200)
 		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *GetBotByIdBadRequest:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(400)
+		span.SetStatus(codes.Error, http.StatusText(400))
 
 		e := new(jx.Encoder)
 		response.Encode(e)
@@ -404,66 +331,7 @@ func encodeGetBotProfilesResponse(response GetBotProfilesRes, w http.ResponseWri
 	}
 }
 
-func encodeGetTaskByIdResponse(response GetTaskByIdRes, w http.ResponseWriter, span trace.Span) error {
-	switch response := response.(type) {
-	case *Task:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(200)
-		span.SetStatus(codes.Ok, http.StatusText(200))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *GetTaskByIdUnauthorized:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(401)
-		span.SetStatus(codes.Error, http.StatusText(401))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *GetTaskByIdNotFound:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(404)
-		span.SetStatus(codes.Error, http.StatusText(404))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	case *GetTaskByIdInternalServerError:
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(500)
-		span.SetStatus(codes.Error, http.StatusText(500))
-
-		e := new(jx.Encoder)
-		response.Encode(e)
-		if _, err := e.WriteTo(w); err != nil {
-			return errors.Wrap(err, "write")
-		}
-
-		return nil
-
-	default:
-		return errors.Errorf("unexpected response type: %T", response)
-	}
-}
-
-func encodeListMyBotsResponse(response ListMyBotsRes, w http.ResponseWriter, span trace.Span) error {
+func encodeListBotsResponse(response ListBotsRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *BotList:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -478,7 +346,7 @@ func encodeListMyBotsResponse(response ListMyBotsRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *ListMyBotsUnauthorized:
+	case *ListBotsUnauthorized:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(401)
 		span.SetStatus(codes.Error, http.StatusText(401))
@@ -491,7 +359,7 @@ func encodeListMyBotsResponse(response ListMyBotsRes, w http.ResponseWriter, spa
 
 		return nil
 
-	case *ListMyBotsInternalServerError:
+	case *ListBotsInternalServerError:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(500)
 		span.SetStatus(codes.Error, http.StatusText(500))
@@ -544,6 +412,85 @@ func encodeRemoveProfileFromBotResponse(response RemoveProfileFromBotRes, w http
 		return nil
 
 	case *RemoveProfileFromBotInternalServerError:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(500)
+		span.SetStatus(codes.Error, http.StatusText(500))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
+func encodeSearchBotsResponse(response SearchBotsRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *BotList:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *SearchBotsBadRequest:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(400)
+		span.SetStatus(codes.Error, http.StatusText(400))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *SearchBotsInternalServerError:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(500)
+		span.SetStatus(codes.Error, http.StatusText(500))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
+}
+
+func encodeSummaryBotsResponse(response SummaryBotsRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *BotsSummary:
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
+
+		e := new(jx.Encoder)
+		response.Encode(e)
+		if _, err := e.WriteTo(w); err != nil {
+			return errors.Wrap(err, "write")
+		}
+
+		return nil
+
+	case *Error:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(500)
 		span.SetStatus(codes.Error, http.StatusText(500))

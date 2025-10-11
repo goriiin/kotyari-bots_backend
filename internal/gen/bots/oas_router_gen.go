@@ -49,194 +49,185 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/"
+		case '/': // Prefix: "/api/v1/bots"
 
-			if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+			if l := len("/api/v1/bots"); len(elem) >= l && elem[0:l] == "/api/v1/bots" {
 				elem = elem[l:]
 			} else {
 				break
 			}
 
 			if len(elem) == 0 {
-				break
+				switch r.Method {
+				case "GET":
+					s.handleListBotsRequest([0]string{}, elemIsEscaped, w, r)
+				case "POST":
+					s.handleCreateBotRequest([0]string{}, elemIsEscaped, w, r)
+				default:
+					s.notAllowed(w, r, "GET,POST")
+				}
+
+				return
 			}
 			switch elem[0] {
-			case 'b': // Prefix: "bots"
+			case '/': // Prefix: "/"
 
-				if l := len("bots"); len(elem) >= l && elem[0:l] == "bots" {
+				if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 					elem = elem[l:]
 				} else {
 					break
 				}
 
 				if len(elem) == 0 {
-					switch r.Method {
-					case "GET":
-						s.handleListMyBotsRequest([0]string{}, elemIsEscaped, w, r)
-					case "POST":
-						s.handleCreateMyBotRequest([0]string{}, elemIsEscaped, w, r)
-					default:
-						s.notAllowed(w, r, "GET,POST")
-					}
-
-					return
+					break
 				}
 				switch elem[0] {
-				case '/': // Prefix: "/"
-
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+				case 's': // Prefix: "s"
+					origElem := elem
+					if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
-					// Param: "botId"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
-
 					if len(elem) == 0 {
-						switch r.Method {
-						case "DELETE":
-							s.handleDeleteBotByIdRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "GET":
-							s.handleGetBotByIdRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						case "PUT":
-							s.handleUpdateBotByIdRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "DELETE,GET,PUT")
-						}
-
-						return
+						break
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/profiles"
+					case 'e': // Prefix: "earch"
 
-						if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
+						if l := len("earch"); len(elem) >= l && elem[0:l] == "earch" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
 						if len(elem) == 0 {
+							// Leaf node.
 							switch r.Method {
 							case "GET":
-								s.handleGetBotProfilesRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
+								s.handleSearchBotsRequest([0]string{}, elemIsEscaped, w, r)
 							default:
 								s.notAllowed(w, r, "GET")
 							}
 
 							return
 						}
-						switch elem[0] {
-						case '/': // Prefix: "/"
 
-							if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-								elem = elem[l:]
-							} else {
-								break
+					case 'u': // Prefix: "ummary"
+
+						if l := len("ummary"); len(elem) >= l && elem[0:l] == "ummary" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "GET":
+								s.handleSummaryBotsRequest([0]string{}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "GET")
 							}
 
-							// Param: "profileId"
-							// Match until "/"
-							idx := strings.IndexByte(elem, '/')
-							if idx < 0 {
-								idx = len(elem)
-							}
-							args[1] = elem[:idx]
-							elem = elem[idx:]
-
-							if len(elem) == 0 {
-								switch r.Method {
-								case "DELETE":
-									s.handleRemoveProfileFromBotRequest([2]string{
-										args[0],
-										args[1],
-									}, elemIsEscaped, w, r)
-								case "PUT":
-									s.handleAddProfileToBotRequest([2]string{
-										args[0],
-										args[1],
-									}, elemIsEscaped, w, r)
-								default:
-									s.notAllowed(w, r, "DELETE,PUT")
-								}
-
-								return
-							}
-							switch elem[0] {
-							case '/': // Prefix: "/tasks"
-
-								if l := len("/tasks"); len(elem) >= l && elem[0:l] == "/tasks" {
-									elem = elem[l:]
-								} else {
-									break
-								}
-
-								if len(elem) == 0 {
-									// Leaf node.
-									switch r.Method {
-									case "POST":
-										s.handleCreateTaskForBotWithProfileRequest([2]string{
-											args[0],
-											args[1],
-										}, elemIsEscaped, w, r)
-									default:
-										s.notAllowed(w, r, "POST")
-									}
-
-									return
-								}
-
-							}
-
+							return
 						}
 
 					}
 
+					elem = origElem
 				}
-
-			case 't': // Prefix: "tasks/"
-
-				if l := len("tasks/"); len(elem) >= l && elem[0:l] == "tasks/" {
-					elem = elem[l:]
-				} else {
-					break
-				}
-
-				// Param: "taskId"
-				// Leaf parameter, slashes are prohibited
+				// Param: "botId"
+				// Match until "/"
 				idx := strings.IndexByte(elem, '/')
-				if idx >= 0 {
-					break
+				if idx < 0 {
+					idx = len(elem)
 				}
-				args[0] = elem
-				elem = ""
+				args[0] = elem[:idx]
+				elem = elem[idx:]
 
 				if len(elem) == 0 {
-					// Leaf node.
 					switch r.Method {
+					case "DELETE":
+						s.handleDeleteBotByIdRequest([1]string{
+							args[0],
+						}, elemIsEscaped, w, r)
 					case "GET":
-						s.handleGetTaskByIdRequest([1]string{
+						s.handleGetBotByIdRequest([1]string{
+							args[0],
+						}, elemIsEscaped, w, r)
+					case "PUT":
+						s.handleUpdateBotByIdRequest([1]string{
 							args[0],
 						}, elemIsEscaped, w, r)
 					default:
-						s.notAllowed(w, r, "GET")
+						s.notAllowed(w, r, "DELETE,GET,PUT")
 					}
 
 					return
+				}
+				switch elem[0] {
+				case '/': // Prefix: "/profiles"
+
+					if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						switch r.Method {
+						case "GET":
+							s.handleGetBotProfilesRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "GET")
+						}
+
+						return
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						// Param: "profileId"
+						// Leaf parameter, slashes are prohibited
+						idx := strings.IndexByte(elem, '/')
+						if idx >= 0 {
+							break
+						}
+						args[1] = elem
+						elem = ""
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "DELETE":
+								s.handleRemoveProfileFromBotRequest([2]string{
+									args[0],
+									args[1],
+								}, elemIsEscaped, w, r)
+							case "PUT":
+								s.handleAddProfileToBotRequest([2]string{
+									args[0],
+									args[1],
+								}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "DELETE,PUT")
+							}
+
+							return
+						}
+
+					}
+
 				}
 
 			}
@@ -321,89 +312,168 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/"
+		case '/': // Prefix: "/api/v1/bots"
 
-			if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+			if l := len("/api/v1/bots"); len(elem) >= l && elem[0:l] == "/api/v1/bots" {
 				elem = elem[l:]
 			} else {
 				break
 			}
 
 			if len(elem) == 0 {
-				break
+				switch method {
+				case "GET":
+					r.name = ListBotsOperation
+					r.summary = "Получить список своих ботов"
+					r.operationID = "ListBots"
+					r.pathPattern = "/api/v1/bots"
+					r.args = args
+					r.count = 0
+					return r, true
+				case "POST":
+					r.name = CreateBotOperation
+					r.summary = "Создать нового бота"
+					r.operationID = "CreateBot"
+					r.pathPattern = "/api/v1/bots"
+					r.args = args
+					r.count = 0
+					return r, true
+				default:
+					return
+				}
 			}
 			switch elem[0] {
-			case 'b': // Prefix: "bots"
+			case '/': // Prefix: "/"
 
-				if l := len("bots"); len(elem) >= l && elem[0:l] == "bots" {
+				if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 					elem = elem[l:]
 				} else {
 					break
 				}
 
 				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case 's': // Prefix: "s"
+					origElem := elem
+					if l := len("s"); len(elem) >= l && elem[0:l] == "s" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						break
+					}
+					switch elem[0] {
+					case 'e': // Prefix: "earch"
+
+						if l := len("earch"); len(elem) >= l && elem[0:l] == "earch" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "GET":
+								r.name = SearchBotsOperation
+								r.summary = "Поиск ботов по названию или системному промпту"
+								r.operationID = "SearchBots"
+								r.pathPattern = "/api/v1/bots/search"
+								r.args = args
+								r.count = 0
+								return r, true
+							default:
+								return
+							}
+						}
+
+					case 'u': // Prefix: "ummary"
+
+						if l := len("ummary"); len(elem) >= l && elem[0:l] == "ummary" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "GET":
+								r.name = SummaryBotsOperation
+								r.summary = "Получить сводную информацию по ботам"
+								r.operationID = "SummaryBots"
+								r.pathPattern = "/api/v1/bots/summary"
+								r.args = args
+								r.count = 0
+								return r, true
+							default:
+								return
+							}
+						}
+
+					}
+
+					elem = origElem
+				}
+				// Param: "botId"
+				// Match until "/"
+				idx := strings.IndexByte(elem, '/')
+				if idx < 0 {
+					idx = len(elem)
+				}
+				args[0] = elem[:idx]
+				elem = elem[idx:]
+
+				if len(elem) == 0 {
 					switch method {
-					case "GET":
-						r.name = ListMyBotsOperation
-						r.summary = "Получить список своих ботов"
-						r.operationID = "listMyBots"
-						r.pathPattern = "/bots"
+					case "DELETE":
+						r.name = DeleteBotByIdOperation
+						r.summary = "Удалить бота по ID"
+						r.operationID = "DeleteBotById"
+						r.pathPattern = "/api/v1/bots/{botId}"
 						r.args = args
-						r.count = 0
+						r.count = 1
 						return r, true
-					case "POST":
-						r.name = CreateMyBotOperation
-						r.summary = "Создать нового бота"
-						r.operationID = "createMyBot"
-						r.pathPattern = "/bots"
+					case "GET":
+						r.name = GetBotByIdOperation
+						r.summary = "Получить бота по ID"
+						r.operationID = "GetBotById"
+						r.pathPattern = "/api/v1/bots/{botId}"
 						r.args = args
-						r.count = 0
+						r.count = 1
+						return r, true
+					case "PUT":
+						r.name = UpdateBotByIdOperation
+						r.summary = "Полностью обновить бота по ID"
+						r.operationID = "UpdateBotById"
+						r.pathPattern = "/api/v1/bots/{botId}"
+						r.args = args
+						r.count = 1
 						return r, true
 					default:
 						return
 					}
 				}
 				switch elem[0] {
-				case '/': // Prefix: "/"
+				case '/': // Prefix: "/profiles"
 
-					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+					if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
-					// Param: "botId"
-					// Match until "/"
-					idx := strings.IndexByte(elem, '/')
-					if idx < 0 {
-						idx = len(elem)
-					}
-					args[0] = elem[:idx]
-					elem = elem[idx:]
-
 					if len(elem) == 0 {
 						switch method {
-						case "DELETE":
-							r.name = DeleteBotByIdOperation
-							r.summary = "Удалить бота по ID"
-							r.operationID = "deleteBotById"
-							r.pathPattern = "/bots/{botId}"
-							r.args = args
-							r.count = 1
-							return r, true
 						case "GET":
-							r.name = GetBotByIdOperation
-							r.summary = "Получить бота по ID"
-							r.operationID = "getBotById"
-							r.pathPattern = "/bots/{botId}"
-							r.args = args
-							r.count = 1
-							return r, true
-						case "PUT":
-							r.name = UpdateBotByIdOperation
-							r.summary = "Полностью обновить бота по ID"
-							r.operationID = "updateBotById"
-							r.pathPattern = "/bots/{botId}"
+							r.name = GetBotProfilesOperation
+							r.summary = "Получить список профилей, привязанных к боту"
+							r.operationID = "GetBotProfiles"
+							r.pathPattern = "/api/v1/bots/{botId}/profiles"
 							r.args = args
 							r.count = 1
 							return r, true
@@ -412,132 +482,49 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						}
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/profiles"
+					case '/': // Prefix: "/"
 
-						if l := len("/profiles"); len(elem) >= l && elem[0:l] == "/profiles" {
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
+						// Param: "profileId"
+						// Leaf parameter, slashes are prohibited
+						idx := strings.IndexByte(elem, '/')
+						if idx >= 0 {
+							break
+						}
+						args[1] = elem
+						elem = ""
+
 						if len(elem) == 0 {
+							// Leaf node.
 							switch method {
-							case "GET":
-								r.name = GetBotProfilesOperation
-								r.summary = "Получить список профилей, привязанных к боту"
-								r.operationID = "getBotProfiles"
-								r.pathPattern = "/bots/{botId}/profiles"
+							case "DELETE":
+								r.name = RemoveProfileFromBotOperation
+								r.summary = "Отвязать профиль от бота"
+								r.operationID = "RemoveProfileFromBot"
+								r.pathPattern = "/api/v1/bots/{botId}/profiles/{profileId}"
 								r.args = args
-								r.count = 1
+								r.count = 2
+								return r, true
+							case "PUT":
+								r.name = AddProfileToBotOperation
+								r.summary = "Привязать профиль к боту"
+								r.operationID = "AddProfileToBot"
+								r.pathPattern = "/api/v1/bots/{botId}/profiles/{profileId}"
+								r.args = args
+								r.count = 2
 								return r, true
 							default:
 								return
 							}
 						}
-						switch elem[0] {
-						case '/': // Prefix: "/"
-
-							if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-								elem = elem[l:]
-							} else {
-								break
-							}
-
-							// Param: "profileId"
-							// Match until "/"
-							idx := strings.IndexByte(elem, '/')
-							if idx < 0 {
-								idx = len(elem)
-							}
-							args[1] = elem[:idx]
-							elem = elem[idx:]
-
-							if len(elem) == 0 {
-								switch method {
-								case "DELETE":
-									r.name = RemoveProfileFromBotOperation
-									r.summary = "Отвязать профиль от бота"
-									r.operationID = "removeProfileFromBot"
-									r.pathPattern = "/bots/{botId}/profiles/{profileId}"
-									r.args = args
-									r.count = 2
-									return r, true
-								case "PUT":
-									r.name = AddProfileToBotOperation
-									r.summary = "Привязать профиль к боту"
-									r.operationID = "addProfileToBot"
-									r.pathPattern = "/bots/{botId}/profiles/{profileId}"
-									r.args = args
-									r.count = 2
-									return r, true
-								default:
-									return
-								}
-							}
-							switch elem[0] {
-							case '/': // Prefix: "/tasks"
-
-								if l := len("/tasks"); len(elem) >= l && elem[0:l] == "/tasks" {
-									elem = elem[l:]
-								} else {
-									break
-								}
-
-								if len(elem) == 0 {
-									// Leaf node.
-									switch method {
-									case "POST":
-										r.name = CreateTaskForBotWithProfileOperation
-										r.summary = "Создать задачу для бота с конкретным профилем"
-										r.operationID = "createTaskForBotWithProfile"
-										r.pathPattern = "/bots/{botId}/profiles/{profileId}/tasks"
-										r.args = args
-										r.count = 2
-										return r, true
-									default:
-										return
-									}
-								}
-
-							}
-
-						}
 
 					}
 
-				}
-
-			case 't': // Prefix: "tasks/"
-
-				if l := len("tasks/"); len(elem) >= l && elem[0:l] == "tasks/" {
-					elem = elem[l:]
-				} else {
-					break
-				}
-
-				// Param: "taskId"
-				// Leaf parameter, slashes are prohibited
-				idx := strings.IndexByte(elem, '/')
-				if idx >= 0 {
-					break
-				}
-				args[0] = elem
-				elem = ""
-
-				if len(elem) == 0 {
-					// Leaf node.
-					switch method {
-					case "GET":
-						r.name = GetTaskByIdOperation
-						r.summary = "Получить статус задачи по ID"
-						r.operationID = "getTaskById"
-						r.pathPattern = "/tasks/{taskId}"
-						r.args = args
-						r.count = 1
-						return r, true
-					default:
-						return
-					}
 				}
 
 			}

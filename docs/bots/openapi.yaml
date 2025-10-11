@@ -4,29 +4,27 @@ info:
   description: "API для управления ботами, их профилями и задачами в рамках аккаунта."
   version: "1.0.0"
 servers:
-  - url: /api/v1
+  - url: http://localhost:8001
 tags:
   - name: "Bots"
     description: "Операции над ботами, принадлежащими аккаунту."
   - name: "Bot-Profile Associations"
     description: "Управление связями между ботами и профилями."
-  - name: "Tasks"
-    description: "Создание и отслеживание асинхронных задач для ботов."
 
 # --------------------------------------------------------------
 # Компоненты API
 # --------------------------------------------------------------
 components:
   # -------------------- Безопасность --------------------
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: session_id
-    csrfAuth:
-      type: apiKey
-      in: header
-      name: X-CSRF-Token
+#  securitySchemes:
+#    cookieAuth:
+#      type: apiKey
+#      in: cookie
+#      name: session_id
+#    csrfAuth:
+#      type: apiKey
+#      in: header
+#      name: X-CSRF-Token
 
   # -------------------- Схемы данных --------------------
   schemas:
@@ -39,9 +37,14 @@ components:
           readOnly: true
         name:
           type: string
-        email:
-          type: string
-          format: email
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+        profilesCount:
+          type: integer
+          description: "Количество привязанных профилей."
+          readOnly: true
         systemPrompt:
           type: string
         moderationRequired:
@@ -61,9 +64,8 @@ components:
       required:
         - id
         - name
-        - email
+        - profilesCount
         - moderationRequired
-        - autoPublish
         - createdAt
         - updatedAt
 
@@ -73,9 +75,6 @@ components:
       properties:
         name:
           type: string
-        email:
-          type: string
-          format: email
         systemPrompt:
           type: string
         moderationRequired:
@@ -86,7 +85,6 @@ components:
           default: false
       required:
         - name
-        - email
 
     BotUpdate:
       type: object
@@ -94,15 +92,28 @@ components:
       properties:
         name:
           type: string
-        email:
-          type: string
-          format: email
         systemPrompt:
           type: string
         moderationRequired:
           type: boolean
         autoPublish:
           type: boolean
+
+    BotsSummary:
+      type: object
+      description: "Агрегированная информация о ботах."
+      properties:
+        totalBots:
+          type: integer
+          format: int64
+          description: "Общее количество ботов в системе."
+        totalProfilesAttached:
+          type: integer
+          format: int64
+          description: "Общее количество привязанных профилей ко всем ботам."
+      required:
+        - totalBots
+        - totalProfilesAttached
 
     Profile:
       type: object
@@ -113,61 +124,11 @@ components:
           format: uuid
         name:
           type: string
-        email:
+        systemPrompt:
           type: string
-          format: email
       required:
         - id
         - name
-        - email
-
-    Task:
-      type: object
-      description: "Асинхронная задача и её текущий статус."
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        botId:
-          type: string
-          format: uuid
-          readOnly: true
-        profileId:
-          type: string
-          format: uuid
-          readOnly: true
-        status:
-          type: string
-          enum: [pending, running, completed, failed]
-        errorMessage:
-          type: string
-          nullable: true
-        createdAt:
-          type: string
-          format: date-time
-          readOnly: true
-        updatedAt:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-        - id
-        - botId
-        - profileId
-        - status
-        - createdAt
-        - updatedAt
-
-    TaskInput:
-      type: object
-      description: "Данные для создания новой задачи."
-      properties:
-        description:
-          type: string
-          description: "Описание задачи, которое будет скомбинировано с промптами."
-      required:
-        - description
 
     BotList:
       type: object
@@ -187,9 +148,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Profile'
-        nextCursor:
-          type: string
-          nullable: true
 
     Error:
       type: object
@@ -208,8 +166,6 @@ components:
           additionalProperties:
             type: string
           description: "Дополнительные детали об ошибке, например, по полям."
-          example:
-            email: "Некорректный формат email."
       required:
         - errorCode
         - message
@@ -230,39 +186,9 @@ components:
       schema:
         type: string
         format: uuid
-    TaskID:
-      name: taskId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    PaginationCursor:
-      name: cursor
-      in: query
-      description: "Курсор для получения следующей страницы результатов."
-      schema:
-        type: string
-    PaginationLimit:
-      name: limit
-      in: query
-      description: "Максимальное количество результатов на странице."
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
 
   # -------------------- Ответы --------------------
   responses:
-    AcceptedTask:
-      description: "Задача принята в обработку. Заголовок 'Location' содержит URL для отслеживания статуса задачи."
-      headers:
-        Location:
-          description: "Путь для получения статуса созданной задачи."
-          schema:
-            type: string
-            example: "/api/v1/tasks/123e4567-e89b-12d3-a456-426614174000"
     NoContent:
       description: "Операция успешна, тело ответа отсутствует."
     BadRequest:
@@ -296,26 +222,16 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-# --------------------------------------------------------------
-# Глобальные требования безопасности
-# --------------------------------------------------------------
-security:
-  - cookieAuth: []
-  - csrfAuth: []
+#security:
+#  - cookieAuth: []
+#  - csrfAuth: []
 
-# --------------------------------------------------------------
-# Пути (Эндпоинты) API
-# --------------------------------------------------------------
 paths:
-  #--- Управление ботами ---
-  /bots:
+  /api/v1/bots:
     get:
       summary: "Получить список своих ботов"
-      operationId: "listMyBots"
+      operationId: "ListBots"
       tags: ["Bots"]
-      parameters:
-        - $ref: '#/components/parameters/PaginationCursor'
-        - $ref: '#/components/parameters/PaginationLimit'
       responses:
         '200':
           description: "Успешный ответ со списком ботов."
@@ -329,7 +245,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       summary: "Создать нового бота"
-      operationId: "createMyBot"
+      operationId: "CreateBot"
       tags: ["Bots"]
       requestBody:
         required: true
@@ -353,10 +269,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /bots/{botId}:
+  /api/v1/bots/{botId}:
     get:
       summary: "Получить бота по ID"
-      operationId: "getBotById"
+      operationId: "GetBotById"
       tags: ["Bots"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -367,6 +283,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Bot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
@@ -375,7 +293,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     put:
       summary: "Полностью обновить бота по ID"
-      operationId: "updateBotById"
+      operationId: "UpdateBotById"
       tags: ["Bots"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -404,7 +322,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       summary: "Удалить бота по ID"
-      operationId: "deleteBotById"
+      operationId: "DeleteBotById"
       tags: ["Bots"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -419,15 +337,13 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   #--- Управление связями ботов и профилей ---
-  /bots/{botId}/profiles:
+  /api/v1/bots/{botId}/profiles:
     get:
       summary: "Получить список профилей, привязанных к боту"
-      operationId: "getBotProfiles"
+      operationId: "GetBotProfiles"
       tags: ["Bot-Profile Associations"]
       parameters:
         - $ref: '#/components/parameters/BotID'
-        - $ref: '#/components/parameters/PaginationCursor'
-        - $ref: '#/components/parameters/PaginationLimit'
       responses:
         '200':
           description: "Успешный ответ со списком профилей."
@@ -442,10 +358,49 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /bots/{botId}/profiles/{profileId}:
+  /api/v1/bots/summary:
+    get:
+      summary: "Получить сводную информацию по ботам"
+      operationId: "SummaryBots"
+      tags: [ "BotsSummary" ]
+      responses:
+        '200':
+          description: "Успешный ответ со сводной информацией."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotsSummary'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/bots/search:
+    get:
+      summary: "Поиск ботов по названию или системному промпту"
+      operationId: "SearchBots"
+      tags: [ "Bots" ]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: "Строка для поиска."
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Успешный ответ со списком найденных ботов."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BotList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/bots/{botId}/profiles/{profileId}:
     put:
       summary: "Привязать профиль к боту"
-      operationId: "addProfileToBot"
+      operationId: "AddProfileToBot"
       tags: ["Bot-Profile Associations"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -467,7 +422,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       summary: "Отвязать профиль от бота"
-      operationId: "removeProfileFromBot"
+      operationId: "RemoveProfileFromBot"
       tags: ["Bot-Profile Associations"]
       parameters:
         - $ref: '#/components/parameters/BotID'
@@ -475,58 +430,6 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  #--- Управление задачами ---
-  /bots/{botId}/profiles/{profileId}/tasks:
-    post:
-      summary: "Создать задачу для бота с конкретным профилем"
-      operationId: "createTaskForBotWithProfile"
-      tags: ["Tasks"]
-      parameters:
-        - $ref: '#/components/parameters/BotID'
-        - $ref: '#/components/parameters/ProfileID'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TaskInput'
-      responses:
-        '202':
-          $ref: '#/components/responses/AcceptedTask'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          description: "Не найден бот или профиль."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /tasks/{taskId}:
-    get:
-      summary: "Получить статус задачи по ID"
-      operationId: "getTaskById"
-      tags: ["Tasks"]
-      parameters:
-        - $ref: '#/components/parameters/TaskID'
-      responses:
-        '200':
-          description: "Успешный ответ со статусом задачи."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':

@@ -5,26 +5,8 @@ package bots
 import (
 	"time"
 
-	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 )
-
-// Ref: #/components/responses/AcceptedTask
-type AcceptedTask struct {
-	Location OptString
-}
-
-// GetLocation returns the value of Location.
-func (s *AcceptedTask) GetLocation() OptString {
-	return s.Location
-}
-
-// SetLocation sets the value of Location.
-func (s *AcceptedTask) SetLocation(val OptString) {
-	s.Location = val
-}
-
-func (*AcceptedTask) createTaskForBotWithProfileRes() {}
 
 type AddProfileToBotBadRequest Error
 
@@ -44,12 +26,14 @@ func (*AddProfileToBotUnauthorized) addProfileToBotRes() {}
 
 // Ref: #/components/schemas/Bot
 type Bot struct {
-	ID                 uuid.UUID `json:"id"`
-	Name               string    `json:"name"`
-	Email              string    `json:"email"`
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	Profiles []Profile `json:"profiles"`
+	// Количество привязанных профилей.
+	ProfilesCount      int       `json:"profilesCount"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired bool      `json:"moderationRequired"`
-	AutoPublish        bool      `json:"autoPublish"`
+	AutoPublish        OptBool   `json:"autoPublish"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -64,9 +48,14 @@ func (s *Bot) GetName() string {
 	return s.Name
 }
 
-// GetEmail returns the value of Email.
-func (s *Bot) GetEmail() string {
-	return s.Email
+// GetProfiles returns the value of Profiles.
+func (s *Bot) GetProfiles() []Profile {
+	return s.Profiles
+}
+
+// GetProfilesCount returns the value of ProfilesCount.
+func (s *Bot) GetProfilesCount() int {
+	return s.ProfilesCount
 }
 
 // GetSystemPrompt returns the value of SystemPrompt.
@@ -80,7 +69,7 @@ func (s *Bot) GetModerationRequired() bool {
 }
 
 // GetAutoPublish returns the value of AutoPublish.
-func (s *Bot) GetAutoPublish() bool {
+func (s *Bot) GetAutoPublish() OptBool {
 	return s.AutoPublish
 }
 
@@ -104,9 +93,14 @@ func (s *Bot) SetName(val string) {
 	s.Name = val
 }
 
-// SetEmail sets the value of Email.
-func (s *Bot) SetEmail(val string) {
-	s.Email = val
+// SetProfiles sets the value of Profiles.
+func (s *Bot) SetProfiles(val []Profile) {
+	s.Profiles = val
+}
+
+// SetProfilesCount sets the value of ProfilesCount.
+func (s *Bot) SetProfilesCount(val int) {
+	s.ProfilesCount = val
 }
 
 // SetSystemPrompt sets the value of SystemPrompt.
@@ -120,7 +114,7 @@ func (s *Bot) SetModerationRequired(val bool) {
 }
 
 // SetAutoPublish sets the value of AutoPublish.
-func (s *Bot) SetAutoPublish(val bool) {
+func (s *Bot) SetAutoPublish(val OptBool) {
 	s.AutoPublish = val
 }
 
@@ -134,7 +128,7 @@ func (s *Bot) SetUpdatedAt(val time.Time) {
 	s.UpdatedAt = val
 }
 
-func (*Bot) createMyBotRes()   {}
+func (*Bot) createBotRes()     {}
 func (*Bot) getBotByIdRes()    {}
 func (*Bot) updateBotByIdRes() {}
 
@@ -142,7 +136,6 @@ func (*Bot) updateBotByIdRes() {}
 // Ref: #/components/schemas/BotInput
 type BotInput struct {
 	Name               string    `json:"name"`
-	Email              string    `json:"email"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired OptBool   `json:"moderationRequired"`
 	AutoPublish        OptBool   `json:"autoPublish"`
@@ -151,11 +144,6 @@ type BotInput struct {
 // GetName returns the value of Name.
 func (s *BotInput) GetName() string {
 	return s.Name
-}
-
-// GetEmail returns the value of Email.
-func (s *BotInput) GetEmail() string {
-	return s.Email
 }
 
 // GetSystemPrompt returns the value of SystemPrompt.
@@ -176,11 +164,6 @@ func (s *BotInput) GetAutoPublish() OptBool {
 // SetName sets the value of Name.
 func (s *BotInput) SetName(val string) {
 	s.Name = val
-}
-
-// SetEmail sets the value of Email.
-func (s *BotInput) SetEmail(val string) {
-	s.Email = val
 }
 
 // SetSystemPrompt sets the value of SystemPrompt.
@@ -224,89 +207,55 @@ func (s *BotList) SetNextCursor(val OptNilString) {
 	s.NextCursor = val
 }
 
-func (*BotList) listMyBotsRes() {}
+func (*BotList) listBotsRes()   {}
+func (*BotList) searchBotsRes() {}
 
-type CookieAuth struct {
-	APIKey string
-	Roles  []string
+// Агрегированная информация о ботах.
+// Ref: #/components/schemas/BotsSummary
+type BotsSummary struct {
+	// Общее количество ботов в системе.
+	TotalBots int64 `json:"totalBots"`
+	// Общее количество привязанных профилей ко всем ботам.
+	TotalProfilesAttached int64 `json:"totalProfilesAttached"`
 }
 
-// GetAPIKey returns the value of APIKey.
-func (s *CookieAuth) GetAPIKey() string {
-	return s.APIKey
+// GetTotalBots returns the value of TotalBots.
+func (s *BotsSummary) GetTotalBots() int64 {
+	return s.TotalBots
 }
 
-// GetRoles returns the value of Roles.
-func (s *CookieAuth) GetRoles() []string {
-	return s.Roles
+// GetTotalProfilesAttached returns the value of TotalProfilesAttached.
+func (s *BotsSummary) GetTotalProfilesAttached() int64 {
+	return s.TotalProfilesAttached
 }
 
-// SetAPIKey sets the value of APIKey.
-func (s *CookieAuth) SetAPIKey(val string) {
-	s.APIKey = val
+// SetTotalBots sets the value of TotalBots.
+func (s *BotsSummary) SetTotalBots(val int64) {
+	s.TotalBots = val
 }
 
-// SetRoles sets the value of Roles.
-func (s *CookieAuth) SetRoles(val []string) {
-	s.Roles = val
+// SetTotalProfilesAttached sets the value of TotalProfilesAttached.
+func (s *BotsSummary) SetTotalProfilesAttached(val int64) {
+	s.TotalProfilesAttached = val
 }
 
-type CreateMyBotBadRequest Error
+func (*BotsSummary) summaryBotsRes() {}
 
-func (*CreateMyBotBadRequest) createMyBotRes() {}
+type CreateBotBadRequest Error
 
-type CreateMyBotConflict Error
+func (*CreateBotBadRequest) createBotRes() {}
 
-func (*CreateMyBotConflict) createMyBotRes() {}
+type CreateBotConflict Error
 
-type CreateMyBotInternalServerError Error
+func (*CreateBotConflict) createBotRes() {}
 
-func (*CreateMyBotInternalServerError) createMyBotRes() {}
+type CreateBotInternalServerError Error
 
-type CreateMyBotUnauthorized Error
+func (*CreateBotInternalServerError) createBotRes() {}
 
-func (*CreateMyBotUnauthorized) createMyBotRes() {}
+type CreateBotUnauthorized Error
 
-type CreateTaskForBotWithProfileBadRequest Error
-
-func (*CreateTaskForBotWithProfileBadRequest) createTaskForBotWithProfileRes() {}
-
-type CreateTaskForBotWithProfileInternalServerError Error
-
-func (*CreateTaskForBotWithProfileInternalServerError) createTaskForBotWithProfileRes() {}
-
-type CreateTaskForBotWithProfileNotFound Error
-
-func (*CreateTaskForBotWithProfileNotFound) createTaskForBotWithProfileRes() {}
-
-type CreateTaskForBotWithProfileUnauthorized Error
-
-func (*CreateTaskForBotWithProfileUnauthorized) createTaskForBotWithProfileRes() {}
-
-type CsrfAuth struct {
-	APIKey string
-	Roles  []string
-}
-
-// GetAPIKey returns the value of APIKey.
-func (s *CsrfAuth) GetAPIKey() string {
-	return s.APIKey
-}
-
-// GetRoles returns the value of Roles.
-func (s *CsrfAuth) GetRoles() []string {
-	return s.Roles
-}
-
-// SetAPIKey sets the value of APIKey.
-func (s *CsrfAuth) SetAPIKey(val string) {
-	s.APIKey = val
-}
-
-// SetRoles sets the value of Roles.
-func (s *CsrfAuth) SetRoles(val []string) {
-	s.Roles = val
-}
+func (*CreateBotUnauthorized) createBotRes() {}
 
 type DeleteBotByIdInternalServerError Error
 
@@ -361,6 +310,8 @@ func (s *Error) SetDetails(val OptErrorDetails) {
 	s.Details = val
 }
 
+func (*Error) summaryBotsRes() {}
+
 // Дополнительные детали об ошибке, например, по полям.
 type ErrorDetails map[string]string
 
@@ -372,6 +323,10 @@ func (s *ErrorDetails) init() ErrorDetails {
 	}
 	return m
 }
+
+type GetBotByIdBadRequest Error
+
+func (*GetBotByIdBadRequest) getBotByIdRes() {}
 
 type GetBotByIdInternalServerError Error
 
@@ -397,25 +352,13 @@ type GetBotProfilesUnauthorized Error
 
 func (*GetBotProfilesUnauthorized) getBotProfilesRes() {}
 
-type GetTaskByIdInternalServerError Error
+type ListBotsInternalServerError Error
 
-func (*GetTaskByIdInternalServerError) getTaskByIdRes() {}
+func (*ListBotsInternalServerError) listBotsRes() {}
 
-type GetTaskByIdNotFound Error
+type ListBotsUnauthorized Error
 
-func (*GetTaskByIdNotFound) getTaskByIdRes() {}
-
-type GetTaskByIdUnauthorized Error
-
-func (*GetTaskByIdUnauthorized) getTaskByIdRes() {}
-
-type ListMyBotsInternalServerError Error
-
-func (*ListMyBotsInternalServerError) listMyBotsRes() {}
-
-type ListMyBotsUnauthorized Error
-
-func (*ListMyBotsUnauthorized) listMyBotsRes() {}
+func (*ListBotsUnauthorized) listBotsRes() {}
 
 // Ref: #/components/responses/NoContent
 type NoContent struct{}
@@ -510,52 +453,6 @@ func (o OptErrorDetails) Get() (v ErrorDetails, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptErrorDetails) Or(d ErrorDetails) ErrorDetails {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptInt returns new OptInt with value set to v.
-func NewOptInt(v int) OptInt {
-	return OptInt{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptInt is optional int.
-type OptInt struct {
-	Value int
-	Set   bool
-}
-
-// IsSet returns true if OptInt was set.
-func (o OptInt) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptInt) Reset() {
-	var v int
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptInt) SetTo(v int) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptInt) Get() (v int, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptInt) Or(d int) int {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -674,9 +571,9 @@ func (o OptString) Or(d string) string {
 // Представление профиля, связанного с ботом.
 // Ref: #/components/schemas/Profile
 type Profile struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	SystemPrompt OptString `json:"systemPrompt"`
 }
 
 // GetID returns the value of ID.
@@ -689,9 +586,9 @@ func (s *Profile) GetName() string {
 	return s.Name
 }
 
-// GetEmail returns the value of Email.
-func (s *Profile) GetEmail() string {
-	return s.Email
+// GetSystemPrompt returns the value of SystemPrompt.
+func (s *Profile) GetSystemPrompt() OptString {
+	return s.SystemPrompt
 }
 
 // SetID sets the value of ID.
@@ -704,15 +601,14 @@ func (s *Profile) SetName(val string) {
 	s.Name = val
 }
 
-// SetEmail sets the value of Email.
-func (s *Profile) SetEmail(val string) {
-	s.Email = val
+// SetSystemPrompt sets the value of SystemPrompt.
+func (s *Profile) SetSystemPrompt(val OptString) {
+	s.SystemPrompt = val
 }
 
 // Ref: #/components/schemas/ProfileList
 type ProfileList struct {
-	Data       []Profile    `json:"data"`
-	NextCursor OptNilString `json:"nextCursor"`
+	Data []Profile `json:"data"`
 }
 
 // GetData returns the value of Data.
@@ -720,19 +616,9 @@ func (s *ProfileList) GetData() []Profile {
 	return s.Data
 }
 
-// GetNextCursor returns the value of NextCursor.
-func (s *ProfileList) GetNextCursor() OptNilString {
-	return s.NextCursor
-}
-
 // SetData sets the value of Data.
 func (s *ProfileList) SetData(val []Profile) {
 	s.Data = val
-}
-
-// SetNextCursor sets the value of NextCursor.
-func (s *ProfileList) SetNextCursor(val OptNilString) {
-	s.NextCursor = val
 }
 
 func (*ProfileList) getBotProfilesRes() {}
@@ -749,162 +635,13 @@ type RemoveProfileFromBotUnauthorized Error
 
 func (*RemoveProfileFromBotUnauthorized) removeProfileFromBotRes() {}
 
-// Асинхронная задача и её текущий статус.
-// Ref: #/components/schemas/Task
-type Task struct {
-	ID           uuid.UUID    `json:"id"`
-	BotId        uuid.UUID    `json:"botId"`
-	ProfileId    uuid.UUID    `json:"profileId"`
-	Status       TaskStatus   `json:"status"`
-	ErrorMessage OptNilString `json:"errorMessage"`
-	CreatedAt    time.Time    `json:"createdAt"`
-	UpdatedAt    time.Time    `json:"updatedAt"`
-}
+type SearchBotsBadRequest Error
 
-// GetID returns the value of ID.
-func (s *Task) GetID() uuid.UUID {
-	return s.ID
-}
+func (*SearchBotsBadRequest) searchBotsRes() {}
 
-// GetBotId returns the value of BotId.
-func (s *Task) GetBotId() uuid.UUID {
-	return s.BotId
-}
+type SearchBotsInternalServerError Error
 
-// GetProfileId returns the value of ProfileId.
-func (s *Task) GetProfileId() uuid.UUID {
-	return s.ProfileId
-}
-
-// GetStatus returns the value of Status.
-func (s *Task) GetStatus() TaskStatus {
-	return s.Status
-}
-
-// GetErrorMessage returns the value of ErrorMessage.
-func (s *Task) GetErrorMessage() OptNilString {
-	return s.ErrorMessage
-}
-
-// GetCreatedAt returns the value of CreatedAt.
-func (s *Task) GetCreatedAt() time.Time {
-	return s.CreatedAt
-}
-
-// GetUpdatedAt returns the value of UpdatedAt.
-func (s *Task) GetUpdatedAt() time.Time {
-	return s.UpdatedAt
-}
-
-// SetID sets the value of ID.
-func (s *Task) SetID(val uuid.UUID) {
-	s.ID = val
-}
-
-// SetBotId sets the value of BotId.
-func (s *Task) SetBotId(val uuid.UUID) {
-	s.BotId = val
-}
-
-// SetProfileId sets the value of ProfileId.
-func (s *Task) SetProfileId(val uuid.UUID) {
-	s.ProfileId = val
-}
-
-// SetStatus sets the value of Status.
-func (s *Task) SetStatus(val TaskStatus) {
-	s.Status = val
-}
-
-// SetErrorMessage sets the value of ErrorMessage.
-func (s *Task) SetErrorMessage(val OptNilString) {
-	s.ErrorMessage = val
-}
-
-// SetCreatedAt sets the value of CreatedAt.
-func (s *Task) SetCreatedAt(val time.Time) {
-	s.CreatedAt = val
-}
-
-// SetUpdatedAt sets the value of UpdatedAt.
-func (s *Task) SetUpdatedAt(val time.Time) {
-	s.UpdatedAt = val
-}
-
-func (*Task) getTaskByIdRes() {}
-
-// Данные для создания новой задачи.
-// Ref: #/components/schemas/TaskInput
-type TaskInput struct {
-	// Описание задачи, которое будет скомбинировано с
-	// промптами.
-	Description string `json:"description"`
-}
-
-// GetDescription returns the value of Description.
-func (s *TaskInput) GetDescription() string {
-	return s.Description
-}
-
-// SetDescription sets the value of Description.
-func (s *TaskInput) SetDescription(val string) {
-	s.Description = val
-}
-
-type TaskStatus string
-
-const (
-	TaskStatusPending   TaskStatus = "pending"
-	TaskStatusRunning   TaskStatus = "running"
-	TaskStatusCompleted TaskStatus = "completed"
-	TaskStatusFailed    TaskStatus = "failed"
-)
-
-// AllValues returns all TaskStatus values.
-func (TaskStatus) AllValues() []TaskStatus {
-	return []TaskStatus{
-		TaskStatusPending,
-		TaskStatusRunning,
-		TaskStatusCompleted,
-		TaskStatusFailed,
-	}
-}
-
-// MarshalText implements encoding.TextMarshaler.
-func (s TaskStatus) MarshalText() ([]byte, error) {
-	switch s {
-	case TaskStatusPending:
-		return []byte(s), nil
-	case TaskStatusRunning:
-		return []byte(s), nil
-	case TaskStatusCompleted:
-		return []byte(s), nil
-	case TaskStatusFailed:
-		return []byte(s), nil
-	default:
-		return nil, errors.Errorf("invalid value: %q", s)
-	}
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (s *TaskStatus) UnmarshalText(data []byte) error {
-	switch TaskStatus(data) {
-	case TaskStatusPending:
-		*s = TaskStatusPending
-		return nil
-	case TaskStatusRunning:
-		*s = TaskStatusRunning
-		return nil
-	case TaskStatusCompleted:
-		*s = TaskStatusCompleted
-		return nil
-	case TaskStatusFailed:
-		*s = TaskStatusFailed
-		return nil
-	default:
-		return errors.Errorf("invalid value: %q", data)
-	}
-}
+func (*SearchBotsInternalServerError) searchBotsRes() {}
 
 type UpdateBotByIdBadRequest Error
 

@@ -1,0 +1,66 @@
+services:
+  bots_db:
+    image: postgres:16-alpine
+    container_name: bots_db
+    environment:
+      POSTGRES_USER: ${LOCAL_BOTS_DATABASE_USER}
+      POSTGRES_PASSWORD: ${LOCAL_BOTS_DATABASE_PASSWORD}
+      POSTGRES_DB: ${LOCAL_BOTS_DATABASE_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - bots_pgdata:/var/lib/postgresql/data
+    # База данных подключена только к внутренней сети
+    networks:
+      - bots-internal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_BOTS_DATABASE_USER} -d ${LOCAL_BOTS_DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  bots_migrate:
+    build:
+      context: .
+      dockerfile: ./cmd/bots/Dockerfile
+      target: migrator
+    container_name: bots_migrate
+    image: bots_migrate_image
+    env_file: .env
+    networks:
+      - bots-internal-network
+    depends_on:
+      bots_db:
+        condition: service_healthy
+    restart: on-failure
+
+  bots_go:
+    build:
+      context: .
+      dockerfile: ./cmd/bots/Dockerfile
+      target: prod
+    container_name: bots_go
+    image: bots_go_image
+    env_file: .env
+    ports:
+      - "8001:8001"
+    # Сервис подклчен к двум сетям:
+    # 1. Внутренней, для связи со своей БД.
+    # 2. Общей, для связи с другими сервисами (profiles_go).
+    networks:
+      - bots-internal-network
+      - public-gateway-network
+    depends_on:
+      bots_migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+networks:
+  bots-internal-network:
+    driver: bridge
+  public-gateway-network:
+    external: true
+
+volumes:
+  bots_pgdata:

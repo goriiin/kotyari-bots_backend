@@ -8,85 +8,83 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
-	// AddProfileToBot implements addProfileToBot operation.
+	// AddProfileToBot implements AddProfileToBot operation.
 	//
 	// Привязать профиль к боту.
 	//
-	// PUT /bots/{botId}/profiles/{profileId}
+	// PUT /api/v1/bots/{botId}/profiles/{profileId}
 	AddProfileToBot(ctx context.Context, params AddProfileToBotParams) (AddProfileToBotRes, error)
-	// CreateMyBot implements createMyBot operation.
+	// CreateBot implements CreateBot operation.
 	//
 	// Создать нового бота.
 	//
-	// POST /bots
-	CreateMyBot(ctx context.Context, req *BotInput) (CreateMyBotRes, error)
-	// CreateTaskForBotWithProfile implements createTaskForBotWithProfile operation.
-	//
-	// Создать задачу для бота с конкретным профилем.
-	//
-	// POST /bots/{botId}/profiles/{profileId}/tasks
-	CreateTaskForBotWithProfile(ctx context.Context, req *TaskInput, params CreateTaskForBotWithProfileParams) (CreateTaskForBotWithProfileRes, error)
-	// DeleteBotById implements deleteBotById operation.
+	// POST /api/v1/bots
+	CreateBot(ctx context.Context, req *BotInput) (CreateBotRes, error)
+	// DeleteBotById implements DeleteBotById operation.
 	//
 	// Удалить бота по ID.
 	//
-	// DELETE /bots/{botId}
+	// DELETE /api/v1/bots/{botId}
 	DeleteBotById(ctx context.Context, params DeleteBotByIdParams) (DeleteBotByIdRes, error)
-	// GetBotById implements getBotById operation.
+	// GetBotById implements GetBotById operation.
 	//
 	// Получить бота по ID.
 	//
-	// GET /bots/{botId}
+	// GET /api/v1/bots/{botId}
 	GetBotById(ctx context.Context, params GetBotByIdParams) (GetBotByIdRes, error)
-	// GetBotProfiles implements getBotProfiles operation.
+	// GetBotProfiles implements GetBotProfiles operation.
 	//
 	// Получить список профилей, привязанных к боту.
 	//
-	// GET /bots/{botId}/profiles
+	// GET /api/v1/bots/{botId}/profiles
 	GetBotProfiles(ctx context.Context, params GetBotProfilesParams) (GetBotProfilesRes, error)
-	// GetTaskById implements getTaskById operation.
-	//
-	// Получить статус задачи по ID.
-	//
-	// GET /tasks/{taskId}
-	GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error)
-	// ListMyBots implements listMyBots operation.
+	// ListBots implements ListBots operation.
 	//
 	// Получить список своих ботов.
 	//
-	// GET /bots
-	ListMyBots(ctx context.Context, params ListMyBotsParams) (ListMyBotsRes, error)
-	// RemoveProfileFromBot implements removeProfileFromBot operation.
+	// GET /api/v1/bots
+	ListBots(ctx context.Context) (ListBotsRes, error)
+	// RemoveProfileFromBot implements RemoveProfileFromBot operation.
 	//
 	// Отвязать профиль от бота.
 	//
-	// DELETE /bots/{botId}/profiles/{profileId}
+	// DELETE /api/v1/bots/{botId}/profiles/{profileId}
 	RemoveProfileFromBot(ctx context.Context, params RemoveProfileFromBotParams) (RemoveProfileFromBotRes, error)
-	// UpdateBotById implements updateBotById operation.
+	// SearchBots implements SearchBots operation.
+	//
+	// Поиск ботов по названию или системному промпту.
+	//
+	// GET /api/v1/bots/search
+	SearchBots(ctx context.Context, params SearchBotsParams) (SearchBotsRes, error)
+	// SummaryBots implements SummaryBots operation.
+	//
+	// Получить сводную информацию по ботам.
+	//
+	// GET /api/v1/bots/summary
+	SummaryBots(ctx context.Context) (SummaryBotsRes, error)
+	// UpdateBotById implements UpdateBotById operation.
 	//
 	// Полностью обновить бота по ID.
 	//
-	// PUT /bots/{botId}
+	// PUT /api/v1/bots/{botId}
 	UpdateBotById(ctx context.Context, req *BotInput, params UpdateBotByIdParams) (UpdateBotByIdRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and
 // calls Handler to handle requests.
 type Server struct {
-	h   Handler
-	sec SecurityHandler
+	h Handler
 	baseServer
 }
 
 // NewServer creates new Server.
-func NewServer(h Handler, sec SecurityHandler, opts ...ServerOption) (*Server, error) {
+func NewServer(h Handler, opts ...ServerOption) (*Server, error) {
 	s, err := newServerConfig(opts...).baseServer()
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
 		h:          h,
-		sec:        sec,
 		baseServer: s,
 	}, nil
 }
