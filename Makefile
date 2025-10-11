@@ -1,5 +1,4 @@
-# Имя для общей сети микросервисов
-DOCKER_NETWORK := microservices-network
+DOCKER_NETWORK := public-gateway-network
 
 defalut: help
 
@@ -25,10 +24,6 @@ help:
 	@echo "api          - Сгенерировать Go-код из всех openapi.yml файлов."
 	@echo "install-ogen - Установить или обновить генератор кода ogen."
 
-network-up:
-	@echo "Creating public gateway network if it doesn't exist..."
-	@docker network create public-gateway-network || true
-
 profiles-reboot: profiles-down profiles-up
 
 
@@ -36,7 +31,7 @@ profiles-reboot: profiles-down profiles-up
 
 .PHONY: setup-network teardown-network copy-env
 
-# Проверяет наличие сети и создает ее, если она отсутствует
+
 setup-network:
 	@docker network inspect $(DOCKER_NETWORK) >/dev/null 2>&1 || \
 		(echo "Создаю общую Docker-сеть: $(DOCKER_NETWORK)..." && docker network create $(DOCKER_NETWORK))
@@ -51,15 +46,14 @@ copy-env:
 		cp .env.example .env; \
 	fi
 
-# --- Кодогенерация и статический анализ (без изменений) ---
+# --- Кодогенерация и статический анализ ---
 
-SERVICES := $(shell find ./docs -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 PROTO_DIR := ./api/protos
 GEN_DIR := gen
 PROTOC := protoc
 ENTITIES := $(shell find $(PROTO_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 
-# export PATH=$PATH:$(go env GOPATH)/bin
+proto-build: $(ENTITIES)
 
 $(ENTITIES):
 	@echo "Генерация кода для сущности $@..."
@@ -72,9 +66,6 @@ $(ENTITIES):
 		--go-grpc_opt=paths=source_relative \
 		$(PROTO_DIR)/$@/proto/*.proto
 	@echo "Генерация для $@ завершена."
-
-
-proto-build: $(ENTITIES)
 
 api: install-ogen
 	@echo "Начинаю генерацию кода для сервисов: $(SERVICES)"
@@ -94,14 +85,6 @@ define generate-service
 	fi
 	ogen --target "$(OUTPUT_DIR)" --package "$(1)" -clean "$(INPUT_FILE)"
 endef
-
-proto-build: $(ENTITIES)
-
-$(ENTITIES):
-	@echo "Генерация кода для сущности $@..."
-	@mkdir -p $(PROTO_DIR)/$@/$(GEN_DIR)
-	@$(PROTOC) --proto_path=$(PROTO_DIR)/$@/proto --go_out=$(PROTO_DIR)/$@/$(GEN_DIR) --go_opt=paths=source_relative --go-grpc_out=$(PROTO_DIR)/$@/$(GEN_DIR) --go-grpc_opt=paths=source_relative $(PROTO_DIR)/$@/proto/*.proto
-	@echo "Генерация для $@ завершена."
 
 download-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.3.1
@@ -123,23 +106,14 @@ format-check:
 check: lint format-check
 
 # параллельно
-up: copy-env network-up
+up: copy-env setup-network
 	@echo "Starting services in parallel..."
 	@$(MAKE) bots-up & \
 	$(MAKE) profiles-up & \
 	wait
 	@echo "All services are up and running."
 
-
-copy-env:
-	@if [ ! -f .env ]; then \
-		echo "Creating .env file from .env.example..."; \
-		cp .env.example .env; \
-	else \
-		echo ".env file already exists. Skipping."; \
-	fi
-
-bots-up: network-up
+bots-up: setup-network
 	@echo "Starting bots service and dependencies..."
 	@docker compose -f docker-compose.bots.yml up -d --build
 
@@ -152,7 +126,7 @@ bots-reboot:
 	$(MAKE) bots-down
 	$(MAKE) bots-up
 
-profiles-up: network-up
+profiles-up: setup-network
 	@echo "Starting profiles service and dependencies..."
 	docker-compose -f docker-compose.profiles.yml up -d --build
 
@@ -173,26 +147,6 @@ example-run-local:  ## Запустить в local режиме
 example-run-prod:
 	@go run cmd/example/main.go --env=prod
 
-bots-migrate-create: install-migrate
-	@read -p "Enter migration name: " name; \
-	migrate create -ext sql -dir assets/migrations/bots -seq $$name
-
-bots-migrate-up: ## Применить миграции для сервиса bots
-	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local-config.yaml" up
-
-bots-migrate-down: ## Откатить миграции для сервиса bots
-	@go run ./cmd/bots/migrate/main.go --env=local --config="./configs/bots-local.yaml" down
-
-profiles-migrate-create: install-migrate
-	@read -p "Enter migration name: " name; \
-	migrate create -ext sql -dir assets/migrations/profiles -seq $$name
-
-profiles-migrate-up:
-	@go run ./cmd/profiles/migrate/main.go --env=local --config="./configs/profiles-local.yaml" up
-
-profiles-migrate-down:
-	@go run ./cmd/profiles/migrate/main.go --env=local --config="./configs/profiles-local.yaml" down
-
 install-migrate:
 	@if ! command -v migrate &> /dev/null; then \
 		echo "migrate CLI not found. Installing..."; \
@@ -211,4 +165,3 @@ intranet-down:
 
 intranet-parser-logs:
 	$(MAKE) -C $(INTRANET_DIR) parser-logs
-

@@ -202,14 +202,14 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
-		e.FieldStart("moderationRequired")
-		e.Bool(s.ModerationRequired)
+		if s.ModerationRequired.Set {
+			e.FieldStart("moderationRequired")
+			s.ModerationRequired.Encode(e)
+		}
 	}
 	{
-		if s.AutoPublish.Set {
-			e.FieldStart("autoPublish")
-			s.AutoPublish.Encode(e)
-		}
+		e.FieldStart("autoPublish")
+		e.Bool(s.AutoPublish)
 	}
 	{
 		e.FieldStart("createdAt")
@@ -307,11 +307,9 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"systemPrompt\"")
 			}
 		case "moderationRequired":
-			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
-				v, err := d.Bool()
-				s.ModerationRequired = bool(v)
-				if err != nil {
+				s.ModerationRequired.Reset()
+				if err := s.ModerationRequired.Decode(d); err != nil {
 					return err
 				}
 				return nil
@@ -319,9 +317,11 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"moderationRequired\"")
 			}
 		case "autoPublish":
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
-				s.AutoPublish.Reset()
-				if err := s.AutoPublish.Decode(d); err != nil {
+				v, err := d.Bool()
+				s.AutoPublish = bool(v)
+				if err != nil {
 					return err
 				}
 				return nil
@@ -362,7 +362,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [2]uint8{
-		0b10101011,
+		0b11001011,
 		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {

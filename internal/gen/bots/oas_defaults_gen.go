@@ -6,11 +6,11 @@ package bots
 func (s *Bot) setDefaults() {
 	{
 		val := bool(false)
-		s.ModerationRequired = val
+		s.ModerationRequired.SetTo(val)
 	}
 	{
 		val := bool(false)
-		s.AutoPublish.SetTo(val)
+		s.AutoPublish = val
 	}
 }
 
