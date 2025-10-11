@@ -2,9 +2,9 @@ package bots
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/jackc/pgx/v5"
 )
 
 func (r *BotsRepository) List(ctx context.Context) ([]model.Bot, error) {

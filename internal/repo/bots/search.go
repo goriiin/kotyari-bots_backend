@@ -2,10 +2,10 @@ package bots
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 	"strings"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/jackc/pgx/v5"
 )
 
 func (r *BotsRepository) Search(ctx context.Context, query string) ([]model.Bot, error) {
