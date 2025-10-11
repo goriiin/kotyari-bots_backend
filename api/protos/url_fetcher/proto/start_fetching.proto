@@ -2,6 +2,8 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
+option go_package = "github.com/goriiin/kotyari-bots_backend/api/gen/grpc/url_fetcher";
+
 package url_fetcher;
 
 service ProfileService {

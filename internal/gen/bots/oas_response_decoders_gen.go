@@ -9,9 +9,7 @@ import (
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
-	"github.com/ogen-go/ogen/conv"
 	"github.com/ogen-go/ogen/ogenerrors"
-	"github.com/ogen-go/ogen/uri"
 	"github.com/ogen-go/ogen/validate"
 )
 
@@ -164,7 +162,7 @@ func decodeAddProfileToBotResponse(resp *http.Response) (res AddProfileToBotRes,
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error) {
+func decodeCreateBotResponse(resp *http.Response) (res CreateBotRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
@@ -197,15 +195,6 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 				}
 				return res, err
 			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -224,7 +213,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotBadRequest
+			var response CreateBotBadRequest
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -259,7 +248,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotUnauthorized
+			var response CreateBotUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -294,7 +283,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotConflict
+			var response CreateBotConflict
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -329,195 +318,7 @@ func decodeCreateMyBotResponse(resp *http.Response) (res CreateMyBotRes, _ error
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response CreateMyBotInternalServerError
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeCreateTaskForBotWithProfileResponse(resp *http.Response) (res CreateTaskForBotWithProfileRes, _ error) {
-	switch resp.StatusCode {
-	case 202:
-		// Code 202.
-		var wrapper AcceptedTask
-		h := uri.NewHeaderDecoder(resp.Header)
-		// Parse "Location" header.
-		{
-			cfg := uri.HeaderParameterDecodingConfig{
-				Name:    "Location",
-				Explode: false,
-			}
-			if err := func() error {
-				if err := h.HasParam(cfg); err == nil {
-					if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
-						var wrapperDotLocationVal string
-						if err := func() error {
-							val, err := d.DecodeValue()
-							if err != nil {
-								return err
-							}
-
-							c, err := conv.ToString(val)
-							if err != nil {
-								return err
-							}
-
-							wrapperDotLocationVal = c
-							return nil
-						}(); err != nil {
-							return err
-						}
-						wrapper.Location.SetTo(wrapperDotLocationVal)
-						return nil
-					}); err != nil {
-						return err
-					}
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "parse Location header")
-			}
-		}
-		return &wrapper, nil
-	case 400:
-		// Code 400.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response CreateTaskForBotWithProfileBadRequest
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 401:
-		// Code 401.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response CreateTaskForBotWithProfileUnauthorized
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 404:
-		// Code 404.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response CreateTaskForBotWithProfileNotFound
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 500:
-		// Code 500.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response CreateTaskForBotWithProfileInternalServerError
+			var response CreateBotInternalServerError
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -689,14 +490,40 @@ func decodeGetBotByIdResponse(resp *http.Response) (res GetBotByIdRes, _ error) 
 				}
 				return res, err
 			}
-			// Validate response.
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response GetBotByIdBadRequest
 			if err := func() error {
-				if err := response.Validate(); err != nil {
+				if err := response.Decode(d); err != nil {
 					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
 				}
 				return nil
 			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
 			}
 			return &response, nil
 		default:
@@ -844,15 +671,6 @@ func decodeGetBotProfilesResponse(resp *http.Response) (res GetBotProfilesRes, _
 				}
 				return res, err
 			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -966,162 +784,7 @@ func decodeGetBotProfilesResponse(resp *http.Response) (res GetBotProfilesRes, _
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
-func decodeGetTaskByIdResponse(resp *http.Response) (res GetTaskByIdRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response Task
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 401:
-		// Code 401.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response GetTaskByIdUnauthorized
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 404:
-		// Code 404.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response GetTaskByIdNotFound
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 500:
-		// Code 500.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response GetTaskByIdInternalServerError
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	}
-	return res, validate.UnexpectedStatusCodeWithResponse(resp)
-}
-
-func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) {
+func decodeListBotsResponse(resp *http.Response) (res ListBotsRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -1154,15 +817,6 @@ func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) 
 				}
 				return res, err
 			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
 			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
@@ -1181,7 +835,7 @@ func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response ListMyBotsUnauthorized
+			var response ListBotsUnauthorized
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1216,7 +870,7 @@ func decodeListMyBotsResponse(resp *http.Response) (res ListMyBotsRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response ListMyBotsInternalServerError
+			var response ListBotsInternalServerError
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -1355,6 +1009,193 @@ func decodeRemoveProfileFromBotResponse(resp *http.Response) (res RemoveProfileF
 	return res, validate.UnexpectedStatusCodeWithResponse(resp)
 }
 
+func decodeSearchBotsResponse(resp *http.Response) (res SearchBotsRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response BotList
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 400:
+		// Code 400.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response SearchBotsBadRequest
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 500:
+		// Code 500.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response SearchBotsInternalServerError
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
+func decodeSummaryBotsResponse(resp *http.Response) (res SummaryBotsRes, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response BotsSummary
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 500:
+		// Code 500.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response Error
+			if err := func() error {
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	}
+	return res, validate.UnexpectedStatusCodeWithResponse(resp)
+}
+
 func decodeUpdateBotByIdResponse(resp *http.Response) (res UpdateBotByIdRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
@@ -1387,15 +1228,6 @@ func decodeUpdateBotByIdResponse(resp *http.Response) (res UpdateBotByIdRes, _ e
 					Err:         err,
 				}
 				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
 			}
 			return &response, nil
 		default:

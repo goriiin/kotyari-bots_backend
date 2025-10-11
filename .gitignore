@@ -36,3 +36,10 @@ configs/docker-config.yaml
 
 __pycache__/
 *.pyc
+
+bin/
+dist/
+build/
+tmp/
+.DS_Store
+*.log
