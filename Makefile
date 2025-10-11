@@ -20,6 +20,9 @@ help:
 	@echo "api          - Сгенерировать Go-код из всех openapi.yml файлов."
 	@echo "install-ogen - Установить или обновить генератор кода ogen."
 
+network-up:
+	@echo "Creating public gateway network if it doesn't exist..."
+	@docker network create public-gateway-network || true
 
 PROTO_DIR := ./api/protos
 
@@ -43,8 +46,6 @@ $(ENTITIES):
 		$(PROTO_DIR)/$@/proto/*.proto
 	@echo "Генерация для $@ завершена."
 
-#proto-build:
-#	@echo "Entities: $(ENTITIES)"
 
 proto-build: $(ENTITIES)
 
@@ -98,7 +99,7 @@ format-check:
 
 check: lint format-check
 
-bots-up:
+bots-up: network-up
 	@echo "Starting bots service and dependencies..."
 	docker-compose -f docker-compose.bots.yml up -d --build
 

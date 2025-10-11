@@ -136,7 +136,6 @@ func (*Bot) updateBotByIdRes() {}
 // Ref: #/components/schemas/BotInput
 type BotInput struct {
 	Name               string    `json:"name"`
-	Email              string    `json:"email"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired OptBool   `json:"moderationRequired"`
 	AutoPublish        OptBool   `json:"autoPublish"`
@@ -145,11 +144,6 @@ type BotInput struct {
 // GetName returns the value of Name.
 func (s *BotInput) GetName() string {
 	return s.Name
-}
-
-// GetEmail returns the value of Email.
-func (s *BotInput) GetEmail() string {
-	return s.Email
 }
 
 // GetSystemPrompt returns the value of SystemPrompt.
@@ -170,11 +164,6 @@ func (s *BotInput) GetAutoPublish() OptBool {
 // SetName sets the value of Name.
 func (s *BotInput) SetName(val string) {
 	s.Name = val
-}
-
-// SetEmail sets the value of Email.
-func (s *BotInput) SetEmail(val string) {
-	s.Email = val
 }
 
 // SetSystemPrompt sets the value of SystemPrompt.
@@ -584,7 +573,6 @@ func (o OptString) Or(d string) string {
 type Profile struct {
 	ID           uuid.UUID `json:"id"`
 	Name         string    `json:"name"`
-	Email        string    `json:"email"`
 	SystemPrompt OptString `json:"systemPrompt"`
 }
 
@@ -596,11 +584,6 @@ func (s *Profile) GetID() uuid.UUID {
 // GetName returns the value of Name.
 func (s *Profile) GetName() string {
 	return s.Name
-}
-
-// GetEmail returns the value of Email.
-func (s *Profile) GetEmail() string {
-	return s.Email
 }
 
 // GetSystemPrompt returns the value of SystemPrompt.
@@ -616,11 +599,6 @@ func (s *Profile) SetID(val uuid.UUID) {
 // SetName sets the value of Name.
 func (s *Profile) SetName(val string) {
 	s.Name = val
-}
-
-// SetEmail sets the value of Email.
-func (s *Profile) SetEmail(val string) {
-	s.Email = val
 }
 
 // SetSystemPrompt sets the value of SystemPrompt.

@@ -2,6 +2,7 @@ package profiles_getter
 
 import (
 	"context"
+	"log"
 
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
@@ -9,15 +10,6 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
 )
 
-type ProfileGateway struct {
-	client profiles.ProfilesServiceClient
-}
-
-func NewProfileGateway(client profiles.ProfilesServiceClient) *ProfileGateway {
-	return &ProfileGateway{client: client}
-}
-
-// GetProfilesByIDs encapsulates the gRPC call logic.
 func (g *ProfileGateway) GetProfilesByIDs(ctx context.Context, ids []uuid.UUID) ([]model.Profile, error) {
 	if len(ids) == 0 {
 		return []model.Profile{}, nil
@@ -39,7 +31,7 @@ func (g *ProfileGateway) GetProfilesByIDs(ctx context.Context, ids []uuid.UUID) 
 	for _, p := range grpcResp.Profiles {
 		profileUUID, err := uuid.Parse(p.Id)
 		if err != nil {
-			// In a real scenario, you would log this inconsistency.
+			log.Printf("failed to parse profile UUID from gRPC response: %v", err)
 			continue
 		}
 		domainProfiles = append(domainProfiles, model.Profile{

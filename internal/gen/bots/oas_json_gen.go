@@ -423,10 +423,6 @@ func (s *BotInput) encodeFields(e *jx.Encoder) {
 		e.Str(s.Name)
 	}
 	{
-		e.FieldStart("email")
-		e.Str(s.Email)
-	}
-	{
 		if s.SystemPrompt.Set {
 			e.FieldStart("systemPrompt")
 			s.SystemPrompt.Encode(e)
@@ -446,12 +442,11 @@ func (s *BotInput) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfBotInput = [5]string{
+var jsonFieldsNameOfBotInput = [4]string{
 	0: "name",
-	1: "email",
-	2: "systemPrompt",
-	3: "moderationRequired",
-	4: "autoPublish",
+	1: "systemPrompt",
+	2: "moderationRequired",
+	3: "autoPublish",
 }
 
 // Decode decodes BotInput from json.
@@ -475,18 +470,6 @@ func (s *BotInput) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"name\"")
-			}
-		case "email":
-			requiredBitSet[0] |= 1 << 1
-			if err := func() error {
-				v, err := d.Str()
-				s.Email = string(v)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"email\"")
 			}
 		case "systemPrompt":
 			if err := func() error {
@@ -528,7 +511,7 @@ func (s *BotInput) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000011,
+		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -1745,10 +1728,6 @@ func (s *Profile) encodeFields(e *jx.Encoder) {
 		e.Str(s.Name)
 	}
 	{
-		e.FieldStart("email")
-		e.Str(s.Email)
-	}
-	{
 		if s.SystemPrompt.Set {
 			e.FieldStart("systemPrompt")
 			s.SystemPrompt.Encode(e)
@@ -1756,11 +1735,10 @@ func (s *Profile) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfProfile = [4]string{
+var jsonFieldsNameOfProfile = [3]string{
 	0: "id",
 	1: "name",
-	2: "email",
-	3: "systemPrompt",
+	2: "systemPrompt",
 }
 
 // Decode decodes Profile from json.
@@ -1796,18 +1774,6 @@ func (s *Profile) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"name\"")
 			}
-		case "email":
-			requiredBitSet[0] |= 1 << 2
-			if err := func() error {
-				v, err := d.Str()
-				s.Email = string(v)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"email\"")
-			}
 		case "systemPrompt":
 			if err := func() error {
 				s.SystemPrompt.Reset()
@@ -1828,7 +1794,7 @@ func (s *Profile) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00000011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

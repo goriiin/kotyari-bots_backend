@@ -50,7 +50,7 @@ services:
     # 2. Общей, для связи с другими сервисами (profiles_go).
     networks:
       - bots-internal-network
-#      - public-gateway-network
+      - public-gateway-network
     depends_on:
       bots_migrate:
         condition: service_completed_successfully
@@ -59,6 +59,8 @@ services:
 networks:
   bots-internal-network:
     driver: bridge
+  public-gateway-network:
+    external: true
 
 volumes:
   bots_pgdata:

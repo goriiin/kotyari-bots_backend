@@ -2,6 +2,7 @@ package bots
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
@@ -18,18 +19,11 @@ func (r *BotsRepository) List(ctx context.Context) ([]model.Bot, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	var res []model.Bot
-	for rows.Next() {
-		var b model.Bot
-		if err := rows.Scan(
-			&b.ID, &b.Name, &b.SystemPrompt, &b.ProfilesCount, &b.CreatedAt, &b.UpdateAt,
-		); err != nil {
-			return nil, err
-		}
-		res = append(res, b)
+	bots, err := pgx.CollectRows(rows, pgx.RowToStructByName[model.Bot])
+	if err != nil {
+		return nil, err
 	}
 
-	return res, rows.Err()
+	return bots, nil
 }
