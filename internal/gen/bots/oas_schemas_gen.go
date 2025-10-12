@@ -32,8 +32,8 @@ type Bot struct {
 	// Количество привязанных профилей.
 	ProfilesCount      int       `json:"profilesCount"`
 	SystemPrompt       OptString `json:"systemPrompt"`
-	ModerationRequired bool      `json:"moderationRequired"`
-	AutoPublish        OptBool   `json:"autoPublish"`
+	ModerationRequired OptBool   `json:"moderationRequired"`
+	AutoPublish        bool      `json:"autoPublish"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -64,12 +64,12 @@ func (s *Bot) GetSystemPrompt() OptString {
 }
 
 // GetModerationRequired returns the value of ModerationRequired.
-func (s *Bot) GetModerationRequired() bool {
+func (s *Bot) GetModerationRequired() OptBool {
 	return s.ModerationRequired
 }
 
 // GetAutoPublish returns the value of AutoPublish.
-func (s *Bot) GetAutoPublish() OptBool {
+func (s *Bot) GetAutoPublish() bool {
 	return s.AutoPublish
 }
 
@@ -109,12 +109,12 @@ func (s *Bot) SetSystemPrompt(val OptString) {
 }
 
 // SetModerationRequired sets the value of ModerationRequired.
-func (s *Bot) SetModerationRequired(val bool) {
+func (s *Bot) SetModerationRequired(val OptBool) {
 	s.ModerationRequired = val
 }
 
 // SetAutoPublish sets the value of AutoPublish.
-func (s *Bot) SetAutoPublish(val OptBool) {
+func (s *Bot) SetAutoPublish(val bool) {
 	s.AutoPublish = val
 }
 

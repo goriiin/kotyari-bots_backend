@@ -10,15 +10,15 @@ tags:
     description: "Операции, связанные с профилями пользователей."
 
 components:
-  securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: session_id
-    csrfAuth:
-      type: apiKey
-      in: header
-      name: X-CSRF-Token
+#  securitySchemes:
+#    cookieAuth:
+#      type: apiKey
+#      in: cookie
+#      name: session_id
+#    csrfAuth:
+#      type: apiKey
+#      in: header
+#      name: X-CSRF-Token
 
   schemas:
     Profile:
@@ -93,10 +93,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Profile'
-        nextCursor:
-          type: string
-          nullable: true
-          description: "Курсор для запроса следующей страницы. null, если это последняя страница."
+#        nextCursor:
+#          type: string
+#          nullable: true
+#          description: "Курсор для запроса следующей страницы. null, если это последняя страница."
       required:
         - data
       example:
@@ -113,7 +113,7 @@ components:
             prompt: "You are a skeptical tech critic."
             createdAt: "2023-10-27T12:00:00Z"
             updatedAt: "2023-10-27T12:00:00Z"
-        nextCursor: "eyJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMSIsImNyZWF0ZWRBdCI6IjIwMjMtMTAtMjdUMTI6MDA6MDBaIn0="
+#        nextCursor: "eyJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMSIsImNyZWF0ZWRBdCI6IjIwMjMtMTAtMjdUMTI6MDA6MDBaIn0="
 
     Error:
       type: object
@@ -146,22 +146,22 @@ components:
       schema:
         type: string
         format: uuid
-    PaginationCursor:
-      name: cursor
-      in: query
-      description: "Курсор для получения следующей страницы результатов."
-      schema:
-        type: string
-      example: "eyJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMSIsImNyZWF0ZWRBdCI6IjIwMjMtMTAtMjdUMTI6MDA6MDBaIn0="
-    PaginationLimit:
-      name: limit
-      in: query
-      description: "Максимальное количество результатов на странице."
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
+#    PaginationCursor:
+#      name: cursor
+#      in: query
+#      description: "Курсор для получения следующей страницы результатов."
+#      schema:
+#        type: string
+#      example: "eyJpZCI6IjEyM2U0NTY3LWU4OWItMTJkMy1hNDU2LTQyNjYxNDE3NDAwMSIsImNyZWF0ZWRBdCI6IjIwMjMtMTAtMjdUMTI6MDA6MDBaIn0="
+#    PaginationLimit:
+#      name: limit
+#      in: query
+#      description: "Максимальное количество результатов на странице."
+#      schema:
+#        type: integer
+#        minimum: 1
+#        maximum: 100
+#        default: 20
 
   responses:
     OK:
@@ -215,20 +215,20 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
 
-security:
-  - cookieAuth: []
-  - csrfAuth: []
+#security:
+#  - cookieAuth: []
+#  - csrfAuth: []
 
 paths:
-  /profiles:
+  /api/v1/profiles:
     get:
       summary: "Получить список своих профилей"
       description: "Возвращает пагинированный список профилей, принадлежащих текущему аутентифицированному аккаунту."
       operationId: "listMyProfiles"
       tags: ["Profiles"]
-      parameters:
-        - $ref: '#/components/parameters/PaginationCursor'
-        - $ref: '#/components/parameters/PaginationLimit'
+#      parameters:
+#        - $ref: '#/components/parameters/PaginationCursor'
+#        - $ref: '#/components/parameters/PaginationLimit'
       responses:
         '200':
           $ref: '#/components/responses/OKList'
@@ -259,7 +259,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /profiles/{profileId}:
+  /api/v1/profiles/{profileId}:
     get:
       summary: "Получить профиль по ID"
       description: "Получает один профиль по его ID. Доступ разрешен только если профиль принадлежит текущему аккаунту."

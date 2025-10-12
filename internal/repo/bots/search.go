@@ -2,6 +2,7 @@ package bots
 
 import (
 	"context"
+
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/jackc/pgx/v5"
 )

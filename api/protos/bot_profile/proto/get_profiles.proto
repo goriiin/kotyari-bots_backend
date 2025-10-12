@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package profiles;
 
-option go_package = "github.com/goriiin/kotyari-bots_backend/api/gen/grpc/profiles";
+option go_package = "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen";
 
 service ProfilesService {
   // Получает полную информацию о профилях по их ID.

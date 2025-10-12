@@ -13,21 +13,21 @@ type Handler interface {
 	// Создает новый профиль и связывает его с текущим
 	// аккаунтом.
 	//
-	// POST /profiles
+	// POST /api/v1/profiles
 	CreateMyProfile(ctx context.Context, req *ProfileInput) (CreateMyProfileRes, error)
 	// DeleteProfileById implements deleteProfileById operation.
 	//
 	// Удаляет профиль по его ID. Доступ разрешен только если
 	// профиль принадлежит текущему аккаунту.
 	//
-	// DELETE /profiles/{profileId}
+	// DELETE /api/v1/profiles/{profileId}
 	DeleteProfileById(ctx context.Context, params DeleteProfileByIdParams) (DeleteProfileByIdRes, error)
 	// GetProfileById implements getProfileById operation.
 	//
 	// Получает один профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// GET /profiles/{profileId}
+	// GET /api/v1/profiles/{profileId}
 	GetProfileById(ctx context.Context, params GetProfileByIdParams) (GetProfileByIdRes, error)
 	// ListMyProfiles implements listMyProfiles operation.
 	//
@@ -35,34 +35,32 @@ type Handler interface {
 	// принадлежащих текущему аутентифицированному
 	// аккаунту.
 	//
-	// GET /profiles
-	ListMyProfiles(ctx context.Context, params ListMyProfilesParams) (ListMyProfilesRes, error)
+	// GET /api/v1/profiles
+	ListMyProfiles(ctx context.Context) (ListMyProfilesRes, error)
 	// UpdateProfileById implements updateProfileById operation.
 	//
 	// Полностью обновляет профиль по его ID. Доступ разрешен
 	// только если профиль принадлежит текущему аккаунту.
 	//
-	// PUT /profiles/{profileId}
+	// PUT /api/v1/profiles/{profileId}
 	UpdateProfileById(ctx context.Context, req *ProfileInput, params UpdateProfileByIdParams) (UpdateProfileByIdRes, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and
 // calls Handler to handle requests.
 type Server struct {
-	h   Handler
-	sec SecurityHandler
+	h Handler
 	baseServer
 }
 
 // NewServer creates new Server.
-func NewServer(h Handler, sec SecurityHandler, opts ...ServerOption) (*Server, error) {
+func NewServer(h Handler, opts ...ServerOption) (*Server, error) {
 	s, err := newServerConfig(opts...).baseServer()
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
 		h:          h,
-		sec:        sec,
 		baseServer: s,
 	}, nil
 }

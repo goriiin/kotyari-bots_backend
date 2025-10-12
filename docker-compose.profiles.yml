@@ -1,0 +1,63 @@
+services:
+  profiles_db:
+    image: postgres:16-alpine
+    container_name: profiles_db
+    environment:
+      POSTGRES_USER: ${LOCAL_PROFILES_DATABASE_USER}
+      POSTGRES_PASSWORD: ${LOCAL_PROFILES_DATABASE_PASSWORD}
+      POSTGRES_DB: ${LOCAL_PROFILES_DATABASE_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - profiles_pgdata:/var/lib/postgresql/data
+    networks:
+      - profiles-internal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_PROFILES_DATABASE_USER} -d ${LOCAL_PROFILES_DATABASE_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  profiles_migrate:
+    build:
+      context: .
+      dockerfile: ./cmd/profiles/Dockerfile
+      target: migrator
+    container_name: profiles_migrate
+    image: profiles_migrate_image
+    env_file: .env
+    networks:
+      - profiles-internal-network
+    depends_on:
+      profiles_db:
+        condition: service_healthy
+    restart: on-failure
+
+  profiles_go:
+    build:
+      context: .
+      dockerfile: ./cmd/profiles/Dockerfile
+      target: prod
+    container_name: profiles_go
+    image: profiles_go_image
+    env_file: .env
+    ports:
+      - "8003:8003"
+      - "8002:8002"
+    networks:
+      - profiles-internal-network
+      - public-gateway-network
+    depends_on:
+      profiles_migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+networks:
+  profiles-internal-network:
+    driver: bridge
+  public-gateway-network:
+    external: true
+
+volumes:
+  profiles_pgdata:
