@@ -11,7 +11,7 @@ services:
     volumes:
       - profiles_pgdata:/var/lib/postgresql/data
     networks:
-      - microservices-network
+      - profiles-internal-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${LOCAL_PROFILES_DATABASE_USER} -d ${LOCAL_PROFILES_DATABASE_NAME}"]
       interval: 10s
@@ -28,7 +28,7 @@ services:
     image: profiles_migrate_image
     env_file: .env
     networks:
-      - microservices-network
+      - profiles-internal-network
     depends_on:
       profiles_db:
         condition: service_healthy
@@ -46,14 +46,17 @@ services:
       - "8003:8003"
       - "8002:8002"
     networks:
-      - microservices-network
+      - profiles-internal-network
+      - public-gateway-network
     depends_on:
       profiles_migrate:
         condition: service_completed_successfully
     restart: unless-stopped
 
 networks:
-  microservices-network:
+  profiles-internal-network:
+    driver: bridge
+  public-gateway-network:
     external: true
 
 volumes:

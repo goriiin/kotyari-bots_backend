@@ -21,6 +21,7 @@ func (s *Service) Create(ctx context.Context, name string, systemPromt string) (
 		ID:           uuid.New(),
 		Name:         name,
 		SystemPrompt: systemPromt,
+		ProfileIDs:   []uuid.UUID{},
 		CreatedAt:    time.Now(),
 		UpdateAt:     time.Now(),
 	}

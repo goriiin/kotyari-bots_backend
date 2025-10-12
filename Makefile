@@ -109,9 +109,17 @@ check: lint format-check
 up: copy-env setup-network
 	@echo "Starting services in parallel..."
 	@$(MAKE) bots-up & \
-	$(MAKE) profiles-up & \
+	 $(MAKE) profiles-up & \
 	wait
 	@echo "All services are up and running."
+
+# параллельно
+down:
+	@echo "Shutdown services in parallel..."
+	@$(MAKE) bots-down & \
+	 $(MAKE) profiles-down & \
+	wait
+	@echo "All services are up and stopped."
 
 bots-up: setup-network
 	@echo "Starting bots service and dependencies..."

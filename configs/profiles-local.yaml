@@ -4,9 +4,4 @@ profiles_api:
   grpc_port: 8002
 
 profiles_database:
-  host: "profiles_db"
-  port: 5432
-  user: "profiles_user"
-  password: "profiles_password"
-  name: "profiles_db"
   sslmode: "disable"

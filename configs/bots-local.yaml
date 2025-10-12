@@ -7,7 +7,7 @@ local_bots_grpc:
   port: 8002
 
 local_profiles_api:
-  host: "profiles"
+  host: "profiles_go"
   port: 8003
 
-local_profiles_svc_addr: "profiles:8003"
+local_profiles_svc_addr: "profiles_go:8002"

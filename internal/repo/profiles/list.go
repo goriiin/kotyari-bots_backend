@@ -2,6 +2,7 @@ package profiles
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
@@ -11,16 +12,11 @@ func (r *Repository) List(ctx context.Context) ([]model.Profile, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	var res []model.Profile
-	for rows.Next() {
-		var p model.Profile
-		if err = rows.Scan(&p.ID, &p.Name, &p.Email, &p.SystemPromt, &p.CreatedAt, &p.UpdatedAt); err != nil {
-			return nil, err
-		}
-		res = append(res, p)
+	dtos, err := pgx.CollectRows(rows, pgx.RowToStructByName[profileDTO])
+	if err != nil {
+		return nil, err
 	}
 
-	return res, rows.Err()
+	return toModels(dtos), nil
 }
