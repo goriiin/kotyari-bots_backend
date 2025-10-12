@@ -1,9 +1,10 @@
 package profiles
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	"time"
 )
 
 type profileDTO struct {

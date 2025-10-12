@@ -3,9 +3,9 @@ package profiles
 import "github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
 
 type Repository struct {
-	pool pool.DBPool
+	db pool.DBPool
 }
 
-func NewRepository(pool pool.DBPool) *Repository {
-	return &Repository{pool: pool}
+func NewRepository(db pool.DBPool) *Repository {
+	return &Repository{db: db}
 }

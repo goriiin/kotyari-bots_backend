@@ -10,7 +10,7 @@ import (
 )
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (model.Profile, error) {
-	rows, err := r.pool.Query(ctx, `SELECT id, name, email, system_prompt, created_at, updated_at FROM profiles WHERE id=$1`, id)
+	rows, err := r.db.Query(ctx, `SELECT id, name, email, system_prompt, created_at, updated_at FROM profiles WHERE id=$1`, id)
 	if err != nil {
 		return model.Profile{}, err
 	}
@@ -26,7 +26,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (model.Profile, 
 }
 
 func (r *Repository) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]model.Profile, error) {
-	rows, err := r.pool.Query(ctx, `SELECT id, name, email, system_prompt, created_at, updated_at FROM profiles WHERE id = ANY($1)`, ids)
+	rows, err := r.db.Query(ctx, `SELECT id, name, email, system_prompt, created_at, updated_at FROM profiles WHERE id = ANY($1)`, ids)
 	if err != nil {
 		return nil, err
 	}

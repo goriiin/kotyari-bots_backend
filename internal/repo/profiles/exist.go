@@ -8,7 +8,7 @@ import (
 
 // Реализация запроса к БД для проверки существования профилей
 func (r *Repository) Exist(ctx context.Context, ids []uuid.UUID) (map[string]bool, error) {
-	rows, err := r.pool.Query(ctx, `SELECT id FROM profiles WHERE id = ANY($1)`, ids)
+	rows, err := r.db.Query(ctx, `SELECT id FROM profiles WHERE id = ANY($1)`, ids)
 	if err != nil {
 		return nil, err
 	}
