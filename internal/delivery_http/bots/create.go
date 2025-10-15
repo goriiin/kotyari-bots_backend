@@ -12,7 +12,12 @@ func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateB
 		desc = v
 	}
 
-	created, err := h.u.Create(ctx, req.Name, desc)
+	var moderation bool
+	if v, ok := req.ModerationRequired.Get(); ok {
+		moderation = v
+	}
+
+	created, err := h.u.Create(ctx, req.Name, desc, moderation)
 	if err != nil {
 		return nil, err
 	}
