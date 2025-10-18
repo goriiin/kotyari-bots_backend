@@ -1,0 +1,57 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: intranet-redis
+    ports: ["6379:6379"]
+    volumes: [ "redis-data:/data" ]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: postgres_dev
+    environment:
+      POSTGRES_DB: ${GP_DB}
+      POSTGRES_USER: ${GP_USER}
+      POSTGRES_PASSWORD: ${GP_PASSWORD}
+    ports: ["54325:5432"]
+    volumes: [ "pg_data:/var/lib/postgresql/data" ]
+
+  dzen-parser:
+    build:
+      context: ..
+      dockerfile: intranet/dzen_url_parser/Dockerfile
+    env_file: [ .env ]
+    ports: ["8091:8091"]
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: ..
+      dockerfile: intranet/scheduler/Dockerfile
+    env_file: [ .env ]
+    ports: ["8090:8090"]
+    depends_on: [ dzen-parser ]
+
+  parser_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.parser
+    container_name: parser_app
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+    env_file: [ .env ]
+    shm_size: '2gb'
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  pg_data:

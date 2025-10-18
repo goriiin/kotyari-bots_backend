@@ -165,11 +165,15 @@ install-migrate:
 
 INTRANET_DIR := ./intranet
 
-intranet-up:
-	$(MAKE) -C $(INTRANET_DIR) up
+intranet-up-dev:
+	$(MAKE) -C $(INTRANET_DIR) up-dev
 
-intranet-down:
-	$(MAKE) -C $(INTRANET_DIR) down
+intranet-down-dev:
+	$(MAKE) -C $(INTRANET_DIR) down-dev
 
-intranet-parser-logs:
-	$(MAKE) -C $(INTRANET_DIR) parser-logs
+
+intranet-up-prod:
+	$(MAKE) -C $(INTRANET_DIR) up-prod
+
+intranet-down-prod:
+	$(MAKE) -C $(INTRANET_DIR) down-prod
