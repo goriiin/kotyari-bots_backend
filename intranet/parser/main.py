@@ -1,3 +1,4 @@
+import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 
@@ -38,24 +39,33 @@ class ParserOrchestrator:
             print("Получены данные без source_url.")
             return
 
+        # Идемпотентность: помечаем URL обработанным
         self.redis_client.mark_as_processed(url)
+
+        # Сохранение в БД (insert_article должен принимать category)
         self.storage_writer.insert_article(item_data)
         print(f"УСПЕШНО ОБРАБОТАНА И СОХРАНЕНА СТАТЬЯ: {item_data.get('title')}")
 
-    def worker(self, parser_class, target: str):
+    def worker(self, parser_class, target: str, category: str = None):
         thread_id = threading.get_ident()
         print(f"Воркер [{thread_id}] взял в работу таргет: {target}")
         parser_instance = None
         try:
             parser_instance = parser_class()
             results = parser_instance.parse(target)
+
             if isinstance(results, list):
                 for item in results:
                     if item.get("status") == "success":
+                        if category and "category" not in item:
+                            item["category"] = category
                         self.process_item(item)
             elif isinstance(results, dict):
                 if results.get("status") == "success":
+                    if category and "category" not in results:
+                        results["category"] = category
                     self.process_item(results)
+
         except Exception as err:
             print(f"Критическая ошибка при обработке {target}: {err}")
         finally:
@@ -67,12 +77,35 @@ class ParserOrchestrator:
         print(f"Начинаю прослушивание топиков: {', '.join(topics) if topics else 'Нет топиков для прослушивания'}")
         for message in self.redis_client.listen_for_messages(topics):
             topic = message['channel']
-            target = message['data']
+            raw = message['data']
+
+            # decode bytes -> str, если нужно
+            if isinstance(raw, (bytes, bytearray)):
+                try:
+                    raw = raw.decode('utf-8', 'ignore')
+                except Exception:
+                    pass
+
+            # По умолчанию считаем, что пришла строка-URL
+            target_url = raw
+            category = None
+
+            # Пытаемся распаковать JSON {"url": "...", "category": "..."}
+            if isinstance(raw, str):
+                try:
+                    obj = json.loads(raw)
+                    if isinstance(obj, dict):
+                        target_url = obj.get("url") or obj.get("source_url") or raw
+                        category = obj.get("category")
+                except Exception:
+                    # не JSON — оставляем target_url как есть
+                    pass
+
             parser_class = PARSER_MAPPING.get(topic)
-            if parser_class:
-                self.executor.submit(self.worker, parser_class, target)
+            if parser_class and target_url:
+                self.executor.submit(self.worker, parser_class, target_url, category)
             else:
-                print(f"Для топика '{topic}' не найден соответствующий парсер.")
+                print(f"Для топика '{topic}' не найден парсер или пустой таргет.")
 
 
 if __name__ == "__main__":

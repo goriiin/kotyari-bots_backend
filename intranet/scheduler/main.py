@@ -1,5 +1,5 @@
 import grpc
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
@@ -23,26 +23,15 @@ def run_scheduled_parsing():
         print(f"Scheduled job failed with error: {e}")
 
 @app.post("/trigger-parsing", summary="Manually trigger the parsing service")
-async def manual_trigger():
-
+async def manual_trigger(bg: BackgroundTasks):
     print("Manual trigger received.")
-    try:
-        trigger_grpc_parsing()
-    except grpc.RpcError as e:
-        # Convert a gRPC error into a user-friendly HTTP 503 Service Unavailable error.
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to connect to parser service: {e}"
-        )
-    except Exception as e:
-        # Catch any other unexpected errors and return a 500 Internal Server Error.
-        print(f"An unexpected error occurred: {e}")
-        raise HTTPException(status_code=500, detail="An internal server error occurred.")
+    # run in background to avoid blocking HTTP response
+    bg.add_task(trigger_grpc_parsing)
+    return {"status": "accepted"}
 
 # --- Scheduler Setup ---
 @app.on_event("startup")
 async def startup_event():
-
     print("Scheduler starting...")
     scheduler.add_job(
         run_scheduled_parsing,
@@ -50,6 +39,9 @@ async def startup_event():
         id="parsing_job",
         name="Trigger gRPC parsing every 20 minutes",
         replace_existing=True,
+        coalesce=True,
+        max_instances=1,
+        misfire_grace_time=300,
     )
     scheduler.start()
     print("Scheduler started. Job 'parsing_job' is scheduled every 20 minutes.")

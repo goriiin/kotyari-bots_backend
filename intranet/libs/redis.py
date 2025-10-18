@@ -4,15 +4,17 @@ from typing import List, Generator, Optional
 
 import redis
 
+
 class PublisherInterface(ABC):
     """Интерфейс для публикации новых задач."""
 
     @abstractmethod
-    def publish(self, topic: str, url: str) -> bool:
+    def publish(self, topic: str, url: str, payload: Optional[str] = None) -> bool:
         """
-        Публикует URL в указанный топик, если он еще не был обработан.
+        Публикует URL (или произвольный payload) в указанный топик, если URL ещё не был обработан.
         :param topic: Канал (топик) для публикации.
-        :param url: URL для проверки и публикации.
+        :param url: Базовый URL для проверки идемпотентности (ключ в ZSET).
+        :param payload: Произвольная строка сообщения; если не задано, публикуется сам url.
         :return: True, если URL был новым и успешно опубликован, иначе False.
         """
         pass
@@ -44,37 +46,49 @@ class RedisClient(PublisherInterface, SubscriberInterface):
     """
 
     def __init__(self, host: str, port: int, processed_urls_key: str,
-                 username: Optional[str] = None, password: Optional[str] = None):
+                 username: Optional[str], password: Optional[str]):
         self.processed_urls_key = processed_urls_key
         try:
-            self._conn = redis.Redis(
-                host=host,
-                port=port,
-                decode_responses=True,
-                username=username,
-                password=password
-            )
+            conn_params = {
+                "host": host,
+                "port": port,
+                "decode_responses": True,
+            }
+            if username:
+                conn_params["username"] = username
+            if password:
+                conn_params["password"] = password
+
+            self._conn = redis.Redis(**conn_params)
             self._conn.ping()
             print(f"[RedisClient] Успешное подключение к Redis ({host}:{port}).")
         except redis.exceptions.AuthenticationError:
-            print(f"[RedisClient] КРИТИЧЕСКАЯ ОШИБКА: Неверный логин или пароль для Redis!")
+            print("[RedisClient] КРИТИЧЕСКАЯ ОШИБКА: Неверный логин или пароль для Redis!")
             raise
         except redis.exceptions.ConnectionError as e:
             print(f"[RedisClient] Не удалось подключиться к Redis: {e}")
             raise
+
+    def publish(self, topic: str, url: str, payload: Optional[str] = None) -> bool:
+        # Идемпотентность по url
+        if self._conn.zscore(self.processed_urls_key, url) is not None:
+            return False
+        message = payload if payload is not None else url
+        published = self._conn.publish(topic, message)
+        if published > 0:
+            # Отметка как обработанного
+            self._conn.zadd(self.processed_urls_key, {url: float(time.time())})
+            return True
+        return False
+
+    def subscribe(self, topics: List[str]):
+        pubsub = self._conn.pubsub()
+        pubsub.subscribe(*topics)
+        return pubsub
+
     def _is_url_processed(self, url: str) -> bool:
         """Внутренний метод для проверки существования URL в ZSET."""
         return self._conn.zscore(self.processed_urls_key, url) is not None
-
-    def publish(self, topic: str, url: str) -> bool:
-        """Сначала проверяет URL, затем публикует."""
-        if self._is_url_processed(url):
-            print(f"[Publisher] URL уже существует в ZSET, публикация отменена: {url}")
-            return False
-
-        subscribers_count = self._conn.publish(topic, url)
-        print(f"[Publisher] URL опубликован в топик '{topic}'. Слушателей: {subscribers_count}. URL: {url}")
-        return True
 
     def listen_for_messages(self, topics: List[str]) -> Generator:
         """Подписывается на топики и возвращает генератор сообщений."""
@@ -118,13 +132,13 @@ class MockRedisClient(PublisherInterface, SubscriberInterface):
         for url in initial_urls:
             self._message_queue.append({'channel': 'dzen', 'data': url})
 
-    def publish(self, topic: str, url: str) -> bool:
+    def publish(self, topic: str, url: str, payload: Optional[str] = None) -> bool:
         """Имитирует публикацию, добавляя сообщение в очередь."""
         if url in self._processed_urls:
             print(f"[MockPublisher] URL уже существует, публикация отменена: {url}")
             return False
 
-        message = {'channel': topic, 'data': url}
+        message = {'channel': topic, 'data': payload if payload is not None else url}
         self._message_queue.append(message)
         print(f"[MockPublisher] URL добавлен в очередь для топика '{topic}': {url}")
         return True

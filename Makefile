@@ -177,3 +177,6 @@ intranet-up-prod:
 
 intranet-down-prod:
 	$(MAKE) -C $(INTRANET_DIR) down-prod
+
+intranet-deps:
+	$(MAKE) -C $(INTRANET_DIR) deps
