@@ -1,89 +1,141 @@
+from __future__ import annotations
+
 import time
+from typing import Set, List
+from urllib.parse import urlparse, urlunparse
+
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from urllib.parse import urlparse
+from selenium.webdriver.remote.webdriver import WebDriver
 
 from .config import settings
 
-def _get_webdriver() -> webdriver.Chrome:
-    """Configures and returns a headless Chrome WebDriver instance."""
-    options = webdriver.ChromeOptions()
-    # ALL of these arguments are important for running in Docker
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage") # Crucial for stability in Docker
-    options.add_argument("--disable-gpu") # Often helps in environments without a dedicated GPU
-    # options.add_argument("--window-size=1920,1080") # Set a reasonable window size
-    options.add_argument("--log-level=3")
-    options.add_argument(
-        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    )
-    options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
 
-    # When running in Docker, we now use the system's pre-installed chromedriver.
-    # The default path is usually /usr/bin/chromedriver.
-    # Selenium's Service() will find it automatically if it's in the system PATH.
-
-    chromedriver_path = "/usr/bin/chromedriver"
-    service = Service(executable_path=chromedriver_path)
-
-    return webdriver.Chrome(service=service, options=options)
-
-def parse_dzen_for_links() -> list[str]:
+def _normalize_dzen_article_url(href: str) -> str | None:
     """
-    Iterates through a list of Dzen topic URLs, scrolls each one to load
-    dynamic content, and parses them to extract unique article links.
+    Нормализует ссылки статей Дзен к виду:
+      https://dzen.ru/a/<id>
+    Отбрасывает query/fragment, пропускает не-article ссылки.
+    """
+    try:
+        p = urlparse(href)
+        # Разрешаем абсолютные ссылки на dzen.ru/a/<...>
+        if p.scheme in ("http", "https") and p.netloc.endswith("dzen.ru"):
+            # Прямые статьи
+            if p.path.startswith("/a/"):
+                clean = p._replace(query="", fragment="")
+                return urlunparse(clean)
 
-    Returns:
-        A list of all unique URL strings found across all pages.
+        # Витринные ссылки иногда попадают относительными, проверим такой случай
+        if href.startswith("/a/"):
+            return f"https://dzen.ru{href.split('?')[0]}"
+
+        # Игнорируем away?to=... (внешние ссылки) и иные разделы
+        return None
+    except Exception:
+        return None
+
+
+def _collect_links_from_html(html: str) -> List[str]:
+    """
+    Извлекает ссылки на статьи из HTML:
+    1) Сначала — по ожидаемым data-testid у карточек.
+    2) Fallback — любые якоря вида https(s)://dzen.ru/a/<...> и относительные /a/<...>.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+
+    found: List[str] = []
+
+    # Карточки витрины — разные варианты data-testid на ленте/топиках
+    a_candidates = []
+    for dtid in ("card-article-link", "card-article-title-link"):
+        a_candidates.extend(soup.find_all("a", attrs={"data-testid": dtid}))
+
+    # Иногда карточка — это <article data-testid="floor-image-card"> с <a data-testid="card-article-link">
+    for article in soup.find_all(attrs={"data-testid": "floor-image-card"}):
+        a = article.find("a", attrs={"data-testid": "card-article-link"})
+        if a is not None:
+            a_candidates.append(a)
+
+    # Дополнительные карточки в адаптивной сетке топиков
+    for wrap in soup.find_all(attrs={"data-testid": "card-part-title"}):
+        parent = wrap.parent
+        if parent:
+            a = parent.find("a", attrs={"data-testid": "card-article-title-link"})
+            if a is not None:
+                a_candidates.append(a)
+
+    # Сбор href из карточек
+    for a in a_candidates:
+        href = a.get("href")
+        if not href:
+            continue
+        norm = _normalize_dzen_article_url(href)
+        if norm:
+            found.append(norm)
+
+    # Fallback — любые <a href="...">, совпадающие с шаблоном статей
+    if not found:
+        for a in soup.find_all("a", href=True):
+            norm = _normalize_dzen_article_url(a["href"])
+            if norm:
+                found.append(norm)
+
+    # Дедуп в порядке появления
+    seen: Set[str] = set()
+    uniq: List[str] = []
+    for url in found:
+        if url not in seen:
+            uniq.append(url)
+            seen.add(url)
+
+    if settings.DEBUG_LOG_SELECTORS:
+        # Печатаем первые ссылки для диагностики
+        preview = ", ".join(uniq[:3])
+        print(f"[parser.debug] collected={len(uniq)} preview=[{preview}]")
+
+    return uniq
+
+
+def _scroll_page(driver: WebDriver, count: int, delay_seconds: int) -> None:
+    """
+    Скроллит страницу вниз count раз с задержкой, чтобы подгрузить карточки.
+    """
+    for i in range(count):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(delay_seconds)
+        if settings.DEBUG_LOG_SELECTORS:
+            print(f"[parser.debug] Scrolling down... ({i+1}/{count})")
+
+
+def _extract_category_from_topic_url(u: str) -> str | None:
+    p = urlparse(u)
+    path = (p.path or "/").rstrip("/")
+    if not path or path == "/":
+        return None
+    return path.split("/")[-1]  # 'travel' для /topic/travel, 'articles' для /articles
+
+
+def parse_dzen_for_links_with_category(driver: WebDriver) -> list[dict]:
+    """
+    Парсит набор витрин/топиков из настроек, скроллит и собирает ссылки статей,
+    возвращая список словарей {"url": ..., "category": ...}.
+    ВНИМАНИЕ: управление жизненным циклом driver оставлено вызывающему (gRPC слою).
     """
     print("Starting Dzen parsing process for all configured URLs...")
-    driver = None
-    all_unique_links = set()
-
+    unique: dict[str, str] = {}  # url -> category (первая встретившаяся)
     try:
-        driver = _get_webdriver()
-
         for topic_url in settings.DZEN_ARTICLES_URLs:
-            print("-" * 50)
-            print(f"Navigating to topic: {topic_url}")
-
+            category = _extract_category_from_topic_url(topic_url)
             driver.get(topic_url)
-            time.sleep(5)
-
-            for i in range(settings.DZEN_SCROLL_COUNT):
-                print(f"Scrolling down... ({i + 1}/{settings.DZEN_SCROLL_COUNT})")
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(settings.DZEN_SCROLL_DELAY_SECONDS)
-
-            # Parse the page source
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
-            article_cards = soup.find_all('div', attrs={'data-testid': 'article-showcase-card'})
-
-            found_on_page = 0
-            for card in article_cards:
-                link_tag = card.find('a', attrs={'data-testid': 'card-article-link'})
-                if link_tag and link_tag.has_attr('href'):
-                    href = link_tag['href']
-                    parsed_url = urlparse(href)
-                    clean_link = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
-
-                    if clean_link not in all_unique_links:
-                        all_unique_links.add(clean_link)
-                        found_on_page += 1
-
-            print(f"Found {found_on_page} new unique links on this page.")
-
-        print("-" * 50)
-        print(f"Parsing complete. Found a total of {len(all_unique_links)} unique article links.")
-        return list(all_unique_links)
-
+            time.sleep(5)  # базовая стабилизация после загрузки
+            _scroll_page(driver, settings.DZEN_SCROLL_COUNT, settings.DZEN_SCROLL_DELAY_SECONDS)
+            urls = _collect_links_from_html(driver.page_source)
+            for u in urls:
+                # сохраняем первую встретившуюся категорию
+                if u not in unique:
+                    unique[u] = category
+        items = [{"url": u, "category": c} for u, c in unique.items()]
+        return items
     except Exception as e:
-        print(f"An error occurred during parsing: {e}")
+        print(f"[parser] error during parsing: {e}")
         return []
-    finally:
-        if driver:
-            print("Closing WebDriver.")
-            driver.quit()
