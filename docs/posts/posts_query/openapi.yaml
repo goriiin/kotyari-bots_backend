@@ -1,0 +1,74 @@
+openapi: 3.0.0
+info:
+  title: "Posts Service"
+  description: "API для работы с постами."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8002
+tags:
+  - name: "Posts"
+    description: "Операции для управления постами."
+
+# --------------------------------------------------------------
+# Компоненты API
+# --------------------------------------------------------------
+components:
+  # -------------------- Безопасность --------------------
+  #  securitySchemes:
+  #    cookieAuth:
+  #      type: apiKey
+  #      in: cookie
+  #      name: session_id
+  #    csrfAuth:
+  #      type: apiKey
+  #      in: header
+  #      name: X-CSRF-Token
+
+# --------------------------------------------------------------
+# Глобальные требования безопасности
+# --------------------------------------------------------------
+#security:
+#  - cookieAuth: []
+#  - csrfAuth: []
+
+# --------------------------------------------------------------
+# Пути (Эндпоинты) API
+# --------------------------------------------------------------
+paths:
+  /api/v1/posts:
+    get:
+      summary: "Получить список постов"
+      operationId: "listPosts"
+      tags: ["Posts"]
+      responses:
+        '200':
+          description: "Успешный ответ со списком постов."
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/PostList'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'
+
+  /api/v1/posts/{postId}:
+    get:
+      summary: "Получить пост по ID"
+      operationId: "getPostById"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '../common/parameters.yaml#/PostID'
+      responses:
+        '200':
+          description: "Успешный ответ с данными поста."
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/Post'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'

@@ -16,7 +16,7 @@ func main() {
 	config.WatchConfig(func() {
 		newPostsCfg, err := config.NewWithConfig[posts.PostsAppCfg](local)
 		if err != nil {
-			log.Fatalf("error parsing posts config in runtime: %s", err.Error())
+			log.Fatalf("error parsing postsApp config in runtime: %s", err.Error())
 			return
 		}
 
@@ -34,12 +34,12 @@ func main() {
 		proxyCfg = newProxyCfg
 	})
 
-	posts, err := posts.NewPostsApp(postsCfg, proxyCfg)
+	postsApp, err := posts.NewPostsApp(postsCfg, proxyCfg)
 	if err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 
-	if err := posts.Run(); err != nil {
+	if err := postsApp.Run(); err != nil {
 		log.Fatalf("%s", err.Error())
 	}
 }

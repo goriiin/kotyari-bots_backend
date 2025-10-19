@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package posts;
+
+option go_package = "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen";
+
+service PostsService {
+  rpc GetPost(GetPostRequest) returns (GetPostResponse);
+  rpc GetPostsBatch(GetPostsRequest) returns (GetPostsResponse);
+}
+
+message GetPostRequest {
+  string user_prompt = 1;
+  string profile_prompt = 2;
+  string bot_prompt = 3;
+}
+
+message GetPostResponse {
+  string post_title = 1;
+  string post_text = 2;
+}
+
+message GetPostsRequest {
+  repeated GetPostRequest posts_request = 1;
+}
+
+message GetPostsResponse {
+  repeated GetPostResponse posts_response = 1;
+}

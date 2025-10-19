@@ -1,0 +1,8 @@
+PostID:
+  name: postId
+  in: path
+  required: true
+  description: "Уникальный идентификатор поста."
+  schema:
+    type: integer
+    format: uuid

@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-faster/errors"
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
+	postssgen "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -15,9 +16,11 @@ var clientNotInitializedErr = errors.New("client not initialized")
 type PostsGRPCClient struct {
 	botsConn     *grpc.ClientConn
 	profilesConn *grpc.ClientConn
+	postsConn    *grpc.ClientConn
 
 	Bots     botsgen.BotServiceClient
 	Profiles profilesgen.ProfileServiceClient
+	Posts    postssgen.PostsServiceClient
 	config   PostsGRPCClientAppConfig
 }
 
@@ -31,15 +34,21 @@ func NewPostsGRPCClient(config *PostsGRPCClientAppConfig) (*PostsGRPCClient, err
 
 	profilesConn, err := grpc.NewClient(config.ProfilesAddr, creds)
 	if err != nil {
-		_ = botsConn.Close()
+		return nil, errors.Wrap(err, "failed to create profiles service client")
+	}
+
+	postsConn, err := grpc.NewClient(config.PostsAddr, creds)
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to create profiles service client")
 	}
 
 	c := &PostsGRPCClient{
 		botsConn:     botsConn,
 		profilesConn: profilesConn,
+		postsConn:    postsConn,
 		Bots:         botsgen.NewBotServiceClient(botsConn),
 		Profiles:     profilesgen.NewProfileServiceClient(profilesConn),
+		Posts:        postssgen.NewPostsServiceClient(postsConn),
 		config:       *config,
 	}
 	return c, nil
@@ -50,7 +59,7 @@ func (c *PostsGRPCClient) Close() error {
 		return nil
 	}
 
-	return errors.Join(c.botsConn.Close(), c.profilesConn.Close())
+	return errors.Join(c.botsConn.Close(), c.profilesConn.Close(), c.postsConn.Close())
 }
 
 func (c *PostsGRPCClient) GetBot(ctx context.Context, id string, opts ...grpc.CallOption) (*botsgen.Bot, error) {
@@ -72,4 +81,15 @@ func (c *PostsGRPCClient) BatchGetProfiles(ctx context.Context, ids []string, op
 		return nil, clientNotInitializedErr
 	}
 	return c.Profiles.BatchGetProfiles(ctx, &profilesgen.BatchGetProfilesRequest{Id: ids}, opts...)
+}
+
+func (c *PostsGRPCClient) GetPost(ctx context.Context, userPrompt, profilePrompt, botPrompt string, opts ...grpc.CallOption) (*postssgen.GetPostResponse, error) {
+	if c == nil || c.Posts == nil {
+		return nil, clientNotInitializedErr
+	}
+	return c.Posts.GetPost(ctx, &postssgen.GetPostRequest{
+		UserPrompt:    userPrompt,
+		ProfilePrompt: profilePrompt,
+		BotPrompt:     botPrompt,
+	}, opts...)
 }

@@ -1,11 +1,11 @@
 package posts
 
 import (
-	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts"
+	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
-func modelToHttp(post model.Post) *gen.Post {
+func ModelToHttp(post model.Post) *gen.Post {
 	var postType gen.OptNilPostPostType
 	if post.Type != "" {
 		postType = gen.NewOptNilPostPostType(gen.PostPostType(post.Type))
@@ -28,16 +28,16 @@ func modelToHttp(post model.Post) *gen.Post {
 	}
 }
 
-func modelSliceToHttpSlice(posts []model.Post) []gen.Post {
+func ModelSliceToHttpSlice(posts []model.Post) []gen.Post {
 	var httpPosts []gen.Post
 	for _, p := range posts {
-		httpPosts = append(httpPosts, *modelToHttp(p))
+		httpPosts = append(httpPosts, *ModelToHttp(p))
 	}
 
 	return httpPosts
 }
 
-func httpInputToModel(input gen.PostInput) (*model.Post, string) {
+func HttpInputToModel(input gen.PostInput) (*model.Post, string) {
 	var postType model.PostType
 	if !input.PostType.Null {
 		postType = model.PostType(input.PostType.Value)

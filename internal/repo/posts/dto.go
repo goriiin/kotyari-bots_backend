@@ -20,7 +20,7 @@ type PostDTO struct {
 	UpdatedAt time.Time   `db:"updated_at"`
 }
 
-func (d PostDTO) toModel() model.Post {
+func (d PostDTO) ToModel() model.Post {
 	var postType model.PostType
 	if d.Type.Valid {
 		postType = model.PostType(d.Type.String)
@@ -46,17 +46,17 @@ type CategoryDTO struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func (d CategoryDTO) toModel() model.Category {
+func (d CategoryDTO) ToModel() model.Category {
 	return model.Category{
 		ID:   d.ID,
 		Name: d.Name,
 	}
 }
 
-func categoriesDtoToModel(categories []CategoryDTO) []model.Category {
+func CategoriesDtoToModel(categories []CategoryDTO) []model.Category {
 	modelCategories := make([]model.Category, 0, len(categories))
 	for _, category := range categories {
-		modelCategories = append(modelCategories, category.toModel())
+		modelCategories = append(modelCategories, category.ToModel())
 	}
 
 	return modelCategories

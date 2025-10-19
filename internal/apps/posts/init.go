@@ -5,9 +5,9 @@ import (
 
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/grok_client"
-	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
+	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts"
-	postsRepoLib "github.com/goriiin/kotyari-bots_backend/internal/repo/posts"
+	postsRepoLib "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 	"github.com/goriiin/kotyari-bots_backend/pkg/proxy"
 )
@@ -44,7 +44,7 @@ func NewPostsApp(appCfg *PostsAppCfg, proxyCfg *proxy.ProxyConfig) (*PostsApp, e
 	}
 
 	postsRepo := postsRepoLib.NewPostsRepo(pgxPool)
-	postsDelivery := posts.NewPostsHandler(postsRepo, nil, grokClient)
+	postsDelivery := posts_command.NewPostsHandler(postsRepo, nil, grokClient)
 
 	return &PostsApp{
 		appCfg: appCfg,

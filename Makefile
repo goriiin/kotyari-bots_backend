@@ -2,7 +2,9 @@ DOCKER_NETWORK := public-gateway-network
 
 defalut: help
 
-SERVICES := $(shell find ./docs -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
+SERVICES := $(shell find ./docs -mindepth 2 -maxdepth 3 -type f -name 'openapi.yaml' -print \
+                              | sed -e 's|^./docs/||' -e 's|/openapi.yaml$$||' | sort -u)
+
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 
 .PHONY: help up down reboot test
@@ -79,12 +81,17 @@ define generate-service
 	@echo "--- Генерирую код для сервиса: $(1) ---"
 	$(eval INPUT_FILE := ./docs/$(1)/openapi.yaml)
 	$(eval OUTPUT_DIR := ./internal/gen/$(1))
+	$(eval PKG := $(notdir $(1))) # e.g., posts_1
+	$(eval OGEN_CFG  := ./docs/ogen-config.yaml)
 	@if [ ! -f "$(INPUT_FILE)" ]; then \
 		echo "Ошибка: Файл спецификации $(INPUT_FILE) не найден!"; \
 		exit 1; \
 	fi
-	ogen --target "$(OUTPUT_DIR)" --package "$(1)" -clean "$(INPUT_FILE)"
+
+	@mkdir -p "$(OUTPUT_DIR)"
+	ogen --config "$(OGEN_CFG)" --target "$(OUTPUT_DIR)" --package "$(PKG)" -clean "$(INPUT_FILE)"
 endef
+
 
 download-lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.3.1

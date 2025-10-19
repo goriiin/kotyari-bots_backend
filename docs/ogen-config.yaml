@@ -1,0 +1,4 @@
+parser:
+  allow_remote: true    # allow resolving external file refs
+  infer_types: true     # optional: infer types from schema structure
+  depth_limit: 1000     # optional: generation depth limit
