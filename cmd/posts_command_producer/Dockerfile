@@ -2,7 +2,7 @@ FROM golang:1.25-alpine3.22 AS build
 
 WORKDIR /var/backend
 
-COPY cmd/posts/main.go main.go
+COPY cmd/posts_command_producer/main.go main.go
 COPY . .
 
 #RUN apk add git
@@ -27,6 +27,6 @@ RUN mkdir -p /app/internal/configs
 COPY configs app/configs
 
 WORKDIR /app
-EXPOSE 8002
+EXPOSE 8088
 
 ENTRYPOINT exec ./main --env=local --config="./configs/docker-config.yaml"

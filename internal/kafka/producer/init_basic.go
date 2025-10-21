@@ -22,8 +22,6 @@ func NewKafkaProducer(config *kafkaConfig.KafkaConfig) *KafkaProducer {
 	}
 }
 
-func (k *KafkaProducer) Publish(ctx context.Context, message []byte) error {
-	return k.writer.WriteMessages(ctx, kafka.Message{
-		Value: message,
-	})
+func (k *KafkaProducer) Publish(ctx context.Context, message kafka.Message) error {
+	return k.writer.WriteMessages(ctx, message)
 }

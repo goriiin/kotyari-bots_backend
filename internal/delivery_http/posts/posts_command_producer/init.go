@@ -1,13 +1,20 @@
-package posts_command
+package posts_command_producer
 
 import (
 	"context"
+	"time"
 
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
 	postssgen "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
+	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"google.golang.org/grpc"
 )
+
+type producer interface {
+	Publish(ctx context.Context, env kafkaConfig.Envelope) error
+	Request(ctx context.Context, env kafkaConfig.Envelope, timeout time.Duration) ([]byte, error)
+}
 
 type postsGenerator interface {
 	GetPost(ctx context.Context, userPrompt, profilePrompt, botPrompt string, opts ...grpc.CallOption) (*postssgen.GetPostResponse, error)
@@ -25,16 +32,17 @@ type botsFetcher interface {
 type botsAndProfilesFetcher interface {
 	profilesFetcher
 	botsFetcher
+	postsGenerator
 }
 
 type PostsCommandHandler struct {
-	generator postsGenerator
-	fetcher   botsAndProfilesFetcher
+	fetcher  botsAndProfilesFetcher
+	producer producer
 }
 
-func NewPostsHandler(generator postsGenerator, fetcher botsAndProfilesFetcher) *PostsCommandHandler {
+func NewPostsHandler(fetcher botsAndProfilesFetcher, producer producer) *PostsCommandHandler {
 	return &PostsCommandHandler{
-		generator: generator,
-		fetcher:   fetcher,
+		fetcher:  fetcher,
+		producer: producer,
 	}
 }

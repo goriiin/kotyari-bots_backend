@@ -128,6 +128,37 @@ services:
       api_integrations:
         condition: service_healthy
 
+  posts_command_prod_go:
+    build:
+      context: .
+      dockerfile: ./cmd/posts_command_producer/Dockerfile
+    ports:
+      - "8088:8088"
+    image: posts_command_prod-go-image
+    container_name: posts_command_prod_go
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  posts_command_cons_go:
+    build:
+      context: .
+      dockerfile: ./cmd/posts_command_consumer/Dockerfile
+    image: posts_command_cons-go-image
+    container_name: posts_command_cons_go
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+      posts_db:
+        condition: service_healthy
+
   posts_go:
     build:
       context: .

@@ -1,4 +1,4 @@
-package posts
+package posts_command_producer
 
 import (
 	"fmt"
@@ -7,33 +7,34 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
-	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts"
+	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 )
 
-func (p *PostsApp) Run() error {
-	if err := p.startHTTPServer(p.http); err != nil {
+func (p *PostsCommandProducerApp) Run() error {
+	if err := p.startHTTPServer(p.handler); err != nil {
 		log.Printf("Error happened starting server %v", err)
 		return err
 	}
 	return nil
 }
 
-func (p *PostsApp) startHTTPServer(handler gen.Handler) error {
+func (p *PostsCommandProducerApp) startHTTPServer(handler gen.Handler) error {
 	svr, err := gen.NewServer(handler)
 	if err != nil {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}
 
-	httpAddr := fmt.Sprintf("%s:%d", p.appCfg.API.Host, p.appCfg.API.Port)
+	// TODO: XDDD
+	//httpAddr := fmt.Sprintf("%s:%d", p.appCfg.API.Host, p.appCfg.API.Port)
 	httpServer := &http.Server{
-		Addr:         httpAddr,
+		Addr:         "localhost:8088",
 		Handler:      svr,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
-	log.Printf("PostsApp HTTP service listening on %s", httpAddr)
+	log.Printf("PostsApp HTTP service listening on %s", "localhost:8088")
 	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http server exited with error: %w", err)
 	}

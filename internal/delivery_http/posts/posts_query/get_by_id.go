@@ -16,5 +16,5 @@ func (p *PostsQueryHandler) GetPostById(ctx context.Context, params gen.GetPostB
 		return &gen.GetPostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 
-	return posts.ModelToHttp(post), nil
+	return posts.QueryModelToHttp(post), nil
 }

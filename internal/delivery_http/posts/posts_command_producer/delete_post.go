@@ -1,4 +1,4 @@
-package posts_command
+package posts_command_producer
 
 import (
 	"context"
