@@ -17,6 +17,7 @@ import (
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/profiles"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/profiles"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/profiles"
+	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -107,7 +108,7 @@ func (p *ProfilesApp) startHTTPServer(ctx context.Context, handler gen.Handler) 
 	httpAddr := fmt.Sprintf("%s:%d", p.config.API.Host, p.config.API.Port)
 	p.httpServer = &http.Server{
 		Addr:    httpAddr,
-		Handler: svr,
+		Handler: cors.New().Handler(svr),
 	}
 
 	log.Printf("Profiles HTTP service listening on %s", httpAddr)
