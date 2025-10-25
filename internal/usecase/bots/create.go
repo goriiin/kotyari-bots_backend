@@ -12,17 +12,17 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
-func (s *Service) Create(ctx context.Context, name string, systemPromt string, moderation bool) (model.Bot, error) {
-	name = strings.TrimSpace(name)
-	if name == "" {
+func (s *Service) Create(ctx context.Context, bot model.Bot) (model.Bot, error) {
+	bot.Name = strings.TrimSpace(bot.Name)
+	if bot.Name == "" {
 		return model.Bot{}, errors.Join(constants.ErrValidation, fmt.Errorf("%w: name", constants.ErrRequired))
 	}
 	b := model.Bot{
 		ID:                 uuid.New(),
-		Name:               name,
-		SystemPrompt:       systemPromt,
-		ProfileIDs:         []uuid.UUID{},
-		ModerationRequired: moderation,
+		Name:               bot.Name,
+		SystemPrompt:       bot.SystemPrompt,
+		ProfileIDs:         bot.ProfileIDs,
+		ModerationRequired: bot.ModerationRequired,
 		CreatedAt:          time.Now(),
 		UpdateAt:           time.Now(),
 	}

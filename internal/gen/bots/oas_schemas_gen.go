@@ -33,7 +33,6 @@ type Bot struct {
 	ProfilesCount      int       `json:"profilesCount"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired OptBool   `json:"moderationRequired"`
-	AutoPublish        bool      `json:"autoPublish"`
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
@@ -66,11 +65,6 @@ func (s *Bot) GetSystemPrompt() OptString {
 // GetModerationRequired returns the value of ModerationRequired.
 func (s *Bot) GetModerationRequired() OptBool {
 	return s.ModerationRequired
-}
-
-// GetAutoPublish returns the value of AutoPublish.
-func (s *Bot) GetAutoPublish() bool {
-	return s.AutoPublish
 }
 
 // GetCreatedAt returns the value of CreatedAt.
@@ -113,11 +107,6 @@ func (s *Bot) SetModerationRequired(val OptBool) {
 	s.ModerationRequired = val
 }
 
-// SetAutoPublish sets the value of AutoPublish.
-func (s *Bot) SetAutoPublish(val bool) {
-	s.AutoPublish = val
-}
-
 // SetCreatedAt sets the value of CreatedAt.
 func (s *Bot) SetCreatedAt(val time.Time) {
 	s.CreatedAt = val
@@ -138,7 +127,7 @@ type BotInput struct {
 	Name               string    `json:"name"`
 	SystemPrompt       OptString `json:"systemPrompt"`
 	ModerationRequired OptBool   `json:"moderationRequired"`
-	AutoPublish        OptBool   `json:"autoPublish"`
+	Profiles           []Profile `json:"profiles"`
 }
 
 // GetName returns the value of Name.
@@ -156,9 +145,9 @@ func (s *BotInput) GetModerationRequired() OptBool {
 	return s.ModerationRequired
 }
 
-// GetAutoPublish returns the value of AutoPublish.
-func (s *BotInput) GetAutoPublish() OptBool {
-	return s.AutoPublish
+// GetProfiles returns the value of Profiles.
+func (s *BotInput) GetProfiles() []Profile {
+	return s.Profiles
 }
 
 // SetName sets the value of Name.
@@ -176,9 +165,9 @@ func (s *BotInput) SetModerationRequired(val OptBool) {
 	s.ModerationRequired = val
 }
 
-// SetAutoPublish sets the value of AutoPublish.
-func (s *BotInput) SetAutoPublish(val OptBool) {
-	s.AutoPublish = val
+// SetProfiles sets the value of Profiles.
+func (s *BotInput) SetProfiles(val []Profile) {
+	s.Profiles = val
 }
 
 // Ref: #/components/schemas/BotList
@@ -573,6 +562,7 @@ func (o OptString) Or(d string) string {
 type Profile struct {
 	ID           uuid.UUID `json:"id"`
 	Name         string    `json:"name"`
+	Email        OptString `json:"email"`
 	SystemPrompt OptString `json:"systemPrompt"`
 }
 
@@ -584,6 +574,11 @@ func (s *Profile) GetID() uuid.UUID {
 // GetName returns the value of Name.
 func (s *Profile) GetName() string {
 	return s.Name
+}
+
+// GetEmail returns the value of Email.
+func (s *Profile) GetEmail() OptString {
+	return s.Email
 }
 
 // GetSystemPrompt returns the value of SystemPrompt.
@@ -599,6 +594,11 @@ func (s *Profile) SetID(val uuid.UUID) {
 // SetName sets the value of Name.
 func (s *Profile) SetName(val string) {
 	s.Name = val
+}
+
+// SetEmail sets the value of Email.
+func (s *Profile) SetEmail(val OptString) {
+	s.Email = val
 }
 
 // SetSystemPrompt sets the value of SystemPrompt.

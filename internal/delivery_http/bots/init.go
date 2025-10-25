@@ -8,7 +8,7 @@ import (
 )
 
 type usecase interface {
-	Create(ctx context.Context, name string, systemPromt string, moderation bool) (model.Bot, error)
+	Create(ctx context.Context, bot model.Bot) (model.Bot, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetWithProfiles(ctx context.Context, id uuid.UUID) (model.Bot, []model.Profile, error)
 	List(ctx context.Context) ([]model.Bot, error)
