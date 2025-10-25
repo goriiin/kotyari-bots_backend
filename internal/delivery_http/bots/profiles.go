@@ -8,35 +8,40 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
-// TODO: Уточнить по ревью: "Вынести эту логику в ErrorHandler фреймворка ogen или в отдельную middleware/функцию-хелпер."
-func (h *Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBotParams) (gen.AddProfileToBotRes, error) {
-	err := h.u.AddProfileToBot(ctx, params.BotId, params.ProfileId)
-	if err != nil {
-		switch {
-		case errors.Is(err, constants.ErrNotFound):
+func (h Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBotParams) (gen.AddProfileToBotRes, error) {
+	if err := h.u.AddProfileToBot(ctx, params.BotId, params.ProfileId); err != nil {
+		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.AddProfileToBotNotFound{
 				ErrorCode: constants.NotFoundMsg,
-				Message:   err.Error(),
+				Message:   "bot or profile not found",
 			}, nil
-		case errors.Is(err, constants.ErrValidation):
-			return &gen.AddProfileToBotBadRequest{
-				ErrorCode: constants.ValidationMsg,
-				Message:   err.Error(),
-			}, nil
-		case errors.Is(err, constants.ErrServiceUnavailable):
-			return &gen.AddProfileToBotInternalServerError{
-				ErrorCode: constants.ServiceUnavailableMsg,
-				Message:   err.Error(),
-			}, nil
-		default:
-			return nil, err
 		}
+		return &gen.AddProfileToBotInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   err.Error(),
+		}, nil
 	}
 	return &gen.NoContent{}, nil
 }
 
-func (h *Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesParams) (gen.GetBotProfilesRes, error) {
-	bot, profiles, err := h.u.GetWithProfiles(ctx, params.BotId)
+func (h Handler) RemoveProfileFromBot(ctx context.Context, params gen.RemoveProfileFromBotParams) (gen.RemoveProfileFromBotRes, error) {
+	if err := h.u.RemoveProfileFromBot(ctx, params.BotId, params.ProfileId); err != nil {
+		if errors.Is(err, constants.ErrNotFound) {
+			return &gen.RemoveProfileFromBotNotFound{
+				ErrorCode: constants.NotFoundMsg,
+				Message:   "bot not found",
+			}, nil
+		}
+		return &gen.RemoveProfileFromBotInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   err.Error(),
+		}, nil
+	}
+	return &gen.NoContent{}, nil
+}
+
+func (h Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesParams) (gen.GetBotProfilesRes, error) {
+	_, profiles, err := h.u.GetWithProfiles(ctx, params.BotId)
 	if err != nil {
 		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.GetBotProfilesNotFound{
@@ -44,40 +49,19 @@ func (h *Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesP
 				Message:   "bot not found",
 			}, nil
 		}
-		if errors.Is(err, constants.ErrServiceUnavailable) {
-			return &gen.GetBotProfilesInternalServerError{
-				ErrorCode: constants.ServiceUnavailableMsg,
-				Message:   "profiles service is unavailable",
-			}, nil
-		}
-		return nil, err
+		return &gen.GetBotProfilesInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   err.Error(),
+		}, nil
 	}
 
-	dto := modelToDTO(&bot, profiles)
-
-	return &gen.ProfileList{
-		Data: dto.Profiles,
-	}, nil
-}
-
-// TODO: Уточнить по ревью: "Вынести эту логику в ErrorHandler фреймворка ogen или в отдельную middleware/функцию-хелпер."
-func (h *Handler) RemoveProfileFromBot(ctx context.Context, params gen.RemoveProfileFromBotParams) (gen.RemoveProfileFromBotRes, error) {
-	err := h.u.RemoveProfileFromBot(ctx, params.BotId, params.ProfileId)
-	if err != nil {
-		switch {
-		case errors.Is(err, constants.ErrNotFound):
-			return &gen.RemoveProfileFromBotNotFound{
-				ErrorCode: constants.NotFoundMsg,
-				Message:   err.Error(),
-			}, nil
-		case errors.Is(err, constants.ErrServiceUnavailable):
-			return &gen.RemoveProfileFromBotInternalServerError{
-				ErrorCode: constants.ServiceUnavailableMsg,
-				Message:   err.Error(),
-			}, nil
-		default:
-			return nil, err
+	out := make([]gen.Profile, len(profiles))
+	for i, p := range profiles {
+		out[i] = gen.Profile{
+			ID:           p.ID,
+			Name:         p.Name,
+			SystemPrompt: gen.NewOptString(p.SystemPromt),
 		}
 	}
-	return &gen.NoContent{}, nil
+	return &gen.ProfileList{Data: out}, nil
 }

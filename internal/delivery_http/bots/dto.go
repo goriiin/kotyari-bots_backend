@@ -28,7 +28,7 @@ func modelToDTO(bot *model.Bot, profiles []model.Profile) *gen.Bot {
 		Profiles:           genProfiles,
 		ProfilesCount:      len(genProfiles),
 		CreatedAt:          bot.CreatedAt,
-		UpdatedAt:          bot.UpdateAt,
+		UpdatedAt:          bot.UpdatedAt,
 	}
 }
 

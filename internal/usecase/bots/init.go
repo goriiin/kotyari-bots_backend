@@ -20,7 +20,7 @@ type repository interface {
 }
 
 type profileValidator interface {
-	ValidateProfileExists(ctx context.Context, profileID uuid.UUID) error
+	ValidateProfilesExist(ctx context.Context, ids []uuid.UUID) error
 }
 
 type profileGateway interface {

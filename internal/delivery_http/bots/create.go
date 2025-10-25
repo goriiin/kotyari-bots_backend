@@ -33,5 +33,10 @@ func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateB
 	if err != nil {
 		return nil, err
 	}
-	return modelToDTO(&created, nil), nil
+
+	bot, profs, err := h.u.GetWithProfiles(ctx, created.ID)
+	if err != nil {
+		return nil, err
+	}
+	return modelToDTO(&bot, profs), nil
 }

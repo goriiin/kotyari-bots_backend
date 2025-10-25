@@ -15,10 +15,10 @@ type botDTO struct {
 	ProfileIDs         []uuid.UUID `db:"profile_ids"`
 	ProfilesCount      int         `db:"profiles_count"`
 	CreatedAt          time.Time   `db:"created_at"`
-	UpdateAt           time.Time   `db:"updated_at"`
+	UpdatedAt          time.Time   `db:"updated_at"`
 }
 
-func (d *botDTO) toModel() model.Bot {
+func (d botDTO) toModel() model.Bot {
 	return model.Bot{
 		ID:                 d.ID,
 		Name:               d.Name,
@@ -27,7 +27,7 @@ func (d *botDTO) toModel() model.Bot {
 		ProfileIDs:         d.ProfileIDs,
 		ProfilesCount:      d.ProfilesCount,
 		CreatedAt:          d.CreatedAt,
-		UpdateAt:           d.UpdateAt,
+		UpdatedAt:          d.UpdatedAt,
 	}
 }
 
