@@ -203,3 +203,6 @@ intranet-deps:
 
 intranet-test:
 	$(MAKE) -C $(INTRANET_DIR) test-detection-compose
+
+dzen-url-start:
+	curl -X POST http://localhost:8090/trigger-parsing
