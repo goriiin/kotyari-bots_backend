@@ -2,8 +2,8 @@ redis
 selenium
 webdriver-manager
 requests
-
 pyyaml
 python-dotenv
-
 psycopg2-binary
+selenium-wire
+blinker==1.7.0

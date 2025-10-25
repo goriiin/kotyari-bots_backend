@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+# Install Chromium and ChromeDriver
+RUN apt-get update && apt-get install -y \
+    chromium \
+    chromium-driver \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/intranet
+
+# Copy and install requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy libs and tests
+COPY libs/ ./libs/
+COPY test_detection.py .
+COPY test_proxy_simple.py .
+COPY ip.txt .
+
+ENV PYTHONPATH=/app/intranet
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_BIN=/usr/bin/chromedriver
+
+CMD ["python", "-u", "test_detection.py"]

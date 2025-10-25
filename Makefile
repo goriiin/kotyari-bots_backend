@@ -200,3 +200,6 @@ intranet-down-prod:
 
 intranet-deps:
 	$(MAKE) -C $(INTRANET_DIR) deps
+
+intranet-test:
+	$(MAKE) -C $(INTRANET_DIR) test-detection-compose
