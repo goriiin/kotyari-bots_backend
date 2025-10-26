@@ -9,10 +9,8 @@ import (
 )
 
 func (h *Handler) GetBotById(ctx context.Context, params gen.GetBotByIdParams) (gen.GetBotByIdRes, error) {
-	// Один вызов usecase, который делает всю работу
 	bot, profiles, err := h.u.GetWithProfiles(ctx, params.BotId)
 	if err != nil {
-		// Обработка доменных ошибок
 		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.GetBotByIdNotFound{
 				ErrorCode: constants.NotFoundMsg,

@@ -11,7 +11,7 @@ type usecase interface {
 	Create(ctx context.Context, bot model.Bot) (model.Bot, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetWithProfiles(ctx context.Context, id uuid.UUID) (model.Bot, []model.Profile, error)
-	List(ctx context.Context) ([]model.Bot, error)
+	List(ctx context.Context) ([]model.FullBot, error)
 	Update(ctx context.Context, bot model.Bot) (model.Bot, error)
 	AddProfileToBot(ctx context.Context, botID, profileID uuid.UUID) error
 	RemoveProfileFromBot(ctx context.Context, botID, profileID uuid.UUID) error

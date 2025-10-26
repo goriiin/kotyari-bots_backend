@@ -14,7 +14,7 @@ func (h *Handler) ListBots(ctx context.Context) (gen.ListBotsRes, error) {
 
 	genBots := make([]gen.Bot, len(bots))
 	for i, b := range bots {
-		genBots[i] = *modelToDTO(&b, nil)
+		genBots[i] = *modelToDTO(&b.Bot, b.Profiles)
 	}
 
 	return &gen.BotList{
