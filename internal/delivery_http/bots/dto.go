@@ -33,10 +33,17 @@ func modelToDTO(bot *model.Bot, profiles []model.Profile) *gen.Bot {
 }
 
 func dtoToModel(req *gen.BotInput, id uuid.UUID) model.Bot {
+	profiles := make([]uuid.UUID, 0, len(req.Profiles))
+	for _, profile := range req.Profiles {
+		profiles = append(profiles, profile.ID)
+	}
+
 	return model.Bot{
 		ID:                 id,
 		Name:               req.Name,
 		SystemPrompt:       req.SystemPrompt.Value,
 		ModerationRequired: req.ModerationRequired.Value,
+		ProfileIDs:         profiles,
+		ProfilesCount:      len(req.Profiles),
 	}
 }
