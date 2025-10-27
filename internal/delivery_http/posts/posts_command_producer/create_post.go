@@ -15,20 +15,20 @@ import (
 
 func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput) (gen.CreatePostRes, error) {
 	// ФЕТЧ БОТА
-	//bot, err := p.fetcher.GetBot(ctx, req.BotId.String())
-	//if err != nil {
+	// bot, err := p.fetcher.GetBot(ctx, req.BotId.String())
+	// if err != nil {
 	//	return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	//}
 
 	// ФЕТЧ ПРОФИЛЕЙ (что-то типа)
 
-	//idsString := make([]string, 0, len(req.ProfileIds))
-	//for _, id := range req.ProfileIds {
+	// idsString := make([]string, 0, len(req.ProfileIds))
+	// for _, id := range req.ProfileIds {
 	//	idsString = append(idsString, id.String())
 	//}
 	//
-	//profilesBatch, err := p.fetcher.BatchGetProfiles(ctx, idsString)
-	//if err != nil {
+	// profilesBatch, err := p.fetcher.BatchGetProfiles(ctx, idsString)
+	// if err != nil {
 	//	return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	//}
 

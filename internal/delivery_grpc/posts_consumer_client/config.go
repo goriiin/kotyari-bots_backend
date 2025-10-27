@@ -14,7 +14,6 @@ type PostsConsGRPCClientConfig struct {
 }
 
 func (p *PostsConsGRPCClientConfig) Validate() error {
-
 	if p.PostsAddr == "" {
 		return fmt.Errorf("bots, profile and posts servers adresses should be presented in config")
 	}

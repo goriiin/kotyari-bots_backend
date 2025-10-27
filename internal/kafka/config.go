@@ -56,7 +56,13 @@ func EnsureTopicCreated(broker, topic string) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer func(conn *kafka.Conn) {
+		err := conn.Close()
+		if err != nil {
+			// TODO: logs
+			fmt.Println(err)
+		}
+	}(conn)
 	return conn.CreateTopics(kafka.TopicConfig{
 		Topic:             topic,
 		NumPartitions:     1,

@@ -16,7 +16,6 @@ type GrokClientConfig struct {
 }
 
 func (g *GrokClientConfig) Validate() error {
-
 	if g.ApiKey == "" {
 		return fmt.Errorf("missing API key")
 	}

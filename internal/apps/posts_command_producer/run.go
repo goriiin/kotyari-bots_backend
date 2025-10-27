@@ -25,7 +25,7 @@ func (p *PostsCommandProducerApp) startHTTPServer(handler gen.Handler) error {
 	}
 
 	// TODO: XDDD
-	//httpAddr := fmt.Sprintf("%s:%d", p.appCfg.API.Host, p.appCfg.API.Port)
+	// httpAddr := fmt.Sprintf("%s:%d", p.appCfg.API.Host, p.appCfg.API.Port)
 	httpServer := &http.Server{
 		Addr:         "0.0.0.0:8088",
 		Handler:      svr,

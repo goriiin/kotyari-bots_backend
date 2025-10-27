@@ -21,7 +21,7 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) (
 
 	// TODO: тут должен быть либо поход батчами c несколькими профилями для создания постов,
 	// либо асинк GetPost c wg например, для тестов путь пока будет один
-	//post, err := p.getter.GetPost(ctx, req.UserPrompt, req.Profiles[0].ProfilePrompt, req.BotPrompt)
+	// post, err := p.getter.GetPost(ctx, req.UserPrompt, req.Profiles[0].ProfilePrompt, req.BotPrompt)
 
 	finalPost := model.Post{
 		ID:        req.PostID,

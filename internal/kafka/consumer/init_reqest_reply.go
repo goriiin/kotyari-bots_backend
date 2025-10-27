@@ -48,11 +48,17 @@ func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, repli
 }
 
 func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfig.CommittableMessage {
-	fmt.Println("START")
+	fmt.Println("START", c.config)
 	out := make(chan kafkaConfig.CommittableMessage)
 	go func() {
 		defer close(out)
-		defer c.reader.Close()
+		defer func(reader *kafka.Reader) {
+			err := reader.Close()
+			if err != nil {
+				// TODO: logs
+				fmt.Println(err)
+			}
+		}(c.reader)
 
 		for {
 			m, err := c.reader.FetchMessage(ctx)
@@ -89,25 +95,16 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 						{Key: "correlation_id", Value: []byte(corrID)},
 					}
 
-					// TODO: просто ужас (даже не тихий)
-					err = c.replier.Publish(ctx, kafka.Message{
+					return c.replier.Publish(ctx, kafka.Message{
 						Key:     []byte(corrID),
 						Value:   body,
 						Headers: headers,
 					})
-					if err != nil {
-						fmt.Println("ERROR PUBLISHING MESSAGE ", err.Error())
-					}
-					//return c.replier.Publish(ctx, kafka.Message{
-					//	Value:   body,
-					//	Headers: headers,
-					//})
-					return nil
 				},
 
 				//ReplyWithError: func(ctx context.Context, body []byte) error {
 				//
-				//},
+				// },
 			}
 
 			select {
@@ -126,6 +123,8 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 						return
 					}
 				} else {
+					fmt.Println("TODO")
+
 					// Nack path: DO NOT commit. The same message will be re-delivered
 					// after a restart or rebalance. If you prefer "retry topics", push to retry/DLQ here,
 					// then commit to advance (see variant below).

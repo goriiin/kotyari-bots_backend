@@ -18,14 +18,9 @@ type repliesDispatcher interface {
 	Unregister(correlationID string)
 }
 
-type reader interface {
-	GetMessage(ctx context.Context) (kafka.Message, error)
-}
-
 type KafkaRequestReplyProducer struct {
 	writer     *kafka.Writer
 	config     *kafkaConfig.KafkaConfig
-	reader     reader
 	replyTopic string
 	replyGroup string
 	dispatcher repliesDispatcher

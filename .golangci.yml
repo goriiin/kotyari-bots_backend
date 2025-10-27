@@ -27,6 +27,8 @@ linters:
         - hugeParam
         - rangeValCopy
         - deferInLoop
+        - commentedOutCode
+        - unnamedResult
     gocyclo:
       min-complexity: 15
     revive:
