@@ -10,20 +10,20 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-type Replier interface {
+type replier interface {
 	Publish(ctx context.Context, message kafka.Message) error
 }
 
 type KafkaRequestReplyConsumer struct {
 	reader           *kafka.Reader
 	config           *kafkaConfig.KafkaConfig
-	replier          Replier
+	replier          replier
 	maxCreateRetries int
 	baseBackoff      time.Duration
 }
 
 // NewKafkaRequestReplyConsumer TODO: Разобраться с инитом с помощью конфига
-func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, replier Replier) (*KafkaRequestReplyConsumer, error) {
+func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, replier replier) (*KafkaRequestReplyConsumer, error) {
 	if err := kafkaConfig.EnsureTopicCreated(brokers[0], topic); err != nil {
 		fmt.Println("ТОПИК СОСАЛ ХУЙ СТРОГО")
 

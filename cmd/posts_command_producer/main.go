@@ -7,8 +7,12 @@ import (
 )
 
 func main() {
-	app := posts_command_producer.NewPostsCommandProducerApp()
-	if err := app.Run(); err != nil {
+	app, err := posts_command_producer.NewPostsCommandProducerApp()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err = app.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

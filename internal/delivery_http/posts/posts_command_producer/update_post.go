@@ -12,6 +12,8 @@ import (
 )
 
 func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostUpdate, params gen.UpdatePostByIdParams) (gen.UpdatePostByIdRes, error) {
+	fmt.Printf("%+v\n", ctx)
+
 	createPostRequest := posts.KafkaUpdatePostRequest{
 		PostID: params.PostId,
 		Title:  req.Title,
@@ -23,8 +25,8 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 
-	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdUpdate, params.PostId.String(), rawReq), 10*time.Second)
-	fmt.Println("Вышли из функции: ", time.Now())
+	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdUpdate, params.PostId.String(), rawReq), 5*time.Second)
+	fmt.Println("Вышли из функции: ", time.Now(), "err: ", err)
 	if err != nil {
 		// TODO: Ошибка на стороне producer, тоже надо свитчить по хорошему
 		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil

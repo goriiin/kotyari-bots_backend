@@ -2,11 +2,13 @@ package posts_command_producer
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_producer_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command_producer"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
@@ -22,7 +24,7 @@ type PostsCommandProducerApp struct {
 	handler postsCommandHandler
 }
 
-func NewPostsCommandProducerApp() *PostsCommandProducerApp {
+func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
 	// PIVO
 	grpcClientCfg := &posts_producer_client.PostsProdGRPCClientConfig{
 		ConfigBase:   config.ConfigBase{},
@@ -40,11 +42,24 @@ func NewPostsCommandProducerApp() *PostsCommandProducerApp {
 		GroupID: "posts-group",
 	}
 
-	p := producer.NewKafkaRequestReplyProducer(kafkaCfg, "posts-replies", "posts-replies-group")
+	readerCfg := &kafka.KafkaConfig{
+		Kind:    "consumer",
+		Brokers: []string{"kafka:29092"},
+		Topic:   "posts-replies",
+		GroupID: "posts-replies-group",
+	}
+
+	reader := consumer.NewKafkaConsumer(readerCfg)
+
+	p, err := producer.NewKafkaRequestReplyProducer(kafkaCfg, "posts-replies", "posts-replies-group", reader)
+	if err != nil {
+		fmt.Println("ГАГАГАГАГАА ЭРРОР АХАХАХАХ ХО-РО-ШО", err.Error())
+		return nil, err
+	}
 
 	handler := posts_command_producer.NewPostsHandler(grpc, p)
 
 	return &PostsCommandProducerApp{
 		handler: handler,
-	}
+	}, nil
 }
