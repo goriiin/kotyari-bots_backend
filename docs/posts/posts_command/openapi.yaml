@@ -61,34 +61,6 @@ paths:
           $ref: '../common/responses.yaml#/NotFound'
         '500':
           $ref: '../common/responses.yaml#/InternalServerError'
-          
-  /api/v1/posts/seo:
-    post:
-      summary: "Создать новый пост по SEO"
-      operationId: "createPostSEO"
-      tags: [ "Posts" ]
-      requestBody:
-        required: true
-        description: "Данные для нового поста."
-        content:
-          application/json:
-            schema:
-              $ref: '../common/schemas.yaml#/PostInput'
-      responses:
-        '201':
-          description: "Пост успешно создан."
-          content:
-            application/json:
-              schema:
-                $ref: '../common/schemas.yaml#/PostList'
-        '400':
-          $ref: '../common/responses.yaml#/BadRequest'
-        '401':
-          $ref: '../common/responses.yaml#/Unauthorized'
-        '404':
-          $ref: '../common/responses.yaml#/NotFound'
-        '500':
-          $ref: '../common/responses.yaml#/InternalServerError'
 
   /api/v1/posts/{postId}:
     put:

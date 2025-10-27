@@ -49,22 +49,6 @@ type CreatePostNotFound Error
 
 func (*CreatePostNotFound) createPostRes() {}
 
-type CreatePostSEOBadRequest Error
-
-func (*CreatePostSEOBadRequest) createPostSEORes() {}
-
-type CreatePostSEOInternalServerError Error
-
-func (*CreatePostSEOInternalServerError) createPostSEORes() {}
-
-type CreatePostSEONotFound Error
-
-func (*CreatePostSEONotFound) createPostSEORes() {}
-
-type CreatePostSEOUnauthorized Error
-
-func (*CreatePostSEOUnauthorized) createPostSEORes() {}
-
 type CreatePostUnauthorized Error
 
 func (*CreatePostUnauthorized) createPostRes() {}
@@ -690,8 +674,7 @@ func (s *PostList) SetData(val []Post) {
 	s.Data = val
 }
 
-func (*PostList) createPostRes()    {}
-func (*PostList) createPostSEORes() {}
+func (*PostList) createPostRes() {}
 
 // Платформа, для которой создавался пост.
 type PostPlatform string

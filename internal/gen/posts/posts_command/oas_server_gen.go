@@ -14,12 +14,6 @@ type Handler interface {
 	//
 	// POST /api/v1/posts
 	CreatePost(ctx context.Context, req *PostInput) (CreatePostRes, error)
-	// CreatePostSEO implements createPostSEO operation.
-	//
-	// Создать новый пост по SEO.
-	//
-	// POST /api/v1/posts/seo
-	CreatePostSEO(ctx context.Context, req *PostInput) (CreatePostSEORes, error)
 	// DeletePostById implements deletePostById operation.
 	//
 	// Удалить пост по ID.

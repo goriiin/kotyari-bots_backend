@@ -42,7 +42,7 @@ func NewPostsCommandConsumer() (*PostsCommandConsumer, error) {
 
 	cons, err := consumer.NewKafkaRequestReplyConsumer([]string{"kafka:29092"}, "posts-topic", "posts-group-2", basicReplier)
 	if err != nil {
-		fmt.Println("ЭРРОР ЭРРОР ХУЙ СОСУ ГУБОЙ ТРЯСУ", err)
+		fmt.Println("error happened while creating consumer", err)
 		return nil, err
 	}
 

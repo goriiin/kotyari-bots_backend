@@ -5,10 +5,6 @@ type CreatePostRes interface {
 	createPostRes()
 }
 
-type CreatePostSEORes interface {
-	createPostSEORes()
-}
-
 type DeletePostByIdRes interface {
 	deletePostByIdRes()
 }

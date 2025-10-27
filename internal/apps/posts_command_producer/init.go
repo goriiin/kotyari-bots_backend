@@ -16,7 +16,6 @@ import (
 
 type postsCommandHandler interface {
 	CreatePost(ctx context.Context, req *gen.PostInput) (gen.CreatePostRes, error)
-	CreatePostSEO(ctx context.Context, req *gen.PostInput) (gen.CreatePostSEORes, error)
 	UpdatePostById(ctx context.Context, req *gen.PostUpdate, params gen.UpdatePostByIdParams) (gen.UpdatePostByIdRes, error)
 	DeletePostById(ctx context.Context, params gen.DeletePostByIdParams) (gen.DeletePostByIdRes, error)
 }
@@ -58,7 +57,7 @@ func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
 
 	p, err := producer.NewKafkaRequestReplyProducer(kafkaCfg, "posts-replies", "posts-replies-group", repliesDispatcher)
 	if err != nil {
-		fmt.Println("ГАГАГАГАГАА ЭРРОР АХАХАХАХ ХО-РО-ШО", err.Error())
+		fmt.Println("error happened while creating producer", err.Error())
 		return nil, err
 	}
 

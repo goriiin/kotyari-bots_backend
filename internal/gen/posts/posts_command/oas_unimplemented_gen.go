@@ -22,15 +22,6 @@ func (UnimplementedHandler) CreatePost(ctx context.Context, req *PostInput) (r C
 	return r, ht.ErrNotImplemented
 }
 
-// CreatePostSEO implements createPostSEO operation.
-//
-// Создать новый пост по SEO.
-//
-// POST /api/v1/posts/seo
-func (UnimplementedHandler) CreatePostSEO(ctx context.Context, req *PostInput) (r CreatePostSEORes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
 // DeletePostById implements deletePostById operation.
 //
 // Удалить пост по ID.

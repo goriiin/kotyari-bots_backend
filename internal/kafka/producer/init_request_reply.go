@@ -34,7 +34,7 @@ type KafkaRequestReplyProducer struct {
 func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, replyGroup string, dispatcher repliesDispatcher) (*KafkaRequestReplyProducer, error) {
 	// TODO: XDDDDDDD
 	if err := kafkaConfig.EnsureTopicCreated(config.Brokers[0], replyTopic); err != nil {
-		fmt.Println("ТОПИК НЕ СОЗДАЛСЯ))) РАЗРАБ КАФКА-ГО МОЛОДЕЦ")
+		fmt.Println("Failed to create topic", err.Error())
 	}
 
 	producer := &KafkaRequestReplyProducer{
@@ -98,19 +98,4 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 		fmt.Printf("Timed out waiting for reply for CorrelationID: %s\n", env.CorrelationID)
 		return nil, ctx.Err()
 	}
-
-	//for {
-	//	// TODO: Надо поменять на Fetch + Commit потому что хуесос я
-	//	m, err := p.reader.GetMessage(ctx)
-	//	if err != nil {
-	//		fmt.Println(err)
-	//		return nil, err
-	//	}
-	//	if kafkaConfig.GetHeader(m, "correlation_id") == env.CorrelationID {
-	//		fmt.Printf("MESSAGE RECEIVED: %+v\n", m)
-	//		fmt.Printf("CONTEXT VNUTRI MAMASHI: %+v\n", ctx)
-	//		fmt.Println("Получили ответ: ", time.Now())
-	//		return m.Value, nil
-	//	}
-	//}
 }

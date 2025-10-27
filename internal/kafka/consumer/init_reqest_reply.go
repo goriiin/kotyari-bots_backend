@@ -25,7 +25,7 @@ type KafkaRequestReplyConsumer struct {
 // NewKafkaRequestReplyConsumer TODO: Разобраться с инитом с помощью конфига
 func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, replier replier) (*KafkaRequestReplyConsumer, error) {
 	if err := kafkaConfig.EnsureTopicCreated(brokers[0], topic); err != nil {
-		fmt.Println("ТОПИК СОСАЛ ХУЙ СТРОГО")
+		fmt.Println("failed to create topic")
 
 		return nil, err
 	}

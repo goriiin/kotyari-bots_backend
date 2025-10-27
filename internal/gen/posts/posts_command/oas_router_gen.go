@@ -76,32 +76,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 
-				if len(elem) == 0 {
-					break
-				}
-				switch elem[0] {
-				case 's': // Prefix: "seo"
-					origElem := elem
-					if l := len("seo"); len(elem) >= l && elem[0:l] == "seo" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch r.Method {
-						case "POST":
-							s.handleCreatePostSEORequest([0]string{}, elemIsEscaped, w, r)
-						default:
-							s.notAllowed(w, r, "POST")
-						}
-
-						return
-					}
-
-					elem = origElem
-				}
 				// Param: "postId"
 				// Leaf parameter, slashes are prohibited
 				idx := strings.IndexByte(elem, '/')
@@ -242,36 +216,6 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 
-				if len(elem) == 0 {
-					break
-				}
-				switch elem[0] {
-				case 's': // Prefix: "seo"
-					origElem := elem
-					if l := len("seo"); len(elem) >= l && elem[0:l] == "seo" {
-						elem = elem[l:]
-					} else {
-						break
-					}
-
-					if len(elem) == 0 {
-						// Leaf node.
-						switch method {
-						case "POST":
-							r.name = CreatePostSEOOperation
-							r.summary = "Создать новый пост по SEO"
-							r.operationID = "createPostSEO"
-							r.pathPattern = "/api/v1/posts/seo"
-							r.args = args
-							r.count = 0
-							return r, true
-						default:
-							return
-						}
-					}
-
-					elem = origElem
-				}
 				// Param: "postId"
 				// Leaf parameter, slashes are prohibited
 				idx := strings.IndexByte(elem, '/')
