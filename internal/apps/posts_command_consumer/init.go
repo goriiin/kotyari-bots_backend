@@ -2,12 +2,15 @@ package posts_command_consumer
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_consumer_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command_consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
 	postsRepoLib "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_command"
+	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
 
@@ -22,7 +25,7 @@ type PostsCommandConsumer struct {
 func NewPostsCommandConsumer() (*PostsCommandConsumer, error) {
 	pool, err := postgres.GetPool(context.Background(), postgres.Config{
 		Host:     "posts_db",
-		Port:     54327,
+		Port:     5432,
 		Name:     "posts",
 		User:     "postgres",
 		Password: "123",
@@ -35,13 +38,24 @@ func NewPostsCommandConsumer() (*PostsCommandConsumer, error) {
 		Kind:    "producer",
 		Brokers: []string{"kafka:29092"},
 		Topic:   "posts-replies",
-		GroupID: "posts-replies-group",
 	})
 
-	cons := consumer.NewKafkaRequestReplyConsumer([]string{"kafka:29092"}, "posts-topic", "posts-group", basicReplier)
+	cons, err := consumer.NewKafkaRequestReplyConsumer([]string{"kafka:29092"}, "posts-topic", "posts-group-2", basicReplier)
+	if err != nil {
+		fmt.Println("ЭРРОР ЭРРОР ХУЙ СОСУ ГУБОЙ ТРЯСУ", err)
+		return nil, err
+	}
+
 	repo := postsRepoLib.NewPostsCommandRepo(pool)
 
-	runner := posts_command_consumer.NewPostsCommandConsumer(cons, repo)
+	grpcClientCfg := &posts_consumer_client.PostsConsGRPCClientConfig{
+		ConfigBase: config.ConfigBase{},
+		PostsAddr:  "localhost:8080",
+		Timeout:    10,
+	}
+	grpc, _ := posts_consumer_client.NewPostsConsGRPCClient(grpcClientCfg)
+
+	runner := posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc)
 
 	return &PostsCommandConsumer{
 		consumerRunner: runner,

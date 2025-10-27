@@ -4,5 +4,5 @@ PostID:
   required: true
   description: "Уникальный идентификатор поста."
   schema:
-    type: integer
+    type: string
     format: uuid

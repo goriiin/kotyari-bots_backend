@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"github.com/go-faster/errors"
+	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/internal/repo/posts"
 	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostsQueryRepo) GetByID(ctx context.Context, id uint64) (model.Post, error) {
+func (p *PostsQueryRepo) GetByID(ctx context.Context, id uuid.UUID) (model.Post, error) {
 	const query = `
-		SELECT id, bot_id, profile_id, platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
+		SELECT id, otveti_id, bot_id, profile_id, platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
 		FROM posts
 		WHERE id = $1
 	`

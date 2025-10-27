@@ -3,7 +3,7 @@ package posts_command_producer
 import (
 	"context"
 
-	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_client"
+	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_producer_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command_producer"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka"
@@ -24,15 +24,14 @@ type PostsCommandProducerApp struct {
 
 func NewPostsCommandProducerApp() *PostsCommandProducerApp {
 	// PIVO
-	grpcClientCfg := &posts_client.PostsGRPCClientAppConfig{
+	grpcClientCfg := &posts_producer_client.PostsProdGRPCClientConfig{
 		ConfigBase:   config.ConfigBase{},
 		BotsAddr:     "localhost:8080",
 		ProfilesAddr: "localhost:8081",
-		PostsAddr:    "localhost:8082",
 		Timeout:      10,
 	}
 
-	grpc, _ := posts_client.NewPostsGRPCClient(grpcClientCfg)
+	grpc, _ := posts_producer_client.NewPostsProdGRPCClient(grpcClientCfg)
 
 	kafkaCfg := &kafka.KafkaConfig{
 		Kind:    "producer",

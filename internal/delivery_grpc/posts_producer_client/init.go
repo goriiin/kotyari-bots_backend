@@ -1,11 +1,10 @@
-package posts_client
+package posts_producer_client
 
 import (
 	"context"
 
 	"github.com/go-faster/errors"
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
-	postssgen "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -13,18 +12,16 @@ import (
 
 var clientNotInitializedErr = errors.New("client not initialized")
 
-type PostsGRPCClient struct {
+type PostsProdGRPCClient struct {
 	botsConn     *grpc.ClientConn
 	profilesConn *grpc.ClientConn
-	postsConn    *grpc.ClientConn
 
 	Bots     botsgen.BotServiceClient
 	Profiles profilesgen.ProfileServiceClient
-	Posts    postssgen.PostsServiceClient
-	config   PostsGRPCClientAppConfig
+	config   PostsProdGRPCClientConfig
 }
 
-func NewPostsGRPCClient(config *PostsGRPCClientAppConfig) (*PostsGRPCClient, error) {
+func NewPostsProdGRPCClient(config *PostsProdGRPCClientConfig) (*PostsProdGRPCClient, error) {
 	creds := grpc.WithTransportCredentials(insecure.NewCredentials())
 
 	botsConn, err := grpc.NewClient(config.BotsAddr, creds)
@@ -37,59 +34,41 @@ func NewPostsGRPCClient(config *PostsGRPCClientAppConfig) (*PostsGRPCClient, err
 		return nil, errors.Wrap(err, "failed to create profiles service client")
 	}
 
-	postsConn, err := grpc.NewClient(config.PostsAddr, creds)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create profiles service client")
-	}
-
-	c := &PostsGRPCClient{
+	c := &PostsProdGRPCClient{
 		botsConn:     botsConn,
 		profilesConn: profilesConn,
-		postsConn:    postsConn,
 		Bots:         botsgen.NewBotServiceClient(botsConn),
 		Profiles:     profilesgen.NewProfileServiceClient(profilesConn),
-		Posts:        postssgen.NewPostsServiceClient(postsConn),
 		config:       *config,
 	}
 	return c, nil
 }
 
-func (c *PostsGRPCClient) Close() error {
+func (c *PostsProdGRPCClient) Close() error {
 	if c == nil {
 		return nil
 	}
 
-	return errors.Join(c.botsConn.Close(), c.profilesConn.Close(), c.postsConn.Close())
+	return errors.Join(c.botsConn.Close(), c.profilesConn.Close())
 }
 
-func (c *PostsGRPCClient) GetBot(ctx context.Context, id string, opts ...grpc.CallOption) (*botsgen.Bot, error) {
+func (c *PostsProdGRPCClient) GetBot(ctx context.Context, id string, opts ...grpc.CallOption) (*botsgen.Bot, error) {
 	if c == nil || c.Bots == nil {
 		return nil, clientNotInitializedErr
 	}
 	return c.Bots.GetBot(ctx, &botsgen.GetBotRequest{Id: id}, opts...)
 }
 
-func (c *PostsGRPCClient) GetProfile(ctx context.Context, id string, opts ...grpc.CallOption) (*profilesgen.Profile, error) {
+func (c *PostsProdGRPCClient) GetProfile(ctx context.Context, id string, opts ...grpc.CallOption) (*profilesgen.Profile, error) {
 	if c == nil || c.Profiles == nil {
 		return nil, clientNotInitializedErr
 	}
 	return c.Profiles.GetProfile(ctx, &profilesgen.GetProfileRequest{Id: id}, opts...)
 }
 
-func (c *PostsGRPCClient) BatchGetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.BatchGetProfilesResponse, error) {
+func (c *PostsProdGRPCClient) BatchGetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.BatchGetProfilesResponse, error) {
 	if c == nil || c.Profiles == nil {
 		return nil, clientNotInitializedErr
 	}
 	return c.Profiles.BatchGetProfiles(ctx, &profilesgen.BatchGetProfilesRequest{Id: ids}, opts...)
-}
-
-func (c *PostsGRPCClient) GetPost(ctx context.Context, userPrompt, profilePrompt, botPrompt string, opts ...grpc.CallOption) (*postssgen.GetPostResponse, error) {
-	if c == nil || c.Posts == nil {
-		return nil, clientNotInitializedErr
-	}
-	return c.Posts.GetPost(ctx, &postssgen.GetPostRequest{
-		UserPrompt:    userPrompt,
-		ProfilePrompt: profilePrompt,
-		BotPrompt:     botPrompt,
-	}, opts...)
 }

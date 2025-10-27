@@ -141,7 +141,7 @@ func (c *Client) sendGetPostById(ctx context.Context, params GetPostByIdParams) 
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.IntToString(params.PostId))
+			return e.EncodeValue(conv.UUIDToString(params.PostId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}

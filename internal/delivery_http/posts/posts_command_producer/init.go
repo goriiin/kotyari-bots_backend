@@ -5,19 +5,14 @@ import (
 	"time"
 
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
-	postssgen "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"google.golang.org/grpc"
 )
 
 type producer interface {
-	Publish(ctx context.Context, env kafkaConfig.Envelope) error
+	Publish(ctx context.Context, env *kafkaConfig.Envelope) error
 	Request(ctx context.Context, env kafkaConfig.Envelope, timeout time.Duration) ([]byte, error)
-}
-
-type postsGenerator interface {
-	GetPost(ctx context.Context, userPrompt, profilePrompt, botPrompt string, opts ...grpc.CallOption) (*postssgen.GetPostResponse, error)
 }
 
 type profilesFetcher interface {
@@ -32,7 +27,6 @@ type botsFetcher interface {
 type botsAndProfilesFetcher interface {
 	profilesFetcher
 	botsFetcher
-	postsGenerator
 }
 
 type PostsCommandHandler struct {

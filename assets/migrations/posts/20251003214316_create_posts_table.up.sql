@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS categories(
 );
 
 CREATE TABLE IF NOT EXISTS posts(
-    "id" bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "id" UUID NOT NULL PRIMARY KEY,
+    "otveti_id" BIGINT,
     "bot_id" UUID NOT NULL,
     "profile_id" UUID NOT NULL,
     "platform_type" platform_type_enum NOT NULL,
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS posts(
 );
 
 CREATE TABLE IF NOT EXISTS post_categories(
-    "post_id" BIGINT NOT NULL,
+    "post_id" UUID NOT NULL,
     "category_id" UUID NOT NULL,
     PRIMARY KEY ("post_id", "category_id"),
     FOREIGN KEY("post_id") REFERENCES posts("id") ON DELETE CASCADE,

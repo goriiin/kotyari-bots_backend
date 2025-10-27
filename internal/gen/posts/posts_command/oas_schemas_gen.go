@@ -378,7 +378,9 @@ func (o OptNilUUIDArray) Or(d []uuid.UUID) []uuid.UUID {
 // Ref: #/Post
 type Post struct {
 	// ID поста.
-	ID uint64 `json:"id"`
+	ID uuid.UUID `json:"id"`
+	// Опциональный ID ответов.
+	OtvetiId uint64 `json:"otvetiId"`
 	// ID бота, к которому привязан пост.
 	BotId uuid.UUID `json:"botId"`
 	// ID профиля, к которому относится пост.
@@ -398,8 +400,13 @@ type Post struct {
 }
 
 // GetID returns the value of ID.
-func (s *Post) GetID() uint64 {
+func (s *Post) GetID() uuid.UUID {
 	return s.ID
+}
+
+// GetOtvetiId returns the value of OtvetiId.
+func (s *Post) GetOtvetiId() uint64 {
+	return s.OtvetiId
 }
 
 // GetBotId returns the value of BotId.
@@ -448,8 +455,13 @@ func (s *Post) GetUpdatedAt() time.Time {
 }
 
 // SetID sets the value of ID.
-func (s *Post) SetID(val uint64) {
+func (s *Post) SetID(val uuid.UUID) {
 	s.ID = val
+}
+
+// SetOtvetiId sets the value of OtvetiId.
+func (s *Post) SetOtvetiId(val uint64) {
+	s.OtvetiId = val
 }
 
 // SetBotId sets the value of BotId.

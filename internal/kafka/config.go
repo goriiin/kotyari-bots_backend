@@ -49,3 +49,16 @@ func (k *KafkaConfig) Validate() error {
 
 	return nil
 }
+
+func EnsureTopicCreated(broker, topic string) error {
+	conn, err := kafka.Dial("tcp", broker)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	return conn.CreateTopics(kafka.TopicConfig{
+		Topic:             topic,
+		NumPartitions:     1,
+		ReplicationFactor: 1,
+	})
+}

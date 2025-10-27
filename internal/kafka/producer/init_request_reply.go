@@ -2,11 +2,12 @@ package producer
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -27,12 +28,13 @@ func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, r
 		},
 		replyTopic: replyTopic,
 		replyGroup: replyGroup,
+		config:     config,
 	}
 }
 
-func (p *KafkaRequestReplyProducer) Publish(ctx context.Context, env kafkaConfig.Envelope) error {
+func (p *KafkaRequestReplyProducer) Publish(ctx context.Context, env *kafkaConfig.Envelope) error {
 	env.CorrelationID = uuid.NewString()
-	b, err := json.Marshal(env)
+	b, err := jsoniter.Marshal(env)
 	if err != nil {
 		return err
 	}
@@ -49,7 +51,19 @@ func (p *KafkaRequestReplyProducer) Publish(ctx context.Context, env kafkaConfig
 }
 
 func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig.Envelope, timeout time.Duration) ([]byte, error) {
-	if err := p.Publish(ctx, env); err != nil {
+	fmt.Println("Зашли в publish: ", time.Now())
+	if err := p.Publish(ctx, &env); err != nil {
+		return nil, err
+	}
+	fmt.Println("Вышли из publish: ", time.Now())
+
+	fmt.Printf("CFG PROD: %+v\n", p.config)
+	fmt.Printf("CFG READ: repl topic: %v, replc group: %v", p.replyTopic, p.replyGroup)
+
+	// TODO: Сделать чтобы проверка была 1 раз (настроить reader при ините producer)
+	if err := kafkaConfig.EnsureTopicCreated(p.config.Brokers[0], p.replyTopic); err != nil {
+		fmt.Println("ТОПИК НЕ СОЗДАЛСЯ))) РАЗРАБ КАФКА-ГО МОЛОДЕЦ")
+
 		return nil, err
 	}
 
@@ -65,12 +79,17 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
+	fmt.Println("COR ID", env.CorrelationID)
+
 	for {
 		m, err := r.ReadMessage(ctx)
 		if err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
 		if getHeader(m, "correlation_id") == env.CorrelationID {
+			fmt.Printf("MESSAGE RECEIVED: %+v\n", m)
+			fmt.Println("Получили ответ: ", time.Now())
 			return m.Value, nil
 		}
 	}

@@ -2,48 +2,44 @@ package posts_command_producer
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
-	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/json-iterator/go"
 )
 
 func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostUpdate, params gen.UpdatePostByIdParams) (gen.UpdatePostByIdRes, error) {
-	fmt.Println("REQEST PRISHOL")
-
-	oldPost := model.Post{
-		ID:    uint64(params.PostId),
-		Title: req.Title,
-		Text:  req.Text,
+	createPostRequest := posts.KafkaUpdatePostRequest{
+		PostID: params.PostId,
+		Title:  req.Title,
+		Text:   req.Text,
 	}
 
-	rawPost, err := json.Marshal(posts.ToRawPost(oldPost))
+	rawReq, err := jsoniter.Marshal(createPostRequest)
 	if err != nil {
 		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
-	// TODO: ID -> UUID
-	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdUpdate, strconv.FormatUint(oldPost.ID, 10), rawPost), 3*time.Second)
+
+	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdUpdate, params.PostId.String(), rawReq), 10*time.Second)
+	fmt.Println("Вышли из функции: ", time.Now())
+	if err != nil {
+		// TODO: Ошибка на стороне producer, тоже надо свитчить по хорошему
+		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
+	}
 
 	var resp posts.KafkaResponse
-	err = json.Unmarshal(rawResp, &resp)
+	err = jsoniter.Unmarshal(rawResp, &resp)
 	if err != nil {
 		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 
-	return posts.ModelToHttp(model.Post{
-		Text: resp.Status,
-	}), nil
-	// -> kafka
+	if resp.IsError {
+		// TODO: Ошибка на стороне consumer, в идеале потом сделать switch через errors.Is и отдельно делать сообщения для каждого случая
+		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: resp.StatusMessage}, nil
+	}
 
-	//modifiedPost, err := p.repo.UpdatePost(ctx, oldPost)
-	//if err != nil {
-	//	return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
-	//}
-
-	//return posts.ModelToHttp(modifiedPost), nil
+	return resp.PostCommandToGen(), nil
 }

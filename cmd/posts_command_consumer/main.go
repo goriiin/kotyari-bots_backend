@@ -1,4 +1,4 @@
-package posts_command_consumer
+package main
 
 import (
 	"log"
@@ -12,7 +12,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := app.Run(); err != nil {
+	if err = app.Run(); err != nil {
 		log.Fatal(err)
 	}
 }

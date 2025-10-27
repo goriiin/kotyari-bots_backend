@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/go-faster/errors"
+	"github.com/google/uuid"
 	"github.com/ogen-go/ogen/conv"
 	"github.com/ogen-go/ogen/middleware"
 	"github.com/ogen-go/ogen/ogenerrors"
@@ -17,7 +18,7 @@ import (
 // DeletePostByIdParams is parameters of deletePostById operation.
 type DeletePostByIdParams struct {
 	// Уникальный идентификатор поста.
-	PostId int
+	PostId uuid.UUID
 }
 
 func unpackDeletePostByIdParams(packed middleware.Parameters) (params DeletePostByIdParams) {
@@ -26,7 +27,7 @@ func unpackDeletePostByIdParams(packed middleware.Parameters) (params DeletePost
 			Name: "postId",
 			In:   "path",
 		}
-		params.PostId = packed[key].(int)
+		params.PostId = packed[key].(uuid.UUID)
 	}
 	return params
 }
@@ -56,7 +57,7 @@ func decodeDeletePostByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 					return err
 				}
 
-				c, err := conv.ToInt(val)
+				c, err := conv.ToUUID(val)
 				if err != nil {
 					return err
 				}
@@ -83,7 +84,7 @@ func decodeDeletePostByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 // UpdatePostByIdParams is parameters of updatePostById operation.
 type UpdatePostByIdParams struct {
 	// Уникальный идентификатор поста.
-	PostId int
+	PostId uuid.UUID
 }
 
 func unpackUpdatePostByIdParams(packed middleware.Parameters) (params UpdatePostByIdParams) {
@@ -92,7 +93,7 @@ func unpackUpdatePostByIdParams(packed middleware.Parameters) (params UpdatePost
 			Name: "postId",
 			In:   "path",
 		}
-		params.PostId = packed[key].(int)
+		params.PostId = packed[key].(uuid.UUID)
 	}
 	return params
 }
@@ -122,7 +123,7 @@ func decodeUpdatePostByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 					return err
 				}
 
-				c, err := conv.ToInt(val)
+				c, err := conv.ToUUID(val)
 				if err != nil {
 					return err
 				}

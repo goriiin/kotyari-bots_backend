@@ -2,24 +2,28 @@ package posts_command_consumer
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 
 	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
+	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/json-iterator/go"
 )
 
-func (p *PostsCommandConsumer) UpdatePost(ctx context.Context, payload []byte) error {
-	var postToUpdate posts.RawPostUpdate
+func (p *PostsCommandConsumer) UpdatePost(ctx context.Context, payload []byte) (model.Post, error) {
+	fmt.Println("UPDATE POST cons")
 
-	err := json.Unmarshal(payload, &postToUpdate)
+	var postToUpdate posts.KafkaUpdatePostRequest
+
+	err := jsoniter.Unmarshal(payload, &postToUpdate)
 	if err != nil {
-		errors.Wrap(err, "failed to unwrap")
+		return model.Post{}, errors.Wrap(err, "failed to unwrap")
 	}
 
-	_, err = p.repo.UpdatePost(ctx, posts.FromRawPost(postToUpdate))
+	post, err := p.repo.UpdatePost(ctx, postToUpdate.ToModel())
 	if err != nil {
-		return errors.Wrap(err, "failed to update post")
+		return model.Post{}, errors.Wrap(err, "failed to update post")
 	}
 
-	return nil
+	return post, nil
 }

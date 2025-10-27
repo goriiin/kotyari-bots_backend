@@ -3,52 +3,8 @@ package posts
 import (
 	genCommand "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	genQuery "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_query"
-	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
-
-const (
-	CmdCreate kafkaConfig.Command = "create"
-	CmdUpdate kafkaConfig.Command = "update"
-	CmdDelete kafkaConfig.Command = "delete"
-)
-
-type KafkaResponse struct {
-	Status string `json:"status"`
-	// RAW пост, пока пусть будет OK
-}
-
-func PayloadToEnvelope(command kafkaConfig.Command, entityID string, payload []byte) kafkaConfig.Envelope {
-	return kafkaConfig.Envelope{
-		Command:       command,
-		EntityID:      entityID,
-		Payload:       nil,
-		CorrelationID: "",
-		Attempt:       0,
-	}
-}
-
-type RawPostUpdate struct {
-	ID    uint64 `json:"id"`
-	Title string `json:"title"`
-	Text  string `json:"text"`
-}
-
-func ToRawPost(post model.Post) RawPostUpdate {
-	return RawPostUpdate{
-		ID:    post.ID,
-		Title: post.Title,
-		Text:  post.Text,
-	}
-}
-
-func FromRawPost(rawPost RawPostUpdate) model.Post {
-	return model.Post{
-		ID:    rawPost.ID,
-		Title: rawPost.Title,
-		Text:  rawPost.Title,
-	}
-}
 
 func QueryModelToHttp(post model.Post) *genQuery.Post {
 	var postType genQuery.OptNilPostPostType

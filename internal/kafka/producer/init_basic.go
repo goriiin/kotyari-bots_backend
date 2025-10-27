@@ -16,7 +16,7 @@ func NewKafkaProducer(config *kafkaConfig.KafkaConfig) *KafkaProducer {
 		writer: &kafka.Writer{
 			Addr:                   kafka.TCP(config.Brokers...),
 			Topic:                  config.Topic,
-			Balancer:               &kafka.LeastBytes{},
+			Balancer:               &kafka.Hash{},
 			AllowAutoTopicCreation: true,
 		},
 	}

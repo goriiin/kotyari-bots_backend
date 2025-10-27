@@ -1,4 +1,4 @@
-package posts_client
+package posts_producer_client
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-type PostsGRPCClientAppConfig struct {
+type PostsProdGRPCClientConfig struct {
 	config.ConfigBase
 	BotsAddr     string        `mapstructure:"bots_addr"`
 	ProfilesAddr string        `mapstructure:"profiles_addr"`
@@ -15,7 +15,7 @@ type PostsGRPCClientAppConfig struct {
 	Timeout      time.Duration `mapstructure:"dial_timeout"`
 }
 
-func (p *PostsGRPCClientAppConfig) Validate() error {
+func (p *PostsProdGRPCClientConfig) Validate() error {
 
 	if p.BotsAddr == "" || p.ProfilesAddr == "" || p.PostsAddr == "" {
 		return fmt.Errorf("bots, profile and posts servers adresses should be presented in config")

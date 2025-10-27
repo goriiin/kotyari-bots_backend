@@ -595,7 +595,11 @@ func (s *Post) Encode(e *jx.Encoder) {
 func (s *Post) encodeFields(e *jx.Encoder) {
 	{
 		e.FieldStart("id")
-		e.UInt64(s.ID)
+		json.EncodeUUID(e, s.ID)
+	}
+	{
+		e.FieldStart("otvetiId")
+		e.UInt64(s.OtvetiId)
 	}
 	{
 		e.FieldStart("botId")
@@ -643,17 +647,18 @@ func (s *Post) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfPost = [10]string{
-	0: "id",
-	1: "botId",
-	2: "profileId",
-	3: "platform",
-	4: "postType",
-	5: "title",
-	6: "text",
-	7: "categories",
-	8: "createdAt",
-	9: "updatedAt",
+var jsonFieldsNameOfPost = [11]string{
+	0:  "id",
+	1:  "otvetiId",
+	2:  "botId",
+	3:  "profileId",
+	4:  "platform",
+	5:  "postType",
+	6:  "title",
+	7:  "text",
+	8:  "categories",
+	9:  "createdAt",
+	10: "updatedAt",
 }
 
 // Decode decodes Post from json.
@@ -668,8 +673,8 @@ func (s *Post) Decode(d *jx.Decoder) error {
 		case "id":
 			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
-				v, err := d.UInt64()
-				s.ID = uint64(v)
+				v, err := json.DecodeUUID(d)
+				s.ID = v
 				if err != nil {
 					return err
 				}
@@ -677,8 +682,20 @@ func (s *Post) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"id\"")
 			}
-		case "botId":
+		case "otvetiId":
 			requiredBitSet[0] |= 1 << 1
+			if err := func() error {
+				v, err := d.UInt64()
+				s.OtvetiId = uint64(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"otvetiId\"")
+			}
+		case "botId":
+			requiredBitSet[0] |= 1 << 2
 			if err := func() error {
 				v, err := json.DecodeUUID(d)
 				s.BotId = v
@@ -690,7 +707,7 @@ func (s *Post) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"botId\"")
 			}
 		case "profileId":
-			requiredBitSet[0] |= 1 << 2
+			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
 				v, err := json.DecodeUUID(d)
 				s.ProfileId = v
@@ -702,7 +719,7 @@ func (s *Post) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"profileId\"")
 			}
 		case "platform":
-			requiredBitSet[0] |= 1 << 3
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				if err := s.Platform.Decode(d); err != nil {
 					return err
@@ -722,7 +739,7 @@ func (s *Post) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"postType\"")
 			}
 		case "title":
-			requiredBitSet[0] |= 1 << 5
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := d.Str()
 				s.Title = string(v)
@@ -734,7 +751,7 @@ func (s *Post) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"title\"")
 			}
 		case "text":
-			requiredBitSet[0] |= 1 << 6
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := d.Str()
 				s.Text = string(v)
@@ -763,7 +780,7 @@ func (s *Post) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"categories\"")
 			}
 		case "createdAt":
-			requiredBitSet[1] |= 1 << 0
+			requiredBitSet[1] |= 1 << 1
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -775,7 +792,7 @@ func (s *Post) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"createdAt\"")
 			}
 		case "updatedAt":
-			requiredBitSet[1] |= 1 << 1
+			requiredBitSet[1] |= 1 << 2
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.UpdatedAt = v
@@ -796,8 +813,8 @@ func (s *Post) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [2]uint8{
-		0b01101111,
-		0b00000011,
+		0b11011111,
+		0b00000110,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

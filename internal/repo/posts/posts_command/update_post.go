@@ -14,7 +14,7 @@ func (p *PostsCommandRepo) UpdatePost(ctx context.Context, post model.Post) (mod
 		UPDATE posts
 		SET post_title=$1, post_text=$2, updated_at=NOW()
 		WHERE id=$3
-		RETURNING id, bot_id, profile_id, platform_type, post_type, post_title, post_text, created_at, updated_at
+		RETURNING id, otveti_id, bot_id, profile_id, platform_type, post_type, post_title, post_text, created_at, updated_at
 	`
 
 	rows, err := p.db.Query(ctx, query, post.Title, post.Text, post.ID)

@@ -33,21 +33,18 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 	}
 
 	const query = `
-		INSERT INTO posts (bot_id, profile_id, platform_type, post_type, post_title, post_text)
-		VALUES ($1,$2,$3,$4,$5,$6)
-		RETURNING id, created_at, updated_at
+		INSERT INTO posts (id, otveti_id, bot_id, profile_id, platform_type, post_type, post_title, post_text)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+		RETURNING created_at, updated_at
 	`
 
-	row := tx.QueryRow(ctx, query, post.BotID, post.ProfileID, postType, post.Title, post.Text)
-
-	var postID uint64
-	if err = row.Scan(&postID, &post.CreatedAt, &post.UpdatedAt); err != nil {
+	row := tx.QueryRow(ctx, query, post.ID, post.OtvetiID, post.BotID, post.ProfileID, post.Platform, postType, post.Title, post.Text)
+	if err = row.Scan(&post.CreatedAt, &post.UpdatedAt); err != nil {
 		return model.Post{}, errors.Wrap(err, "failed to scan row")
 	}
-	post.ID = postID
 
 	if len(categoryIDs) > 0 {
-		err = p.insertPostCategoriesBatch(ctx, tx, postID, categoryIDs)
+		err = p.insertPostCategoriesBatch(ctx, tx, post.ID, categoryIDs)
 		return model.Post{}, err
 	}
 
@@ -59,7 +56,7 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 	return post, nil
 }
 
-func (p *PostsCommandRepo) insertPostCategoriesBatch(ctx context.Context, tx pgx.Tx, postID uint64, categoryIDs []uuid.UUID) error {
+func (p *PostsCommandRepo) insertPostCategoriesBatch(ctx context.Context, tx pgx.Tx, postID uuid.UUID, categoryIDs []uuid.UUID) error {
 	if len(categoryIDs) == 0 {
 		return nil
 	}

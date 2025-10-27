@@ -20,7 +20,8 @@ const (
 )
 
 type Post struct {
-	ID        uint64
+	ID        uuid.UUID
+	OtvetiID  uint64
 	BotID     uuid.UUID
 	ProfileID uuid.UUID
 	Platform  PlatformType

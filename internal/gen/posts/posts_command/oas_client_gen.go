@@ -305,7 +305,7 @@ func (c *Client) sendDeletePostById(ctx context.Context, params DeletePostByIdPa
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.IntToString(params.PostId))
+			return e.EncodeValue(conv.UUIDToString(params.PostId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}
@@ -396,7 +396,7 @@ func (c *Client) sendUpdatePostById(ctx context.Context, request *PostUpdate, pa
 			Explode: false,
 		})
 		if err := func() error {
-			return e.EncodeValue(conv.IntToString(params.PostId))
+			return e.EncodeValue(conv.UUIDToString(params.PostId))
 		}(); err != nil {
 			return res, errors.Wrap(err, "encode path")
 		}

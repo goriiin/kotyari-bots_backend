@@ -9,15 +9,16 @@ import (
 )
 
 type PostDTO struct {
-	ID        uint64      `db:"id"`
-	BotID     uuid.UUID   `db:"bot_id"`
-	ProfileID uuid.UUID   `db:"profile_id"`
-	Platform  string      `db:"platform_type"`
-	Type      pgtype.Text `db:"post_type"`
-	Title     string      `db:"post_title"`
-	Text      string      `db:"post_text"`
-	CreatedAt time.Time   `db:"created_at"`
-	UpdatedAt time.Time   `db:"updated_at"`
+	ID        uuid.UUID     `db:"id"`
+	OtvetiID  pgtype.Uint64 `db:"otveti_id"`
+	BotID     uuid.UUID     `db:"bot_id"`
+	ProfileID uuid.UUID     `db:"profile_id"`
+	Platform  string        `db:"platform_type"`
+	Type      pgtype.Text   `db:"post_type"`
+	Title     string        `db:"post_title"`
+	Text      string        `db:"post_text"`
+	CreatedAt time.Time     `db:"created_at"`
+	UpdatedAt time.Time     `db:"updated_at"`
 }
 
 func (d PostDTO) ToModel() model.Post {
@@ -28,6 +29,7 @@ func (d PostDTO) ToModel() model.Post {
 
 	return model.Post{
 		ID:        d.ID,
+		OtvetiID:  d.OtvetiID.Uint64,
 		BotID:     d.BotID,
 		ProfileID: d.ProfileID,
 		Platform:  model.PlatformType(d.Platform),

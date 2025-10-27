@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/go-faster/errors"
+	"github.com/google/uuid"
 )
 
-func (p *PostsCommandRepo) DeletePost(ctx context.Context, id uint64) error {
+func (p *PostsCommandRepo) DeletePost(ctx context.Context, id uuid.UUID) error {
 	const query = `
 		DELETE FROM posts WHERE id=$1
 	`

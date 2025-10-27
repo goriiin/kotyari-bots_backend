@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/go-faster/errors"
+	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/internal/repo/posts"
 	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostsQueryRepo) GetWithCategories(ctx context.Context, id uint64) (model.PostWithCategories, error) {
+func (p *PostsQueryRepo) GetWithCategories(ctx context.Context, id uuid.UUID) (model.PostWithCategories, error) {
 	post, err := p.GetByID(ctx, id)
 	if err != nil {
 		return model.PostWithCategories{}, err

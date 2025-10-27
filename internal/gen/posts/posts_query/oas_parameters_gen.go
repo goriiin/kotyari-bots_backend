@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/go-faster/errors"
+	"github.com/google/uuid"
 	"github.com/ogen-go/ogen/conv"
 	"github.com/ogen-go/ogen/middleware"
 	"github.com/ogen-go/ogen/ogenerrors"
@@ -17,7 +18,7 @@ import (
 // GetPostByIdParams is parameters of getPostById operation.
 type GetPostByIdParams struct {
 	// Уникальный идентификатор поста.
-	PostId int
+	PostId uuid.UUID
 }
 
 func unpackGetPostByIdParams(packed middleware.Parameters) (params GetPostByIdParams) {
@@ -26,7 +27,7 @@ func unpackGetPostByIdParams(packed middleware.Parameters) (params GetPostByIdPa
 			Name: "postId",
 			In:   "path",
 		}
-		params.PostId = packed[key].(int)
+		params.PostId = packed[key].(uuid.UUID)
 	}
 	return params
 }
@@ -56,7 +57,7 @@ func decodeGetPostByIdParams(args [1]string, argsEscaped bool, r *http.Request) 
 					return err
 				}
 
-				c, err := conv.ToInt(val)
+				c, err := conv.ToUUID(val)
 				if err != nil {
 					return err
 				}

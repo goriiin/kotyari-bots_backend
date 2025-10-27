@@ -18,10 +18,14 @@ Post:
   description: "Пост"
   properties:
     id:
-      type: integer
-      format: uint64
+      type: string
+      format: uuid
       readOnly: true
       description: "ID поста"
+    otvetiId:
+      type: integer
+      format: uint64
+      description: "Опциональный ID ответов"
     botId:
       type: string
       format: uuid
@@ -64,6 +68,7 @@ Post:
       readOnly: true
   required:
     - id
+    - otvetiId
     - botId
     - profileId
     - platform
@@ -73,6 +78,7 @@ Post:
     - updatedAt
   example:
     id: "b046aea8-5692-46ab-bc51-7c479584bb36"
+    otvetiId: "1234567890"
     botId: "b5ad6b0f-3c15-4130-8c4d-6c535bc49cd4"
     profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"
     platform: "otveti"
@@ -157,7 +163,6 @@ PostUpdate:
       type: string
       description: "Новое содержимое поста."
   required:
-    - id
     - title
     - text
 
