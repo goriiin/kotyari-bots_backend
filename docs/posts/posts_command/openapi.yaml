@@ -1,0 +1,108 @@
+openapi: 3.0.0
+info:
+  title: "Posts Service"
+  description: "API для работы с постами."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8002
+tags:
+  - name: "Posts"
+    description: "Операции для управления постами."
+
+# --------------------------------------------------------------
+# Компоненты API
+# --------------------------------------------------------------
+components:
+  # -------------------- Безопасность --------------------
+  #  securitySchemes:
+  #    cookieAuth:
+  #      type: apiKey
+  #      in: cookie
+  #      name: session_id
+  #    csrfAuth:
+  #      type: apiKey
+  #      in: header
+  #      name: X-CSRF-Token
+# --------------------------------------------------------------
+# Глобальные требования безопасности
+# --------------------------------------------------------------
+#security:
+#  - cookieAuth: []
+#  - csrfAuth: []
+
+# --------------------------------------------------------------
+# Пути (Эндпоинты) API
+# --------------------------------------------------------------
+paths:
+  /api/v1/posts:
+    post:
+      summary: "Создать новые посты"
+      operationId: "createPost"
+      tags: ["Posts"]
+      requestBody:
+        required: true
+        description: "Данные для нового поста."
+        content:
+          application/json:
+            schema:
+              $ref: '../common/schemas.yaml#/PostInput'
+      responses:
+        '201':
+          description: "Посты успешно создан."
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/PostList'
+        '400':
+          $ref: '../common/responses.yaml#/BadRequest'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'
+
+  /api/v1/posts/{postId}:
+    put:
+      summary: "Обновить пост по ID"
+      operationId: "updatePostById"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '../common/parameters.yaml#/PostID'
+      requestBody:
+        required: true
+        description: "Новые данные для поста."
+        content:
+          application/json:
+            schema:
+              $ref: '../common/schemas.yaml#/PostUpdate'
+      responses:
+        '200':
+          description: "Пост успешно обновлен."
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/Post'
+        '400':
+          $ref: '../common/responses.yaml#/BadRequest'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'
+    delete:
+      summary: "Удалить пост по ID"
+      operationId: "deletePostById"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '../common/parameters.yaml#/PostID'
+      responses:
+        '204':
+          $ref: '../common/responses.yaml#/NoContent'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'

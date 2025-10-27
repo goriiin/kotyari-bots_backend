@@ -3,6 +3,8 @@ package reddit
 import (
 	"context"
 	"time"
+
+	"github.com/segmentio/kafka-go"
 )
 
 func (r *RedditAPIDelivery) Run() error {
@@ -13,7 +15,7 @@ func (r *RedditAPIDelivery) Run() error {
 		}
 
 		for post := range postChan {
-			err := r.producer.Publish(context.Background(), []byte(post.Title))
+			err := r.producer.Publish(context.Background(), kafka.Message{Value: []byte(post.Title)})
 			if err != nil {
 				return err
 			}

@@ -1,0 +1,26 @@
+NoContent:
+  description: "Операция успешна, тело ответа отсутствует."
+BadRequest:
+  description: "Некорректный запрос (Bad Request)."
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Error'
+Unauthorized:
+  description: "Ошибка аутентификации (Unauthorized)."
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Error'
+NotFound:
+  description: "Ресурс не найден (Not Found)."
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Error'
+InternalServerError:
+  description: "Внутренняя ошибка сервера (Internal Server Error)."
+  content:
+    application/json:
+      schema:
+        $ref: './schemas.yaml#/Error'

@@ -7,6 +7,7 @@ import (
 
 	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/segmentio/kafka-go"
 )
 
 type IntegrationsRepo interface {
@@ -14,7 +15,7 @@ type IntegrationsRepo interface {
 }
 
 type MessageProducer interface {
-	Publish(ctx context.Context, message []byte) error
+	Publish(ctx context.Context, message kafka.Message) error
 }
 
 type RedditAPIDelivery struct {

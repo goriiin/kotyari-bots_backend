@@ -31,6 +31,10 @@ func NewKafkaConsumer(log *logger.Logger, config *kafkaConfig.KafkaConfig) *Kafk
 	}
 }
 
+func (k *KafkaConsumer) GetMessage(ctx context.Context) (kafka.Message, error) {
+	return k.reader.ReadMessage(ctx)
+}
+
 func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message {
 	batches := make(chan []kafka.Message)
 

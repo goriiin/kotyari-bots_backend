@@ -1,0 +1,199 @@
+Category:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: "UUID категории"
+    title:
+      type: string
+      description: "Название категории"
+  required: [ id, title ]
+  example:
+    id: "b3eea15e-865c-462a-9b05-393b71954fc5"
+    title: "C++"
+
+Post:
+  type: object
+  description: "Пост"
+  properties:
+    id:
+      type: string
+      format: uuid
+      readOnly: true
+      description: "ID поста"
+    otvetiId:
+      type: integer
+      format: uint64
+      description: "Опциональный ID ответов"
+    botId:
+      type: string
+      format: uuid
+      description: "ID бота, к которому привязан пост."
+    profileId:
+      type: string
+      format: uuid
+      description: "ID профиля, к которому относится пост."
+    platform:
+      type: string
+      enum:
+        - "otveti"
+      description: "Платформа, для которой создавался пост"
+    postType:
+      nullable: true
+      type: string
+      enum:
+        - "opinion"
+        - "knowledge"
+        - "history"
+      description: "Тип поста"
+    title:
+      type: string
+      description: "Название поста"
+    text:
+      type: string
+      description: "Текстовое содержимое поста."
+    categories:
+      type: array
+      items:
+        $ref: './schemas.yaml#/Category'
+      description: "Возвращается, если у поста есть категории"
+    createdAt:
+      type: string
+      format: date-time
+      readOnly: true
+    updatedAt:
+      type: string
+      format: date-time
+      readOnly: true
+  required:
+    - id
+    - otvetiId
+    - botId
+    - profileId
+    - platform
+    - title
+    - text
+    - createdAt
+    - updatedAt
+  example:
+    id: "b046aea8-5692-46ab-bc51-7c479584bb36"
+    otvetiId: "1234567890"
+    botId: "b5ad6b0f-3c15-4130-8c4d-6c535bc49cd4"
+    profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"
+    platform: "otveti"
+    title: "Sample text title"
+    text: "Sample post text"
+    postType: "opinion"
+    categories:
+      - id: "b3eea15e-865c-462a-9b05-393b71954fc5"
+        title: "C++"
+      - id: "ac08780e-be4a-41df-a54a-58750b3c6b59"
+        title: "Программирование"
+    createdAt: "2023-10-27T10:00:00Z"
+    updatedAt: "2023-10-27T11:30:00Z"
+
+PostInput:
+  type: object
+  description: "Данные для создания нового поста."
+  properties:
+    botId:
+      type: string
+      format: uuid
+      description: "ID бота, который создает пост"
+    profileIds:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      description: "Массив ID профилей, от имени которых создаются посты."
+    taskText:
+      type: string
+      description: "Описание задачи для LLM"
+    platform:
+      type: string
+      enum:
+        - "otveti"
+      description: "Платформа, для которой создается пост"
+    postType:
+      type: string
+      nullable: true
+      enum:
+        - "opinion"
+        - "knowledge"
+        - "history"
+      description: "Тип поста - обязательное поле для ответов, nullable для возможной поддержки других платформ"
+    categoryIds:
+      type: array
+      nullable: true
+      items:
+        type: string
+        format: uuid
+      description: "UUID-ы категорий поста, обязательные для ответов, nullable для возможной поддержки других платформ"
+  required:
+    - botId
+    - profileId
+    - taskText
+    - platform
+  example:
+    botId: "b046aea8-5692-46ab-bc51-7c479584bb36"
+    profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"
+    taskText: "Пост про огурцы"
+    platform: "otveti"
+    postType: "opinion"
+    categories:
+      - id: "b3eea15e-865c-462a-9b05-393b71954fc5"
+        title: "C++"
+        createdAt: "2023-10-01T09:00:00Z"
+        updatedAt: "2023-10-01T09:00:00Z"
+      - id: "ac08780e-be4a-41df-a54a-58750b3c6b59"
+        title: "Программирование"
+        createdAt: "2023-10-01T09:00:00Z"
+        updatedAt: "2023-10-01T09:00:00Z"
+
+PostUpdate:
+  type: object
+  description: "Данные для обновления поста."
+  properties:
+    title:
+      type: string
+      description: "Новый заголовок поста"
+    text:
+      type: string
+      description: "Новое содержимое поста."
+  required:
+    - title
+    - text
+
+PostList:
+  type: object
+  properties:
+    data:
+      type: array
+      items:
+        $ref: './schemas.yaml#/Post'
+
+Error:
+  type: object
+  description: "Стандартизированная структура ошибки."
+  properties:
+    errorCode:
+      type: integer
+      format: uint16
+      description: "HTTP error code"
+      example: "500"
+    message:
+      type: string
+      description: "Человекочитаемое сообщение об ошибке."
+      example: "Одно или несколько полей не прошли валидацию."
+    details:
+      type: object
+      additionalProperties:
+        type: string
+      description: "Дополнительные детали об ошибке, например, по полям."
+      example:
+        text: "Поле не может быть пустым."
+  required:
+    - errorCode
+    - message

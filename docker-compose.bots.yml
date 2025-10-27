@@ -1,6 +1,6 @@
 services:
   bots_db:
-    image: postgres:16-alpine
+    image: postgres:17.5
     container_name: bots_db
     environment:
       POSTGRES_USER: ${LOCAL_BOTS_DATABASE_USER}

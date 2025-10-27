@@ -16,14 +16,12 @@ func NewKafkaProducer(config *kafkaConfig.KafkaConfig) *KafkaProducer {
 		writer: &kafka.Writer{
 			Addr:                   kafka.TCP(config.Brokers...),
 			Topic:                  config.Topic,
-			Balancer:               &kafka.LeastBytes{},
+			Balancer:               &kafka.Hash{},
 			AllowAutoTopicCreation: true,
 		},
 	}
 }
 
-func (k *KafkaProducer) Publish(ctx context.Context, message []byte) error {
-	return k.writer.WriteMessages(ctx, kafka.Message{
-		Value: message,
-	})
+func (k *KafkaProducer) Publish(ctx context.Context, message kafka.Message) error {
+	return k.writer.WriteMessages(ctx, message)
 }

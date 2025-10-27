@@ -1,10 +1,31 @@
 package kafka
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
+	"github.com/segmentio/kafka-go"
 )
+
+type Command string
+
+// Envelope TODO: Можно постараться сделать более общим, но пока сойдет
+type Envelope struct {
+	Command       Command `json:"command"`
+	EntityID      string  `json:"entity_id"`
+	Payload       []byte  `json:"payload"`
+	CorrelationID string  `json:"correlation_id"`
+	Attempt       int     `json:"attempt,omitempty"` // Пока пусть будет
+}
+
+type CommittableMessage struct {
+	Msg            kafka.Message
+	Ack            func(ctx context.Context) error
+	Nack           func(ctx context.Context, err error) error
+	Reply          func(ctx context.Context, body []byte) error
+	ReplyWithError func(ctx context.Context, body []byte) error
+}
 
 type KafkaConfig struct {
 	config.ConfigBase
@@ -28,4 +49,32 @@ func (k *KafkaConfig) Validate() error {
 	}
 
 	return nil
+}
+
+func EnsureTopicCreated(broker, topic string) error {
+	conn, err := kafka.Dial("tcp", broker)
+	if err != nil {
+		return err
+	}
+	defer func(conn *kafka.Conn) {
+		err := conn.Close()
+		if err != nil {
+			// TODO: logs
+			fmt.Println(err)
+		}
+	}(conn)
+	return conn.CreateTopics(kafka.TopicConfig{
+		Topic:             topic,
+		NumPartitions:     1,
+		ReplicationFactor: 1,
+	})
+}
+
+func GetHeader(m kafka.Message, key string) string {
+	for _, h := range m.Headers {
+		if h.Key == key {
+			return string(h.Value)
+		}
+	}
+	return ""
 }
