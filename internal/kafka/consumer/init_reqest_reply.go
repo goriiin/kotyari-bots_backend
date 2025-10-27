@@ -67,7 +67,7 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 
 			fmt.Printf("ALO ALO %+v\n", m)
 
-			corrID := headerOf(m, "correlation_id")
+			corrID := kafkaConfig.GetHeader(m, "correlation_id")
 
 			fmt.Println("corrID: ", corrID)
 			done := make(chan error, 1)
@@ -83,26 +83,31 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 					return nil
 				},
 				// TODO: Скорее все помимо reply будет еще replyWithError, чтобы не двигать оффсет
-				Reply: func(rctx context.Context, body []byte) error {
+				Reply: func(ctx context.Context, body []byte) error {
 					done <- nil // оффсет двигается
 					headers := []kafka.Header{
 						{Key: "correlation_id", Value: []byte(corrID)},
 					}
 
 					// TODO: просто ужас (даже не тихий)
-					err = c.replier.Publish(rctx, kafka.Message{
+					err = c.replier.Publish(ctx, kafka.Message{
+						Key:     []byte(corrID),
 						Value:   body,
 						Headers: headers,
 					})
 					if err != nil {
 						fmt.Println("ERROR PUBLISHING MESSAGE ", err.Error())
 					}
-					//return c.replier.Publish(rctx, kafka.Message{
+					//return c.replier.Publish(ctx, kafka.Message{
 					//	Value:   body,
 					//	Headers: headers,
 					//})
 					return nil
 				},
+
+				//ReplyWithError: func(ctx context.Context, body []byte) error {
+				//
+				//},
 			}
 
 			select {
@@ -131,13 +136,4 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 		}
 	}()
 	return out
-}
-
-func headerOf(m kafka.Message, k string) string {
-	for _, h := range m.Headers {
-		if h.Key == k {
-			return string(h.Value)
-		}
-	}
-	return ""
 }

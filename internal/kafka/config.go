@@ -20,10 +20,11 @@ type Envelope struct {
 }
 
 type CommittableMessage struct {
-	Msg   kafka.Message
-	Ack   func(ctx context.Context) error
-	Nack  func(ctx context.Context, err error) error
-	Reply func(ctx context.Context, body []byte) error
+	Msg            kafka.Message
+	Ack            func(ctx context.Context) error
+	Nack           func(ctx context.Context, err error) error
+	Reply          func(ctx context.Context, body []byte) error
+	ReplyWithError func(ctx context.Context, body []byte) error
 }
 
 type KafkaConfig struct {
@@ -61,4 +62,13 @@ func EnsureTopicCreated(broker, topic string) error {
 		NumPartitions:     1,
 		ReplicationFactor: 1,
 	})
+}
+
+func GetHeader(m kafka.Message, key string) string {
+	for _, h := range m.Headers {
+		if h.Key == key {
+			return string(h.Value)
+		}
+	}
+	return ""
 }

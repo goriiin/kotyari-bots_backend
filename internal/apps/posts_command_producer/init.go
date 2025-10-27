@@ -51,7 +51,9 @@ func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
 
 	reader := consumer.NewKafkaConsumer(readerCfg)
 
-	p, err := producer.NewKafkaRequestReplyProducer(kafkaCfg, "posts-replies", "posts-replies-group", reader)
+	repliesDispatcher := consumer.NewReplyManager(reader)
+
+	p, err := producer.NewKafkaRequestReplyProducer(kafkaCfg, "posts-replies", "posts-replies-group", repliesDispatcher)
 	if err != nil {
 		fmt.Println("ГАГАГАГАГАА ЭРРОР АХАХАХАХ ХО-РО-ШО", err.Error())
 		return nil, err

@@ -11,7 +11,7 @@ import (
 )
 
 type producer interface {
-	Publish(ctx context.Context, env *kafkaConfig.Envelope) error
+	Publish(ctx context.Context, env kafkaConfig.Envelope) error
 	Request(ctx context.Context, env kafkaConfig.Envelope, timeout time.Duration) ([]byte, error)
 }
 

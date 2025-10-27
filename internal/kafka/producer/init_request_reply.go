@@ -11,6 +11,13 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
+type repliesDispatcher interface {
+	StartConsumingReplies()
+	Dispatch(msg kafka.Message)
+	Register(correlationID string) <-chan kafka.Message
+	Unregister(correlationID string)
+}
+
 type reader interface {
 	GetMessage(ctx context.Context) (kafka.Message, error)
 }
@@ -21,15 +28,16 @@ type KafkaRequestReplyProducer struct {
 	reader     reader
 	replyTopic string
 	replyGroup string
+	dispatcher repliesDispatcher
 }
 
-func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, replyGroup string, reader reader) (*KafkaRequestReplyProducer, error) {
+func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, replyGroup string, dispatcher repliesDispatcher) (*KafkaRequestReplyProducer, error) {
 	// TODO: XDDDDDDD
 	if err := kafkaConfig.EnsureTopicCreated(config.Brokers[0], replyTopic); err != nil {
 		fmt.Println("ТОПИК НЕ СОЗДАЛСЯ))) РАЗРАБ КАФКА-ГО МОЛОДЕЦ")
 	}
 
-	return &KafkaRequestReplyProducer{
+	producer := &KafkaRequestReplyProducer{
 		writer: &kafka.Writer{
 			Addr:                   kafka.TCP(config.Brokers...),
 			Topic:                  config.Topic,
@@ -39,12 +47,14 @@ func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, r
 		replyTopic: replyTopic,
 		replyGroup: replyGroup,
 		config:     config,
-		reader:     reader,
-	}, nil
+		dispatcher: dispatcher,
+	}
+
+	go producer.dispatcher.StartConsumingReplies()
+	return producer, nil
 }
 
-func (p *KafkaRequestReplyProducer) Publish(ctx context.Context, env *kafkaConfig.Envelope) error {
-	env.CorrelationID = uuid.NewString()
+func (p *KafkaRequestReplyProducer) Publish(ctx context.Context, env kafkaConfig.Envelope) error {
 	b, err := jsoniter.Marshal(env)
 	if err != nil {
 		return err
@@ -62,8 +72,12 @@ func (p *KafkaRequestReplyProducer) Publish(ctx context.Context, env *kafkaConfi
 }
 
 func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig.Envelope, timeout time.Duration) ([]byte, error) {
+	env.CorrelationID = uuid.NewString()
+	replyChan := p.dispatcher.Register(env.CorrelationID)
+	defer p.dispatcher.Unregister(env.CorrelationID)
+
 	fmt.Println("Зашли в publish: ", time.Now())
-	if err := p.Publish(ctx, &env); err != nil {
+	if err := p.Publish(ctx, env); err != nil {
 		return nil, err
 	}
 	fmt.Println("Вышли из publish: ", time.Now())
@@ -76,27 +90,27 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 
 	fmt.Println("COR ID", env.CorrelationID)
 
-	for {
-		// TODO: Надо поменять на Fetch + Commit потому что хуесос я
-		m, err := p.reader.GetMessage(ctx)
-		if err != nil {
-			fmt.Println(err)
-			return nil, err
-		}
-		if getHeader(m, "correlation_id") == env.CorrelationID {
-			fmt.Printf("MESSAGE RECEIVED: %+v\n", m)
-			fmt.Printf("CONTEXT VNUTRI MAMASHI: %+v\n", ctx)
-			fmt.Println("Получили ответ: ", time.Now())
-			return m.Value, nil
-		}
+	select {
+	case msg := <-replyChan:
+		fmt.Printf("Received reply for CorrelationID: %s\n", env.CorrelationID)
+		return msg.Value, nil
+	case <-ctx.Done():
+		fmt.Printf("Timed out waiting for reply for CorrelationID: %s\n", env.CorrelationID)
+		return nil, ctx.Err()
 	}
-}
 
-func getHeader(m kafka.Message, key string) string {
-	for _, h := range m.Headers {
-		if h.Key == key {
-			return string(h.Value)
-		}
-	}
-	return ""
+	//for {
+	//	// TODO: Надо поменять на Fetch + Commit потому что хуесос я
+	//	m, err := p.reader.GetMessage(ctx)
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		return nil, err
+	//	}
+	//	if kafkaConfig.GetHeader(m, "correlation_id") == env.CorrelationID {
+	//		fmt.Printf("MESSAGE RECEIVED: %+v\n", m)
+	//		fmt.Printf("CONTEXT VNUTRI MAMASHI: %+v\n", ctx)
+	//		fmt.Println("Получили ответ: ", time.Now())
+	//		return m.Value, nil
+	//	}
+	//}
 }
