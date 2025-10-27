@@ -1,0 +1,107 @@
+services:
+  posts_db:
+    image: postgres:17.5
+    ports:
+      - "54327:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${LOCAL_POSTS_DATABASE_USER}
+      - POSTGRES_PASSWORD=${LOCAL_POSTS_DATABASE_PASSWORD}
+      - POSTGRES_DB=${LOCAL_POSTS_DATABASE_NAME}
+    volumes:
+      - posts_db_data:/var/lib/postgresql/data/
+    container_name: posts_db
+    restart: unless-stopped
+    networks:
+      - posts-internal-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${LOCAL_POSTS_DATABASE_USER} -d ${LOCAL_POSTS_DATABASE_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  posts_command_prod_go:
+    build:
+      context: .
+      dockerfile: ./cmd/posts_command_producer/Dockerfile
+    ports:
+      - "8088:8088"
+    image: posts_command_prod-go-image
+    container_name: posts_command_prod_go
+    restart: unless-stopped
+    networks:
+      - posts-internal-network
+      - public-gateway-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  posts_command_cons_go:
+    build:
+      context: .
+      dockerfile: ./cmd/posts_command_consumer/Dockerfile
+    image: posts_command_cons-go-image
+    container_name: posts_command_cons_go
+    restart: unless-stopped
+    networks:
+      - posts-internal-network
+      - public-gateway-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      posts_db:
+        condition: service_healthy
+
+  posts_query_go:
+    build:
+      context: .
+      dockerfile: ./cmd/posts_query/Dockerfile
+    ports:
+      - "8089:8089"
+    image: posts_query-go-image
+    container_name: posts_query_go
+    restart: unless-stopped
+    networks:
+      - posts-internal-network
+#      - public-gateway-network
+    depends_on:
+      posts_db:
+        condition: service_healthy
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - posts-internal-network
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092,INTERNAL://kafka:29092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://kafka:9093,INTERNAL://0.0.0.0:29092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: '6aa74627-ee8e-4b0c-ac0f-20c8ec74069f'
+
+
+networks:
+  posts-internal-network:
+    driver: bridge
+  public-gateway-network:
+    external: true
+
+volumes:
+  posts_db_data:

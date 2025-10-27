@@ -26,9 +26,6 @@ help:
 	@echo "api          - Сгенерировать Go-код из всех openapi.yml файлов."
 	@echo "install-ogen - Установить или обновить генератор кода ogen."
 
-profiles-reboot: profiles-down profiles-up
-
-
 # --- Вспомогательные и внутренние команды ---
 
 .PHONY: setup-network teardown-network copy-env
@@ -117,6 +114,7 @@ up: copy-env setup-network
 	@echo "Starting services in parallel..."
 	@$(MAKE) bots-up & \
 	 $(MAKE) profiles-up & \
+	 $(MAKE) posts-up & \
 	wait
 	@echo "All services are up and running."
 
@@ -125,6 +123,7 @@ down:
 	@echo "Shutdown services in parallel..."
 	@$(MAKE) bots-down & \
 	 $(MAKE) profiles-down & \
+	 $(MAKE) posts-up & \
 	wait
 	@echo "All services are up and stopped."
 
@@ -153,6 +152,20 @@ profiles-reboot:
 	@echo "Rebooting profiles service and dependencies..."
 	$(MAKE) profiles-down
 	$(MAKE) profiles-up
+
+posts-up: setup-network
+	@echo "Starting posts service and dependencies..."
+	docker-compose -f docker-compose.posts.yml up -d --build
+
+posts-down:
+	@echo "Stopping posts service and dependencies..."
+	@docker-compose -f docker-compose.posts.yml down
+
+posts-reboot:
+	@echo "Rebooting posts service and dependencies..."
+	$(MAKE) posts-down
+	$(MAKE) posts-up
+
 
 example-run:
 	@go run cmd/example/main.go

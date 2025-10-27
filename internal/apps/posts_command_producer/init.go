@@ -10,6 +10,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
@@ -49,7 +50,9 @@ func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
 		GroupID: "posts-replies-group",
 	}
 
-	reader := consumer.NewKafkaConsumer(readerCfg)
+	log := logger.NewLogger("xdd", &grpcClientCfg.ConfigBase)
+
+	reader := consumer.NewKafkaConsumer(log, readerCfg)
 
 	repliesDispatcher := consumer.NewReplyManager(reader)
 
