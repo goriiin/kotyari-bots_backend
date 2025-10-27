@@ -10,6 +10,7 @@ import (
 type postsQueryRepository interface {
 	GetWithCategories(ctx context.Context, id uuid.UUID) (model.PostWithCategories, error)
 	GetByID(ctx context.Context, id uuid.UUID) (model.Post, error)
+	ListPosts(ctx context.Context) ([]model.Post, error)
 }
 
 type PostsQueryHandler struct {

@@ -155,7 +155,21 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      posts_db:
+        condition: service_healthy
 
+  posts_query_go:
+    build:
+      context: .
+      dockerfile: ./cmd/posts_query/Dockerfile
+    ports:
+      - "8089:8089"
+    image: posts_query-go-image
+    container_name: posts_query_go
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
       posts_db:
         condition: service_healthy
 

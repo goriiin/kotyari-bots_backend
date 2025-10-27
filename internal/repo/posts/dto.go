@@ -41,6 +41,15 @@ func (d PostDTO) ToModel() model.Post {
 	}
 }
 
+func PostsDTOToModel(postsDTO []PostDTO) []model.Post {
+	postsModel := make([]model.Post, 0, len(postsDTO))
+	for _, postDTO := range postsDTO {
+		postsModel = append(postsModel, postDTO.ToModel())
+	}
+
+	return postsModel
+}
+
 type CategoryDTO struct {
 	ID        uuid.UUID `db:"id"`
 	Name      string    `db:"category_name"`

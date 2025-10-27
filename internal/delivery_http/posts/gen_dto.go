@@ -29,6 +29,17 @@ func QueryModelToHttp(post model.Post) *genQuery.Post {
 	}
 }
 
+func QueryPostsToHttp(postsModels []model.Post) *genQuery.PostList {
+	httpPosts := make([]genQuery.Post, 0, len(postsModels))
+	for _, postsModel := range postsModels {
+		httpPosts = append(httpPosts, *QueryModelToHttp(postsModel))
+	}
+
+	return &genQuery.PostList{
+		Data: httpPosts,
+	}
+}
+
 func ModelToHttp(post model.Post) *genCommand.Post {
 	var postType genCommand.OptNilPostPostType
 	if post.Type != "" {
