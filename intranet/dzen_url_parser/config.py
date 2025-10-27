@@ -70,6 +70,9 @@ class Settings(BaseSettings):
     # Диагностика
     DEBUG_LOG_SELECTORS: bool = True
 
+    PROXY_FILE_PATH: str = "/app/intranet/proxies/ip.txt"
+
+
     @property
     def construct_server_address(self) -> str:
         return f"{self.DZEN_URL_PARSER_HOST}:{self.DZEN_URL_PARSER_PORT}"

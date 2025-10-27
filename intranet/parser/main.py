@@ -1,11 +1,13 @@
 import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
 from intranet.libs.redis import MockRedisClient, RedisClient
 from intranet.parser.config import config
 from intranet.parser.parsers.dzen import DzenParser
 from intranet.libs.greenplum import GreenplumWriter
+from intranet.libs.proxy_pool import ProxyPool
 
 INITIAL_URLS_FOR_MOCK = [
     "https://dzen.ru/a/aIIhDlT2Qh9H9FOZ",
@@ -29,6 +31,10 @@ class ParserOrchestrator:
                 password=config['redis'].get('password')
             )
 
+        # Proxy pool (graceful if missing)
+        proxy_file = (config.get('proxy') or {}).get('file_path')
+        self.proxy_pool: Optional[ProxyPool] = ProxyPool(proxy_file) if proxy_file else None
+
         self.storage_writer = GreenplumWriter(config['greenplum'])
         self.executor = ThreadPoolExecutor(max_workers=config['parser']['max_workers'])
         print(f"Оркестратор запущен с {config['parser']['max_workers']} воркерами.")
@@ -38,11 +44,7 @@ class ParserOrchestrator:
         if not url:
             print("Получены данные без source_url.")
             return
-
-        # Идемпотентность: помечаем URL обработанным
         self.redis_client.mark_as_processed(url)
-
-        # Сохранение в БД (insert_article должен принимать category)
         self.storage_writer.insert_article(item_data)
         print(f"УСПЕШНО ОБРАБОТАНА И СОХРАНЕНА СТАТЬЯ: {item_data.get('title')}")
 
@@ -51,7 +53,10 @@ class ParserOrchestrator:
         print(f"Воркер [{thread_id}] взял в работу таргет: {target}")
         parser_instance = None
         try:
-            parser_instance = parser_class()
+            proxy = self.proxy_pool.get_next_proxy() if self.proxy_pool else None
+            if proxy:
+                print(f"[worker] Using proxy: {proxy.split(':')[0]}:{proxy.split(':')[1]}")
+            parser_instance = parser_class(proxy=proxy)
             results = parser_instance.parse(target)
 
             if isinstance(results, list):
@@ -79,18 +84,15 @@ class ParserOrchestrator:
             topic = message['channel']
             raw = message['data']
 
-            # decode bytes -> str, если нужно
             if isinstance(raw, (bytes, bytearray)):
                 try:
                     raw = raw.decode('utf-8', 'ignore')
                 except Exception:
                     pass
 
-            # По умолчанию считаем, что пришла строка-URL
             target_url = raw
             category = None
 
-            # Пытаемся распаковать JSON {"url": "...", "category": "..."}
             if isinstance(raw, str):
                 try:
                     obj = json.loads(raw)
@@ -98,7 +100,6 @@ class ParserOrchestrator:
                         target_url = obj.get("url") or obj.get("source_url") or raw
                         category = obj.get("category")
                 except Exception:
-                    # не JSON — оставляем target_url как есть
                     pass
 
             parser_class = PARSER_MAPPING.get(topic)

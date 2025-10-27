@@ -3,7 +3,6 @@ FROM python:3.11-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Устанавливаем и браузер, и подходящий для него драйвер
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     chromium \
@@ -16,6 +15,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . ./intranet/
+
+# ensure proxies are present in the image
+COPY ip.txt /app/intranet/proxies/ip.txt
 
 ENV PYTHONPATH=/app
 

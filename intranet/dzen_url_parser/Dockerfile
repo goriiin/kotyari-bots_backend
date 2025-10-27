@@ -31,8 +31,9 @@ COPY api/ /app/api/
 COPY intranet/dzen_url_parser/ /app/intranet/dzen_url_parser/
 COPY intranet/libs/ /app/intranet/libs/
 
+COPY intranet/ip.txt /app/intranet/proxies/ip.txt
+
 # 7. Expose the gRPC port this service listens on.
 EXPOSE 8091
 
-# 8. Define the command to run the gRPC server.
 CMD ["python", "-u", "-m", "intranet.dzen_url_parser.main"]

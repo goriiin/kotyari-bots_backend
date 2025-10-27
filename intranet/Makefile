@@ -58,3 +58,27 @@ help:
 	@echo '  make exec-*(SERVICE,CMD)- Exec into container'
 
 .PHONY: up-dev down-dev ps-dev logs-dev restart-dev up-prod down-prod ps-prod logs-prod restart-prod exec-dev exec-prod help
+
+
+# Test anti-detection in Docker
+.PHONY: test-detection
+test-detection:
+	@echo "Building test container..."
+	docker build -f intranet/Dockerfile.test -t intranet-test .
+	@echo "Running anti-detection tests..."
+	docker run --rm \
+		-v $(PWD)/Webshare-10-proxies.txt:/app/Webshare-10-proxies.txt:ro \
+		-v $(PWD)/intranet:/app/intranet:ro \
+		-e PYTHONUNBUFFERED=1 \
+		intranet-test
+
+# Run test with docker-compose
+.PHONY: test-detection-compose
+test-detection-compose:
+	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
+
+# Clean test containers
+.PHONY: test-clean
+test-clean:
+	docker-compose -f docker-compose.test.yml down -v
+	docker rmi intranet-test 2>/dev/null || true

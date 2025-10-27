@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 
 class AbstractBaseParser(ABC):
     """
@@ -16,9 +16,7 @@ class AbstractBaseParser(ABC):
         """
         pass
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
+from intranet.libs.driver import create_anti_detect_driver
 
 class BaseParser(ABC):
     @abstractmethod
@@ -26,32 +24,10 @@ class BaseParser(ABC):
         pass
 
 class BaseBrowserParser(BaseParser, ABC):
-    def __init__(self):
-        print("▶[BaseBrowserParser] Инициализация... Попытка создать WebDriver.")
-        self.driver = self._get_webdriver()
+    def __init__(self, proxy: Optional[str] = None):
+        print("▶[BaseBrowserParser] Инициализация... Попытка создать anti-detect WebDriver.")
+        self.driver = create_anti_detect_driver(proxy=proxy)
         print("[BaseBrowserParser] WebDriver успешно создан.")
-
-    def _get_webdriver(self):
-        options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
-        options.to_capabilities()  # Новая рекомендация для headless
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--log-level=3")
-        options.add_argument(
-            "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
-        options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
-
-        service = Service(executable_path='/usr/bin/chromedriver')
-
-        try:
-            print("   [WebDriver] Инициализация драйвера Chromium из системного пути...")
-            driver = webdriver.Chrome(service=service, options=options)
-            print("   [WebDriver] Драйвер Chromium успешно создан.")
-            return driver
-        except Exception as e:
-            print(f"   [WebDriver] КРИТИЧЕСКАЯ ОШИБКА: Не удалось создать системный драйвер: {e}")
-            raise
 
     def close(self):
         if hasattr(self, 'driver') and self.driver:
