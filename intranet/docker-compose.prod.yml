@@ -25,7 +25,7 @@ services:
   dzen-parser:
     build:
       context: ..
-    dockerfile: intranet/dzen_url_parser/Dockerfile
+      dockerfile: intranet/dzen_url_parser/Dockerfile
     env_file: [ .env ]
     ports: ["8091:8091"]
     depends_on:
