@@ -19,8 +19,11 @@ services:
       GP_DB: ${GP_DB}
       GP_USER: ${GP_USER}
       GP_PASSWORD: ${GP_PASSWORD}
-    ports: ["54325:5432"]
-    volumes: [ "greenplum_data:/srv" ]
+    ports: [ "54325:5432" ]
+    volumes:
+      - greenplum_data:/srv
+      - ./init-db.sh:/init-db.sh
+    command: [ "/bin/bash", "/init-db.sh" ]
     restart: unless-stopped
 
   dzen-parser:
