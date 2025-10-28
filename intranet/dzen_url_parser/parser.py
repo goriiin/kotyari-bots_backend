@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import time
 from typing import Set, List, Optional, Dict, Iterable
 from urllib.parse import urlparse, urlunparse
@@ -10,9 +9,6 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from .config import settings
 from .redis_adapter import LinkStorer, LinkItem
-
-logger = logging.getLogger(__name__)
-
 
 def normalize_dzen_article_url(href: str) -> Optional[str]:
     """
@@ -28,7 +24,7 @@ def normalize_dzen_article_url(href: str) -> Optional[str]:
             return f"https://dzen.ru{href.split('?')[0]}"
         return None
     except Exception as e:
-        logger.error("normalize error: %s", e)
+        print("normalize error: %s", e)
         return None
 
 
@@ -82,7 +78,7 @@ def collect_links_from_html(html: str) -> List[str]:
 
     if settings.DEBUG_LOG_SELECTORS:
         preview = ", ".join(uniq[:3])
-        logger.info("parser.debug collected=%d preview=%s", len(uniq), preview)
+        print("parser.debug collected=%d preview=%s", len(uniq), preview)
 
     return uniq
 
@@ -152,5 +148,5 @@ def parse_dzen_for_links_with_category(driver: WebDriver, link_storer: Optional[
 
         return [{"url": u, "category": c} for u, c in unique.items()]
     except Exception as e:
-        logger.error("parser error during parsing: %s", e)
+        print("parser error during parsing: %s", e)
         return [{"url": u, "category": c} for u, c in unique.items()]

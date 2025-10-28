@@ -4,33 +4,27 @@ Tests WebDriver configuration against bot detection services.
 Includes proxy validation tests.
 """
 import sys
-import logging
 import requests
 from libs.driver import create_anti_detect_driver
 from libs.proxy_pool import ProxyPool
 import time
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 def test_proxy_requests(proxy_str: str) -> bool:
     try:
         parts = proxy_str.split(":")
         if len(parts) != 4:
-            logger.error("Invalid proxy format")
+            print("Invalid proxy format")
             return False
         host, port, username, password = parts
         proxy_url = f"http://{username}:{password}@{host}:{port}/"
         proxies = {"http": proxy_url, "https": proxy_url}
-        logger.info(f"Testing proxy connectivity: {host}:{port}")
+        print(f"Testing proxy connectivity: {host}:{port}")
         resp = requests.get("https://ipv4.webshare.io/", proxies=proxies, timeout=10)
-        logger.info(f"Proxy response: {resp.text.strip()} status={resp.status_code}")
+        print(f"Proxy response: {resp.text.strip()} status={resp.status_code}")
         return resp.status_code == 200
     except Exception as e:
-        logger.error(f"Proxy connectivity error: {e}")
+        print(f"Proxy connectivity error: {e}")
         return False
 
 def main():

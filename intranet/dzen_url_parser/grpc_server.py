@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import logging
-
 import grpc
 from google.protobuf import empty_pb2
 from api.protos.url_fetcher.gen import start_fetching_pb2_grpc
@@ -10,8 +8,6 @@ from .redis_adapter import LinkStorer, RedisPublisherAdapter
 from intranet.libs.driver import create_anti_detect_driver
 from .config import settings
 from ..libs.proxy_pool import ProxyPool
-
-logger = logging.getLogger(__name__)
 
 class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
     def __init__(self, link_storer: LinkStorer | None = None):
@@ -43,5 +39,5 @@ class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
                     driver.quit()
                     print("WebDriver closed.")
                 except Exception as e:
-                    logger.error(f"Failed to close driver: {e}")
+                    print(f"Failed to close driver: {e}")
                     pass

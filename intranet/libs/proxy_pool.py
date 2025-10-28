@@ -1,9 +1,7 @@
-import logging
+
 import random
 import re
 from typing import Optional, List
-
-logger = logging.getLogger(__name__)
 
 class ProxyPool:
     """
@@ -23,7 +21,7 @@ class ProxyPool:
         parts = re.split(r'[\s:]+', line.strip())
         parts = [p for p in parts if p]
         if len(parts) != 4:
-            logger.warning(f"Invalid proxy format (expected 4 parts): {line}")
+            print(f"Invalid proxy format (expected 4 parts): {line}")
             return None
         host, port, user, pwd = parts
         return f"{host} {port} {user} {pwd}"
@@ -39,27 +37,27 @@ class ProxyPool:
                     if norm:
                         valid.append(norm)
             self.proxies = valid
-            logger.info(f"Loaded {len(self.proxies)} proxies from {self.filepath}")
+            print(f"Loaded {len(self.proxies)} proxies from {self.filepath}")
         except FileNotFoundError:
-            logger.error(f"Proxy file not found: {self.filepath}")
+            print(f"Proxy file not found: {self.filepath}")
             self.proxies = []
         except Exception as e:
-            logger.error(f"Error loading proxies: {e}")
+            print(f"Error loading proxies: {e}")
             self.proxies = []
 
     def get_random_proxy(self) -> Optional[str]:
         if not self.proxies:
-            logger.warning("Proxy pool is empty, returning None")
+            print("Proxy pool is empty, returning None")
             return None
         proxy = random.choice(self.proxies)
-        logger.debug(f"Selected random proxy: {proxy.split()[0]}")
+        print(f"Selected random proxy: {proxy.split()[0]}")
         return proxy
 
     def get_next_proxy(self) -> Optional[str]:
         if not self.proxies:
-            logger.warning("Proxy pool is empty, returning None")
+            print("Proxy pool is empty, returning None")
             return None
         proxy = self.proxies[self.round_robin_index]
         self.round_robin_index = (self.round_robin_index + 1) % len(self.proxies)
-        logger.debug(f"Selected round-robin proxy: {proxy.split()[0]}")
+        print(f"Selected round-robin proxy: {proxy.split()[0]}")
         return proxy
