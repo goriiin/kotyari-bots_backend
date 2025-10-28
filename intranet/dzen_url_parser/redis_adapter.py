@@ -26,17 +26,17 @@ class RedisPublisherAdapter(LinkStorer):
     """
 
     def __init__(self) -> None:
-        self.topic = settings.REDISPUBLISHTOPIC
-        self.processedkey = settings.REDISPROCESSEDURLSKEY
+        self.topic = settings.REDIS_PUBLISH_TOPIC
+        self.processed_key = settings.REDIS_PROCESSED_URLS_KEY
 
-        username = settings.REDISUSER or None
-        password = settings.REDISPASSWORD
+        username = settings.REDIS_USER or None
+        password = settings.REDIS_PASSWORD
 
         # Keep argument names consistent with existing RedisClient initializer
         self.redisclient = RedisClient(
             host=settings.REDISHOST,
             port=settings.REDISPORT,
-            processedurlskey=self.processedkey,
+            processed_urls_key=self.processed_key,
             username=username,
             password=password,
         )

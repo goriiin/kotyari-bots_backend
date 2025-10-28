@@ -115,7 +115,7 @@ def publish_batch(linkstorer: Optional[LinkStorer], urls: Iterable[str], categor
     return linkstorer.store_links(items)
 
 
-def parse_dzen_for_links_with_category(driver: WebDriver, linkstorer: Optional[LinkStorer] = None) -> List[Dict[str, Optional[str]]]:
+def parse_dzen_for_links_with_category(driver: WebDriver, link_storer: Optional[LinkStorer] = None) -> List[Dict[str, Optional[str]]]:
     """
     Iterate configured topic URLs, scroll, collect links and publish them with category.
     Returns the deduplicated mapping converted to list of {"url","category"}.
@@ -144,8 +144,8 @@ def parse_dzen_for_links_with_category(driver: WebDriver, linkstorer: Optional[L
                 unique[u] = category
 
             to_publish = [u for u in new_urls if u not in published_seen]
-            if to_publish and linkstorer:
-                published = publish_batch(linkstorer, to_publish, category)
+            if to_publish and link_storer:
+                published = publish_batch(link_storer, to_publish, category)
                 if published > 0:
                     published_seen.update(to_publish)
 
