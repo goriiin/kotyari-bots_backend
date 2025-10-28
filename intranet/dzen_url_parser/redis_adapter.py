@@ -34,8 +34,8 @@ class RedisPublisherAdapter(LinkStorer):
 
         # Keep argument names consistent with existing RedisClient initializer
         self.redisclient = RedisClient(
-            host=settings.REDISHOST,
-            port=settings.REDISPORT,
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
             processed_urls_key=self.processed_key,
             username=username,
             password=password,
