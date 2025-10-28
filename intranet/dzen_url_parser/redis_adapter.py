@@ -1,59 +1,60 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable
+from typing import Iterable, Optional, TypedDict
+import json
 
-from intranet.libs.redis import RedisClient  # предполагаемый существующий клиент
+from intranet.libs.redis import RedisClient
 from .config import settings
 
-import json
+
+class LinkItem(TypedDict):
+    url: str
+    category: Optional[str]
+
 
 class LinkStorer(ABC):
     @abstractmethod
-    def store_links(self, links: Iterable[str]) -> int:
-        """
-        Сохранить/опубликовать набор ссылок.
-        Возвращает число обработанных (опубликованных) ссылок.
-        """
+    def store_links(self, links: Iterable[LinkItem]) -> int:
         raise NotImplementedError
 
 
 class RedisPublisherAdapter(LinkStorer):
     """
-    Адаптер публикации ссылок в Redis Pub/Sub.
-    Пароль обязателен при включённом requirepass у Redis, username опционален.
+    Publishes links to Redis PubSub and marks them in the processed ZSET.
+    Expects items with shape: {"url": str, "category": Optional[str]}.
     """
+
     def __init__(self) -> None:
-        self.topic = settings.REDIS_PUBLISH_TOPIC
-        self.processed_key = settings.REDIS_PROCESSED_URLS_KEY
+        self.topic = settings.REDISPUBLISHTOPIC
+        self.processedkey = settings.REDISPROCESSEDURLSKEY
 
-        # username передаем только если он задан, чтобы не ломать AUTH
-        username = settings.REDIS_USER or None
-        password = settings.REDIS_PASSWORD
+        username = settings.REDISUSER or None
+        password = settings.REDISPASSWORD
 
-        self.redis_client = RedisClient(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            processed_urls_key=self.processed_key,
+        # Keep argument names consistent with existing RedisClient initializer
+        self.redisclient = RedisClient(
+            host=settings.REDISHOST,
+            port=settings.REDISPORT,
+            processedurlskey=self.processedkey,
             username=username,
             password=password,
         )
 
-    def store_links(self, links: Iterable[str]) -> int:
-        """
-        Публикует ссылки в канал, полагаясь на логику клиента:
-        - проверка processed_urls:zset,
-        - публикация только новых,
-        - маркировка обработанных.
-        Возвращает число реально опубликованных ссылок.
-        """
-        if not self.redis_client:
+    def store_links(self, links: Iterable[LinkItem]) -> int:
+        if not self.redisclient:
             raise ConnectionError("Redis client in adapter is not available.")
-        new_links_published = 0
+
+        new_published = 0
         for item in links:
-            url = item.get("url")
-            payload = json.dumps({"url": url, "category": item.get("category")}, ensure_ascii=False)
-            if self.redis_client.publish(topic=settings.REDIS_PUBLISH_TOPIC, url=url, payload=payload):
-                new_links_published += 1
-        print(f"Adapter finished. Published {new_links_published} new links to topic '{settings.REDIS_PUBLISH_TOPIC}'.")
-        return new_links_published
+            url = item["url"]
+            category = item.get("category")
+            payload = json.dumps(
+                {"url": url, "category": category},
+                ensure_ascii=False,
+            )
+            # Preserve the publish signature used elsewhere in the project
+            if self.redisclient.publish(topic=self.topic, url=url, payload=payload):
+                new_published += 1
+
+        return new_published

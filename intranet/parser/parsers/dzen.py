@@ -10,23 +10,15 @@ class DzenParser(BaseBrowserParser):
     WAIT_TIMEOUT = 15
 
     def parse(self, url: str) -> Dict:
-        print(123)
         print(f"⚙️ [DzenParser] Начинаю парсинг: {url}")
         try:
-            print(123)
             self.driver.get(url)
-
-            print(123)
-
             wait = WebDriverWait(self.driver, self.WAIT_TIMEOUT)
-
-            print(123)
 
             title_element = wait.until(
                 EC.visibility_of_element_located((By.XPATH, "//h1[@data-testid='article-title']"))
             )
             title = title_element.text
-            print(title)
             # Ждем появления контейнера с текстом статьи
             article_body = wait.until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, "div[itemprop='articleBody']"))
@@ -35,11 +27,6 @@ class DzenParser(BaseBrowserParser):
             # Ищем все параграфы внутри найденного контейнера
             p_elements = article_body.find_elements(By.CSS_SELECTOR, "p[data-article-block='true']")
             article_text = "\n".join([p.text for p in p_elements if p.text.strip()])
-            print(article_text)
-            if not article_text:
-                print(f"⚠️ [DzenParser] Заголовок найден, но текст статьи пуст: {url}")
-                return {"source_url": url, "error": "Article text is empty", "status": "failed"}
-
             return {
                 "source_url": url,
                 "title": title,
