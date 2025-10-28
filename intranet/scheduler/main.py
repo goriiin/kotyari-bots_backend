@@ -35,7 +35,7 @@ async def startup_event():
     print("Scheduler starting...")
     scheduler.add_job(
         run_scheduled_parsing,
-        trigger=IntervalTrigger(minutes=60),
+        trigger=IntervalTrigger(minutes=20),
         id="parsing_job",
         name="Trigger gRPC parsing every 20 minutes",
         replace_existing=True,
