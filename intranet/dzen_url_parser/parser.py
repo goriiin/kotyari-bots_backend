@@ -92,7 +92,7 @@ def scroll_page(driver: WebDriver, count: int, delay_seconds: int) -> None:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(delay_seconds)
         if settings.DEBUG_LOG_SELECTORS:
-            logger.info("parser.debug Scrolling down... %d/%d", i + 1, count)
+            print("parser.debug Scrolling down... %d/%d", i + 1, count)
 
 
 def extract_category_from_topic_url(u: str) -> Optional[str]:

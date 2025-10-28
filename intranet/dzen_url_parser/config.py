@@ -60,8 +60,8 @@ class Settings(BaseSettings):
     ]
 
     # Скроллинг Selenium
-    DZEN_SCROLL_COUNT: int = 25
-    DZEN_SCROLL_DELAY_SECONDS: int = 5
+    DZEN_SCROLL_COUNT: int = 10
+    DZEN_SCROLL_DELAY_SECONDS: int = 3
 
     # Тайминги Selenium/WebDriver ожиданий (сек)
     SELENIUM_PAGELOAD_TIMEOUT: int = 30
