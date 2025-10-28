@@ -51,7 +51,7 @@ def build_chrome_options() -> ChromeOptions:
         opts.add_argument("--headless=new")
     return opts
 
-def createantidetectdriver(proxy: Optional[str] = None) -> webdriver.Chrome:
+def create_anti_detect_driver(proxy: Optional[str] = None) -> webdriver.Chrome:
     page_load_timeout = int(os.getenv("SELENIUM_PAGELOAD_TIMEOUT", "180"))
     implicit_wait = int(os.getenv("SELENIUM_IMPLICIT_WAIT", "10"))
     conn_timeout = int(os.getenv("SELENIUM_CONNECTION_TIMEOUT", "60"))
