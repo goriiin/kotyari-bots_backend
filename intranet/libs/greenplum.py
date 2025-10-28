@@ -2,13 +2,13 @@ import psycopg2
 from typing import Dict
 
 class GreenplumWriter:
-    """A writer class to handle operations with Greenplum."""
+    """A writer class to handle operations with PostgreSQL."""
 
     def __init__(self, db_config: Dict):
         self.tablename = db_config.get("tablename", "parsed_articles")
         self.conn = None
         try:
-            print("▶[GreenplumWriter] Попытка подключения к базе данных...")
+            print("▶[PostgreSQLWriter] Попытка подключения к базе данных...")
             self.conn = psycopg2.connect(
                 dbname=db_config["dbname"],
                 user=db_config["user"],
@@ -17,9 +17,9 @@ class GreenplumWriter:
                 port=db_config["port"],
             )
             self.ensure_table_exists()
-            print("[GreenplumWriter] Успешное подключение к Greenplum.")
+            print("[PostgreSQLWriter] Успешное подключение к PostgreSQL.")
         except psycopg2.OperationalError as e:
-            print(f"[GreenplumWriter] КРИТИЧЕСКАЯ ОШИБКА: Не удалось подключиться к Greenplum: {e}")
+            print(f"[PostgreSQLWriter] КРИТИЧЕСКАЯ ОШИБКА: Не удалось подключиться к PostgreSQL: {e}")
             raise
 
     def ensure_table_exists(self):
@@ -31,7 +31,7 @@ class GreenplumWriter:
             content TEXT,
             category TEXT,
             parsed_at TIMESTAMPTZ DEFAULT NOW()
-        ) DISTRIBUTED BY (source_url);
+        );
         """
         try:
             with self.conn.cursor() as cur:
@@ -42,7 +42,7 @@ class GreenplumWriter:
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
-            print(f"[GreenplumWriter] КРИТИЧЕСКАЯ ОШИБКА при создании/обновлении таблицы: {e}")
+            print(f"[PostgreSQLWriter] КРИТИЧЕСКАЯ ОШИБКА при создании/обновлении таблицы: {e}")
             raise
 
     def insert_article(self, article_data: Dict):
@@ -69,11 +69,11 @@ class GreenplumWriter:
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
-            print(f"[GreenplumWriter] Ошибка при вставке данных для {article_data.get('source_url')}: {e}")
+            print(f"[PostgreSQLWriter] Ошибка при вставке данных для {article_data.get('source_url')}: {e}")
             raise
 
     def close(self):
         """Closes the database connection."""
         if self.conn:
             self.conn.close()
-            print("[GreenplumWriter] Соединение с Greenplum закрыто.")
+            print("[PostgreSQLWriter] Соединение с PostgreSQL закрыто.")
