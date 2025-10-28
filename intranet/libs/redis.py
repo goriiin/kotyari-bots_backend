@@ -70,16 +70,15 @@ class RedisClient(PublisherInterface, SubscriberInterface):
             raise
 
     def publish(self, topic: str, url: str, payload: Optional[str] = None) -> bool:
-        # Идемпотентность по url
         if self._conn.zscore(self.processed_urls_key, url) is not None:
             return False
+
         message = payload if payload is not None else url
-        published = self._conn.publish(topic, message)
-        if published > 0:
-            # Отметка как обработанного
-            self._conn.zadd(self.processed_urls_key, {url: float(time.time())})
-            return True
-        return False
+        self._conn.publish(topic, message)
+
+        self._conn.zadd(self.processed_urls_key, {url: float(time.time())})
+
+        return True
 
     def subscribe(self, topics: List[str]):
         pubsub = self._conn.pubsub()
