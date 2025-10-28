@@ -19,7 +19,7 @@ class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
         print("gRPC call received: StartFetching.")
         driver = None
         try:
-            proxy = self.proxy_pool.get_random_proxy()
+            proxy = None
             print(f"Selected proxy: {proxy.split()[0] if proxy else None}")
             driver = create_anti_detect_driver(proxy=proxy)
             print(f"driver created")
