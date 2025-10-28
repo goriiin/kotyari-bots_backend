@@ -56,7 +56,7 @@ class ParserOrchestrator:
         parser_instance = None
         try:
             # внутри worker() перед созданием parserinstance
-            proxy = self.proxypool.get_next_proxy() if self.proxypool else None
+            proxy = self.proxy_pool.get_next_proxy() if self.proxy_pool else None
             if proxy:
                 try:
                     parts = re.split(r'[\s:]+', proxy.strip())

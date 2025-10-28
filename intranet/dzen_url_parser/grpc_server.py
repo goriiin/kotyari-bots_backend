@@ -17,13 +17,13 @@ class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
     def __init__(self, link_storer: LinkStorer | None = None):
         print("ProfileServiceServicer initialized.")
         self.link_storer = link_storer or RedisPublisherAdapter()
-        self.proxypool = ProxyPool(settings.PROXY_FILE_PATH)
+        self.proxy_pool = ProxyPool(settings.PROXY_FILE_PATH)
 
     def StartFetching(self, request, context):
         print("gRPC call received: StartFetching.")
         driver = None
         try:
-            proxy = self.proxypool.get_random_proxy()
+            proxy = self.proxy_pool.get_random_proxy()
             print(f"Selected proxy: {proxy.split()[0] if proxy else None}")
             driver = create_anti_detect_driver(proxy=proxy)
             links = parse_dzen_for_links_with_category(driver, link_storer=self.link_storer)
