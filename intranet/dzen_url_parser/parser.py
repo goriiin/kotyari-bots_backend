@@ -125,15 +125,15 @@ def parse_dzen_for_links_with_category(driver: WebDriver, link_storer: Optional[
     published_seen: Set[str] = set()
 
     try:
-        for topic_url in settings.DZENARTICLESURLs:
+        for topic_url in settings.DZEN_ARTICLES_URLs:
             category = extract_category_from_topic_url(topic_url)
 
             # Navigate and scroll the feed
             driver.get(topic_url)
             time.sleep(5)
-            for _ in range(settings.DZENSCROLLCOUNT):
+            for _ in range(settings.DZEN_SCROLL_COUNT):
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(settings.DZENSCROLLDELAYSECONDS)
+                time.sleep(settings.DZEN_SCROLL_DELAY_SECONDS)
 
             # Collect links from HTML
             urls = collect_links_from_html(driver.page_source)
