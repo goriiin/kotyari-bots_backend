@@ -9,6 +9,8 @@ from intranet.parser.parsers.dzen import DzenParser
 from intranet.libs.greenplum import GreenplumWriter
 from intranet.libs.proxy_pool import ProxyPool
 
+import re
+
 INITIAL_URLS_FOR_MOCK = [
     "https://dzen.ru/a/aIIhDlT2Qh9H9FOZ",
     "https://dzen.ru/a/aN4o2LNMgXBpOxFH"
@@ -53,9 +55,18 @@ class ParserOrchestrator:
         print(f"Воркер [{thread_id}] взял в работу таргет: {target}")
         parser_instance = None
         try:
-            proxy = self.proxy_pool.get_next_proxy() if self.proxy_pool else None
+            # внутри worker() перед созданием parserinstance
+            proxy = self.proxypool.get_next_proxy() if self.proxypool else None
             if proxy:
-                print(f"[worker] Using proxy: {proxy.split(':')[0]}:{proxy.split(':')[1]}")
+                try:
+                    parts = re.split(r'[\s:]+', proxy.strip())
+                    if len(parts) >= 2:
+                        host, port = parts[0], parts[1]
+                        print(f"[worker] Using proxy {host}:{port}")
+                    else:
+                        print(f"[worker] Using proxy (raw): {proxy}")
+                except Exception as e:
+                    print(f"[worker] Proxy log skipped: {e}")
             parser_instance = parser_class(proxy=proxy)
             results = parser_instance.parse(target)
 
