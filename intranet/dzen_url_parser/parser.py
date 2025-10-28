@@ -24,7 +24,7 @@ def normalize_dzen_article_url(href: str) -> Optional[str]:
             return f"https://dzen.ru{href.split('?')[0]}"
         return None
     except Exception as e:
-        print("normalize error: %s", e)
+        print(f"normalize error: {e}")
         return None
 
 
@@ -78,7 +78,7 @@ def collect_links_from_html(html: str) -> List[str]:
 
     if settings.DEBUG_LOG_SELECTORS:
         preview = ", ".join(uniq[:3])
-        print("parser.debug collected=%d preview=%s", len(uniq), preview)
+        print(f"parser.debug collected={len(uniq)} preview={preview}" )
 
     return uniq
 
@@ -88,7 +88,7 @@ def scroll_page(driver: WebDriver, count: int, delay_seconds: int) -> None:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(delay_seconds)
         if settings.DEBUG_LOG_SELECTORS:
-            print("parser.debug Scrolling down... %d/%d", i + 1, count)
+            print(f"parser.debug Scrolling down... {i+1}/{count}")
 
 
 def extract_category_from_topic_url(u: str) -> Optional[str]:
@@ -148,5 +148,5 @@ def parse_dzen_for_links_with_category(driver: WebDriver, link_storer: Optional[
 
         return [{"url": u, "category": c} for u, c in unique.items()]
     except Exception as e:
-        print("parser error during parsing: %s", e)
+        print(f"parser error during parsing: {e}")
         return [{"url": u, "category": c} for u, c in unique.items()]
