@@ -1,51 +1,45 @@
-"""
-Proxy pool manager for rotating proxies across parsers.
-Supports round-robin and random selection strategies.
-"""
 import logging
 import random
+import re
 from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
-
 class ProxyPool:
     """
     Manages a pool of proxies loaded from a file.
-
     File format (one per line):
-        ip:port:username:password
+      - 'ip port username password'  (whitespace)
+      - 'ip:port:username:password'  (colon)
     """
-
     def __init__(self, filepath: str):
-        """
-        Initialize proxy pool from file.
-
-        Args:
-            filepath: Path to file with proxy list (ip:port:user:pass)
-        """
         self.filepath = filepath
         self.proxies: List[str] = []
-        self._round_robin_index = 0
-        self._load_proxies()
+        self.round_robin_index = 0
+        self.load_proxies()
 
-    def _load_proxies(self) -> None:
-        """Load and validate proxies from file."""
+    def _split_line(self, line: str) -> Optional[str]:
+        # Support both whitespace and colon separators; collapse multiple spaces
+        parts = re.split(r'[\s:]+', line.strip())
+        parts = [p for p in parts if p]
+        if len(parts) != 4:
+            logger.warning(f"Invalid proxy format (expected 4 parts): {line}")
+            return None
+        host, port, user, pwd = parts
+        return f"{host} {port} {user} {pwd}"
+
+    def load_proxies(self) -> None:
+        valid: List[str] = []
         try:
-            with open(self.filepath, 'r') as f:
-                lines = [line.strip() for line in f if line.strip()]
-
-            valid = []
-            for line in lines:
-                parts = line.split(':')
-                if len(parts) == 4:
-                    valid.append(line)
-                else:
-                    logger.warning(f"Invalid proxy format (expected 4 parts): {line}")
-
+            with open(self.filepath, "r") as f:
+                for raw in f:
+                    if not raw or not raw.strip():
+                        continue
+                    norm = self._split_line(raw)
+                    if norm:
+                        valid.append(norm)
             self.proxies = valid
             logger.info(f"Loaded {len(self.proxies)} proxies from {self.filepath}")
-
         except FileNotFoundError:
             logger.error(f"Proxy file not found: {self.filepath}")
             self.proxies = []
@@ -54,20 +48,18 @@ class ProxyPool:
             self.proxies = []
 
     def get_random_proxy(self) -> Optional[str]:
-        """Get random proxy from pool, or None if empty."""
         if not self.proxies:
             logger.warning("Proxy pool is empty, returning None")
             return None
         proxy = random.choice(self.proxies)
-        logger.debug(f"Selected random proxy: {proxy.split(':')[0]}:****")
+        logger.debug(f"Selected random proxy: {proxy.split()[0]}")
         return proxy
 
     def get_next_proxy(self) -> Optional[str]:
-        """Get next proxy using round-robin, or None if empty."""
         if not self.proxies:
             logger.warning("Proxy pool is empty, returning None")
             return None
-        proxy = self.proxies[self._round_robin_index]
-        self._round_robin_index = (self._round_robin_index + 1) % len(self.proxies)
-        logger.debug(f"Selected round-robin proxy: {proxy.split(':')[0]}:****")
+        proxy = self.proxies[self.round_robin_index]
+        self.round_robin_index = (self.round_robin_index + 1) % len(self.proxies)
+        logger.debug(f"Selected round-robin proxy: {proxy.split()[0]}")
         return proxy
