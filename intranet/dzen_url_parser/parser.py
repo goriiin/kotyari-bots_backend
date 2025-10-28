@@ -23,7 +23,7 @@ def normalize_dzen_article_url(href: str) -> Optional[str]:
         if p.scheme in ("http", "https") and p.netloc.endswith("dzen.ru"):
             if p.path.startswith("/a/"):
                 clean = p._replace(query="", fragment="")
-                return urlunparse(clean)
+                return urlunparse(clean.geturl())
         if href.startswith("/a/"):
             return f"https://dzen.ru{href.split('?')[0]}"
         return None
@@ -80,7 +80,7 @@ def collect_links_from_html(html: str) -> List[str]:
             uniq.append(url)
             seen.add(url)
 
-    if settings.DEBUGLOGSELECTORS:
+    if settings.DEBUG_LOG_SELECTORS:
         preview = ", ".join(uniq[:3])
         logger.info("parser.debug collected=%d preview=%s", len(uniq), preview)
 
@@ -91,7 +91,7 @@ def scroll_page(driver: WebDriver, count: int, delay_seconds: int) -> None:
     for i in range(count):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(delay_seconds)
-        if settings.DEBUGLOGSELECTORS:
+        if settings.DEBUG_LOG_SELECTORS:
             logger.info("parser.debug Scrolling down... %d/%d", i + 1, count)
 
 
