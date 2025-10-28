@@ -26,6 +26,7 @@ class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
             proxy = self.proxy_pool.get_random_proxy()
             print(f"Selected proxy: {proxy.split()[0] if proxy else None}")
             driver = create_anti_detect_driver(proxy=proxy)
+            print(f"driver created")
             links = parse_dzen_for_links_with_category(driver, link_storer=self.link_storer)
             print(f"Adapter will publish {len(links)} links...")
             published = self.link_storer.store_links(links)

@@ -120,7 +120,8 @@ def parse_dzen_for_links_with_category(driver: WebDriver, link_storer: Optional[
     Iterate configured topic URLs, scroll, collect links and publish them with category.
     Returns the deduplicated mapping converted to list of {"url","category"}.
     """
-    logger.info("Starting Dzen parsing process for all configured URLs...")
+    print("Starting Dzen parsing process for all configured URLs...")
+
     unique: Dict[str, Optional[str]] = {}
     published_seen: Set[str] = set()
 
