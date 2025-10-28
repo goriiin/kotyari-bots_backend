@@ -5,11 +5,8 @@ FROM python:3.10-slim-bookworm
 # 2. Install system dependencies required for Google Chrome (for Selenium).
 # This is the most critical step for the parser to work.
 RUN apt-get update && apt-get install -y \
-    # Install Chromium browser and its dependencies
     chromium \
-    # driver
     chromium-driver \
-    # Clean up APT caches to keep the image size small
     && rm -rf /var/lib/apt/lists/*
 # 3. Set the working directory inside the container.
 WORKDIR /app

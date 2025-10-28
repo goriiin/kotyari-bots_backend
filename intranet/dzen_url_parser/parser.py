@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import logging
 import time
-from typing import Set, List
+from typing import Set, List, Optional, Dict, Iterable
 from urllib.parse import urlparse, urlunparse
 
 from bs4 import BeautifulSoup
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from .config import settings
+from .redis_adapter import LinkStorer
 
+logger = logging.getLogger(__name__)
 
 def _normalize_dzen_article_url(href: str) -> str | None:
     """
@@ -31,7 +34,8 @@ def _normalize_dzen_article_url(href: str) -> str | None:
 
         # Игнорируем away?to=... (внешние ссылки) и иные разделы
         return None
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         return None
 
 
@@ -91,7 +95,7 @@ def _collect_links_from_html(html: str) -> List[str]:
     if settings.DEBUG_LOG_SELECTORS:
         # Печатаем первые ссылки для диагностики
         preview = ", ".join(uniq[:3])
-        print(f"[parser.debug] collected={len(uniq)} preview=[{preview}]")
+        logger.info(f"[parser.debug] collected={len(uniq)} preview=[{preview}]")
 
     return uniq
 
@@ -104,7 +108,7 @@ def _scroll_page(driver: WebDriver, count: int, delay_seconds: int) -> None:
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(delay_seconds)
         if settings.DEBUG_LOG_SELECTORS:
-            print(f"[parser.debug] Scrolling down... ({i+1}/{count})")
+            logger.info(f"[parser.debug] Scrolling down... ({i+1}/{count})")
 
 
 def _extract_category_from_topic_url(u: str) -> str | None:
@@ -114,28 +118,54 @@ def _extract_category_from_topic_url(u: str) -> str | None:
         return None
     return path.split("/")[-1]  # 'travel' для /topic/travel, 'articles' для /articles
 
-
-def parse_dzen_for_links_with_category(driver: WebDriver) -> list[dict]:
+def parse_dzen_for_links_with_category(driver: WebDriver, link_storer: Optional[LinkStorer] = None) -> list[dict]:
     """
-    Парсит набор витрин/топиков из настроек, скроллит и собирает ссылки статей,
-    возвращая список словарей {"url": ..., "category": ...}.
-    ВНИМАНИЕ: управление жизненным циклом driver оставлено вызывающему (gRPC слою).
+    Скроллит витрины из настроек, собирает ссылки статей, возвращает [{"url","category"}].
+    Если передан link_storer — публикует новые ссылки после каждого скролла.
     """
     print("Starting Dzen parsing process for all configured URLs...")
-    unique: dict[str, str] = {}  # url -> category (первая встретившаяся)
+    unique: dict[str, Optional[str]] = {}
+    published_seen: set[str] = set()
+
     try:
         for topic_url in settings.DZEN_ARTICLES_URLs:
             category = _extract_category_from_topic_url(topic_url)
-            driver.get(topic_url)
-            time.sleep(5)  # базовая стабилизация после загрузки
-            _scroll_page(driver, settings.DZEN_SCROLL_COUNT, settings.DZEN_SCROLL_DELAY_SECONDS)
-            urls = _collect_links_from_html(driver.page_source)
-            for u in urls:
-                # сохраняем первую встретившуюся категорию
-                if u not in unique:
+            _try_get(driver, topic_url)
+            time.sleep(5)
+            for i in range(settings.DZEN_SCROLL_COUNT):
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                time.sleep(settings.DZEN_SCROLL_DELAY_SECONDS)
+                if settings.DEBUG_LOG_SELECTORS:
+                    print(f"parser.debug Scrolling down... {i+1}/{settings.DZEN_SCROLL_COUNT}")
+                urls = _collect_links_from_html(driver.page_source)
+                new_urls = [u for u in urls if u not in unique]
+                for u in new_urls:
                     unique[u] = category
-        items = [{"url": u, "category": c} for u, c in unique.items()]
-        return items
+                to_publish = [u for u in new_urls if u not in published_seen]
+                if to_publish and link_storer:
+                    _publish_batch(link_storer, to_publish, category)
+                    published_seen.update(to_publish)
+        return [{"url": u, "category": c} for u, c in unique.items()]
     except Exception as e:
-        print(f"[parser] error during parsing: {e}")
-        return []
+        logger.error(f"[parser] error during parsing: {e}")
+        return [{"url": u, "category": c} for u, c in unique.items()]
+
+
+def _publish_batch(link_storer: Optional[LinkStorer], urls: Iterable[str], category: Optional[str]) -> int:
+    if not link_storer:
+        return 0
+    items = [{"url": u, "category": category} for u in urls]
+    return link_storer.store_links(items)
+
+def _try_get(driver: WebDriver, url: str, attempts: int = 2, sleep_sec: int = 3) -> None:
+    for i in range(attempts):
+        try:
+            driver.get(url)
+            return
+        except Exception as e:
+            msg = str(e)
+            if ("Read timed out" in msg) or ("timeout" in msg.lower()) or ("Timed out" in msg):
+                if i < attempts - 1:
+                    time.sleep(sleep_sec)
+                    continue
+            raise

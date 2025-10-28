@@ -14,9 +14,9 @@ from ..libs.proxy_pool import ProxyPool
 logger = logging.getLogger(__name__)
 
 class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
-    def __init__(self, linkstorer: LinkStorer | None = None):
+    def __init__(self, link_storer: LinkStorer | None = None):
         print("ProfileServiceServicer initialized.")
-        self.linkstorer = linkstorer or RedisPublisherAdapter()
+        self.link_storer = link_storer or RedisPublisherAdapter()
         self.proxypool = ProxyPool(settings.PROXY_FILEPATH)
 
     def StartFetching(self, request, context):
@@ -26,9 +26,9 @@ class ProfileServiceServicer(start_fetching_pb2_grpc.ProfileServiceServicer):
             proxy = self.proxypool.get_random_proxy()
             print(f"Selected proxy: {proxy.split()[0] if proxy else None}")
             driver = createantidetectdriver(proxy=proxy)
-            links = parse_dzen_for_links_with_category(driver, linkstorer=self.linkstorer)
+            links = parse_dzen_for_links_with_category(driver, link_storer=self.link_storer)
             print(f"Adapter will publish {len(links)} links...")
-            published = self.linkstorer.store_links(links)
+            published = self.link_storer.store_links(links)
             print(f"Adapter finished. Published {published} links.")
             return empty_pb2.Empty()
         except Exception as e:
