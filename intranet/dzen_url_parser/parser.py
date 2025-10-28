@@ -19,7 +19,7 @@ def normalize_dzen_article_url(href: str) -> Optional[str]:
         if p.scheme in ("http", "https") and p.netloc.endswith("dzen.ru"):
             if p.path.startswith("/a/"):
                 clean = p._replace(query="", fragment="")
-                return urlunparse(clean.geturl())
+                return clean.geturl()
         if href.startswith("/a/"):
             return f"https://dzen.ru{href.split('?')[0]}"
         return None
