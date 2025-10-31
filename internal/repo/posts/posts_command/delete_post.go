@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
 func (p *PostsCommandRepo) DeletePost(ctx context.Context, id uuid.UUID) error {
@@ -14,12 +15,11 @@ func (p *PostsCommandRepo) DeletePost(ctx context.Context, id uuid.UUID) error {
 
 	ct, err := p.db.Exec(ctx, query, id)
 	if err != nil {
-		return errors.Wrap(err, "unexpected error happened")
+		return errors.Wrapf(constants.ErrInternal, "failed to delete post: %s", err.Error())
 	}
 
 	if ct.RowsAffected() == 0 {
-		// TODO: errors
-		return errors.New("no rows affected")
+		return errors.Wrap(constants.ErrNotFound, "post not found")
 	}
 
 	return nil
