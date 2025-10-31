@@ -49,11 +49,9 @@ type KafkaUpdatePostRequest struct {
 
 func PayloadToEnvelope(command kafkaConfig.Command, entityID string, payload []byte) kafkaConfig.Envelope {
 	return kafkaConfig.Envelope{
-		Command:       command,
-		EntityID:      entityID,
-		Payload:       payload,
-		CorrelationID: "",
-		Attempt:       0,
+		Command:  command,
+		EntityID: entityID,
+		Payload:  payload,
 	}
 }
 
