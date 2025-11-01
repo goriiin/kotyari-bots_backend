@@ -3,6 +3,7 @@ package posts_command_producer
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_producer_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command_producer"
@@ -20,8 +21,14 @@ type postsCommandHandler interface {
 	DeletePostById(ctx context.Context, params gen.DeletePostByIdParams) (gen.DeletePostByIdRes, error)
 }
 
+type requester interface {
+	Request(ctx context.Context, env kafka.Envelope, timeout time.Duration) ([]byte, error)
+	Close() error
+}
+
 type PostsCommandProducerApp struct {
-	handler postsCommandHandler
+	handler  postsCommandHandler
+	producer requester
 }
 
 func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
@@ -64,6 +71,7 @@ func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
 	handler := posts_command_producer.NewPostsHandler(grpc, p)
 
 	return &PostsCommandProducerApp{
-		handler: handler,
+		handler:  handler,
+		producer: p,
 	}, nil
 }

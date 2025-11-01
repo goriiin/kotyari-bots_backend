@@ -45,10 +45,6 @@ type CreatePostInternalServerError Error
 
 func (*CreatePostInternalServerError) createPostRes() {}
 
-type CreatePostNotFound Error
-
-func (*CreatePostNotFound) createPostRes() {}
-
 type CreatePostUnauthorized Error
 
 func (*CreatePostUnauthorized) createPostRes() {}

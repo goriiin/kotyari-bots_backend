@@ -11,4 +11,6 @@ var (
 	ErrConflict           = errors.New(ConflictMsg)
 	ErrInternal           = errors.New(InternalMsg)
 	ErrUnauthorized       = errors.New(UnauthorizedMsg)
+	ErrMarshal            = errors.New(MarshalMsg)
+	ErrUnmarshal          = errors.New(UnmarshalMsg)
 )

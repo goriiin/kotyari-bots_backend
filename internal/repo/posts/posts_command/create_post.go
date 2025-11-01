@@ -6,6 +6,7 @@ import (
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -17,7 +18,7 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 
 	tx, err := p.db.BeginTx(ctx, txOpts)
 	if err != nil {
-		return model.Post{}, errors.Wrap(err, "failed to begin transaction")
+		return model.Post{}, errors.Wrapf(constants.ErrInternal, "failed to begin transaction: %s", err.Error())
 	}
 
 	defer func() {
@@ -38,9 +39,17 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 		RETURNING created_at, updated_at
 	`
 
-	row := tx.QueryRow(ctx, query, post.ID, post.OtvetiID, post.BotID, post.ProfileID, post.Platform, postType, post.Title, post.Text)
+	row := tx.QueryRow(ctx, query,
+		post.ID,
+		post.OtvetiID,
+		post.BotID,
+		post.ProfileID,
+		post.Platform,
+		postType,
+		post.Title,
+		post.Text)
 	if err = row.Scan(&post.CreatedAt, &post.UpdatedAt); err != nil {
-		return model.Post{}, errors.Wrap(err, "failed to scan row")
+		return model.Post{}, errors.Wrapf(constants.ErrInternal, "failed to scan row: %s", err.Error())
 	}
 
 	if len(categoryIDs) > 0 {
@@ -50,7 +59,7 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return model.Post{}, errors.Wrap(err, "failed to commit transaction")
+		return model.Post{}, errors.Wrap(constants.ErrInternal, "failed to commit transaction")
 	}
 
 	return post, nil
@@ -76,7 +85,7 @@ func (p *PostsCommandRepo) insertPostCategoriesBatch(ctx context.Context, tx pgx
 	for i := 0; i < b.Len(); i++ {
 		if _, err := br.Exec(); err != nil {
 			_ = br.Close()
-			return errors.Wrap(err, "error happened while inserting categories")
+			return errors.Wrapf(constants.ErrInternal, "error happened while inserting categories: %s", err.Error())
 		}
 	}
 	return br.Close()
