@@ -27,7 +27,6 @@ type KafkaRequestReplyProducer struct {
 }
 
 func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, replyGroup string, dispatcher repliesDispatcher) (*KafkaRequestReplyProducer, error) {
-	// TODO: XDDDDDDD
 	if err := kafkaConfig.EnsureTopicCreated(config.Brokers[0], replyTopic); err != nil {
 		fmt.Println("Failed to create topic", err.Error())
 	}
@@ -71,13 +70,10 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 	replyChan := p.dispatcher.Register(env.CorrelationID)
 	defer p.dispatcher.Unregister(env.CorrelationID)
 
-	fmt.Println("Зашли в publish: ", time.Now())
 	if err := p.Publish(ctx, env); err != nil {
 		return nil, err
 	}
-	fmt.Println("Вышли из publish: ", time.Now())
 
-	fmt.Printf("CFG PROD: %+v\n", p.config)
 	fmt.Printf("CFG READ: repl topic: %v, replc group: %v", p.replyTopic, p.replyGroup)
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
