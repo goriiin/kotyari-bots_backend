@@ -14,6 +14,14 @@ func New() *cors.Cors {
 		},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowedHeaders: []string{
+			"Authorization",
+			"Content-Type",
+			"Accept",
+			"Origin",
+			"X-Requested-With",
+		},
+		ExposedHeaders: []string{"Content-Length"},
+		MaxAge:         300,
 	})
 }
