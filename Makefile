@@ -123,7 +123,7 @@ down:
 	@echo "Shutdown services in parallel..."
 	@$(MAKE) bots-down & \
 	 $(MAKE) profiles-down & \
-	 $(MAKE) posts-up & \
+	 $(MAKE) posts-down & \
 	wait
 	@echo "All services are up and stopped."
 
