@@ -76,20 +76,29 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 
 	rawReq, err := jsoniter.Marshal(createPostRequest)
 	if err != nil {
-		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
+		return &gen.CreatePostInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	// TODO: В рамках теста пока будет создаваться один пост
 	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.PostID.String(), rawReq), 10*time.Second)
 	if err != nil {
 		fmt.Println("Ошибка при запросе", err)
-		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
+		return &gen.CreatePostInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	var resp posts.KafkaResponse
 	err = jsoniter.Unmarshal(rawResp, &resp)
 	if err != nil {
-		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
+		return &gen.CreatePostInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	// TODO: Оставить для timeout-а RAG-a
@@ -99,7 +108,10 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	//}
 
 	if strings.Contains(resp.Error, constants.InternalMsg) {
-		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusNotFound, Message: constants.InternalMsg}, nil
+		return &gen.CreatePostInternalServerError{
+			ErrorCode: http.StatusNotFound,
+			Message:   constants.InternalMsg,
+		}, nil
 	}
 
 	returnedPosts := []gen.Post{*resp.PostCommandToGen()}

@@ -12,6 +12,7 @@ import (
 
 type replier interface {
 	Publish(ctx context.Context, message kafka.Message) error
+	Close() error
 }
 
 type KafkaRequestReplyConsumer struct {
@@ -135,4 +136,9 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 		}
 	}()
 	return out
+}
+
+func (c *KafkaRequestReplyConsumer) Close() error {
+	fmt.Println("Shutting down KafkaRequestReplyConsumer...")
+	return errors.Join(c.reader.Close(), c.replier.Close())
 }

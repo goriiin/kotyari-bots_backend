@@ -17,27 +17,42 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 
 	rawReq, err := jsoniter.Marshal(req)
 	if err != nil {
-		return &gen.DeletePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
+		return &gen.DeletePostByIdInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	env := posts.PayloadToEnvelope(posts.CmdDelete, params.PostId.String(), rawReq)
 	rawResp, err := p.producer.Request(ctx, env, 5*time.Second)
 	if err != nil {
 		// TODO: TIMEOUT / PUBLISH ERR
-		return &gen.DeletePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
+		return &gen.DeletePostByIdInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	var resp posts.KafkaResponse
 	err = jsoniter.Unmarshal(rawResp, &resp)
 	if err != nil {
-		return &gen.DeletePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
+		return &gen.DeletePostByIdInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	switch {
 	case strings.Contains(resp.Error, constants.InternalMsg):
-		return &gen.DeletePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: constants.InternalMsg}, nil
+		return &gen.DeletePostByIdInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   constants.InternalMsg,
+		}, nil
 	case strings.Contains(resp.Error, constants.NotFoundMsg):
-		return &gen.DeletePostByIdNotFound{ErrorCode: http.StatusNotFound, Message: "post not found"}, nil
+		return &gen.DeletePostByIdNotFound{
+			ErrorCode: http.StatusNotFound,
+			Message:   "post not found",
+		}, nil
 	}
 
 	return &gen.NoContent{}, nil

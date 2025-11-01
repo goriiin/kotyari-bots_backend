@@ -25,3 +25,7 @@ func NewKafkaProducer(config *kafkaConfig.KafkaConfig) *KafkaProducer {
 func (k *KafkaProducer) Publish(ctx context.Context, message kafka.Message) error {
 	return k.writer.WriteMessages(ctx, message)
 }
+
+func (k *KafkaProducer) Close() error {
+	return k.writer.Close()
+}

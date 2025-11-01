@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/go-faster/errors"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/segmentio/kafka-go"
 )
@@ -64,16 +65,21 @@ func (rm *ReplyManager) Dispatch(msg kafka.Message) {
 	}
 }
 
-func (rm *ReplyManager) StartConsumingReplies() {
-	ctx := context.Background()
+func (rm *ReplyManager) StartConsumingReplies(ctx context.Context) {
 	fmt.Println("Reply manager started. Listening for replies...")
 
 	for {
 		msg, err := rm.reader.GetMessage(ctx)
 		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				fmt.Println("Reply manager shut down gracefully.")
+				return
+			}
+
 			fmt.Println("Reply consumer error:", err)
 			continue
 		}
+
 		rm.Dispatch(msg)
 	}
 }
