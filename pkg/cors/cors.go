@@ -7,6 +7,10 @@ func New() *cors.Cors {
 		AllowedOrigins: []string{
 			"http://localhost:3000",
 			"http://83.166.253.130:3000",
+			"83.166.253.130:3000",
+			"127.0.0.1:3000",
+			"http://127.0.0.1:3000",
+			"127.0.0.1:3000",
 		},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
