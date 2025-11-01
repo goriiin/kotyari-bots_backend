@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 	"github.com/json-iterator/go"
 )
 
@@ -28,7 +30,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdUpdate, params.PostId.String(), rawReq), 5*time.Second)
 	fmt.Println("Вышли из функции: ", time.Now(), "err: ", err)
 	if err != nil {
-		// TODO: Ошибка на стороне producer, тоже надо свитчить по хорошему
+		// TODO: TIMEOUT OR PUBLISH ERROR - 500
 		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 
@@ -38,9 +40,11 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 
-	if resp.IsError {
-		// TODO: Ошибка на стороне consumer, в идеале потом сделать switch через errors.Is и отдельно делать сообщения для каждого случая
-		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: resp.StatusMessage}, nil
+	switch {
+	case strings.Contains(resp.Error, constants.InternalMsg):
+		return &gen.UpdatePostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: constants.InternalMsg}, nil
+	case strings.Contains(resp.Error, constants.NotFoundMsg):
+		return &gen.UpdatePostByIdNotFound{ErrorCode: http.StatusNotFound, Message: "post not found"}, nil
 	}
 
 	return resp.PostCommandToGen(), nil

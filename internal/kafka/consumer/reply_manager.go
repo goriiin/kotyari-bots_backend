@@ -46,13 +46,12 @@ func (rm *ReplyManager) Dispatch(msg kafka.Message) {
 		fmt.Println("Error: Reply message is missing correlation_id, skipping.")
 		return
 	}
-
 	rm.mu.RLock()
 	ch, ok := rm.responseChans[correlationID]
 	rm.mu.RUnlock()
 
 	if !ok {
-		// TODO: Add errors??
+		// TODO: Enure this is state is safe to ignore
 		fmt.Println("Warning: Received reply for an unknown or timed-out correlationID:", correlationID)
 		return
 	}

@@ -31,18 +31,20 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 
 			var packed posts.KafkaResponse
 			if err != nil {
-				packed = posts.KafkaResponse{StatusMessage: err.Error(), IsError: true}
+				packed = posts.KafkaResponse{Error: err.Error()}
 
-				resp, _ := jsoniter.Marshal(packed) // Вроде не может тут никак произойти ошибка маршаллинга
+				resp, _ := jsoniter.Marshal(packed)
 				fmt.Println("ERR, ACK ", err)
-				_ = message.Reply(ctx, resp)
+				err = message.Reply(ctx, resp)
+				if err != nil {
+					fmt.Println("failed to reply to message", err.Error())
+				}
 			}
 
 			packed = posts.KafkaResponse{
-				StatusMessage: "OK", // Наверное тут будет nil, когда будут ошибки
-				IsError:       false,
-				Post:          post,
+				Post: post,
 			}
+
 			resp, _ := jsoniter.Marshal(packed)
 			fmt.Println("NOT ERROR, sending post")
 			err = message.Reply(ctx, resp)
@@ -56,17 +58,17 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 
 			var packed posts.KafkaResponse
 			if err != nil {
-				packed = posts.KafkaResponse{StatusMessage: err.Error(), IsError: true}
+				packed = posts.KafkaResponse{Error: err.Error()}
 
-				resp, _ := jsoniter.Marshal(packed) // Вроде не может тут никак произойти ошибка маршаллинга
+				resp, _ := jsoniter.Marshal(packed)
 				fmt.Println("ERR, ACK ", err)
-				_ = message.Reply(ctx, resp)
+				err = message.Reply(ctx, resp)
+				if err != nil {
+					fmt.Println("failed to reply to message", err.Error())
+				}
 			}
-			packed = posts.KafkaResponse{
-				StatusMessage: "OK", // Наверное тут будет nil, когда будут ошибки
-				IsError:       false,
-			}
-			resp, _ := jsoniter.Marshal(packed)
+
+			resp, _ := jsoniter.Marshal(posts.KafkaResponse{})
 			fmt.Println("NOT ERROR, SUCCESSFULLY DELETED")
 			err = message.Reply(ctx, resp)
 			if err != nil {
@@ -78,20 +80,24 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 
 			post, err := p.CreatePost(ctx, env.Payload)
 
+			// TODO: Handle RAG timeout error
+
 			var packed posts.KafkaResponse
 			if err != nil {
-				packed = posts.KafkaResponse{StatusMessage: err.Error(), IsError: true}
+				packed = posts.KafkaResponse{Error: err.Error()}
 
-				resp, _ := jsoniter.Marshal(packed) // Вроде не может тут никак произойти ошибка маршаллинга
+				resp, _ := jsoniter.Marshal(packed)
 				fmt.Println("ERR, ACK ", err)
-				_ = message.Reply(ctx, resp)
+				err = message.Reply(ctx, resp)
+				if err != nil {
+					fmt.Println("failed to reply to message", err.Error())
+				}
 			}
 
 			packed = posts.KafkaResponse{
-				StatusMessage: "OK", // Наверное тут будет nil, когда будут ошибки
-				IsError:       false,
-				Post:          post,
+				Post: post,
 			}
+
 			resp, _ := jsoniter.Marshal(packed)
 			fmt.Println("NOT ERROR, sending post")
 			err = message.Reply(ctx, resp)

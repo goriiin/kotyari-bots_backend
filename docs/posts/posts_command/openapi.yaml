@@ -57,8 +57,6 @@ paths:
           $ref: '../common/responses.yaml#/BadRequest'
         '401':
           $ref: '../common/responses.yaml#/Unauthorized'
-        '404':
-          $ref: '../common/responses.yaml#/NotFound'
         '500':
           $ref: '../common/responses.yaml#/InternalServerError'
 

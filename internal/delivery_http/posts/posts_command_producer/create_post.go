@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -90,9 +92,14 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 
-	if resp.IsError {
-		// TODO: Ошибка на стороне consumer, в идеале потом сделать switch через errors.Is и отдельно делать сообщения для каждого случая
-		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: resp.StatusMessage}, nil
+	// TODO: Оставить для timeout-а RAG-a
+	//	switch {
+	//	case strings.Contains(resp.Error, constants.InternalMsg):
+	//	return &gen.CreatePostInternalServerError{ErrorCode: http.StatusNotFound, Message: constants.InternalMsg}, nil
+	//}
+
+	if strings.Contains(resp.Error, constants.InternalMsg) {
+		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusNotFound, Message: constants.InternalMsg}, nil
 	}
 
 	returnedPosts := []gen.Post{*resp.PostCommandToGen()}
