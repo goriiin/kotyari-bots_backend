@@ -142,11 +142,11 @@ bots-reboot:
 
 profiles-up: setup-network
 	@echo "Starting profiles service and dependencies..."
-	docker-compose -f docker-compose.profiles.yml up -d --build
+	docker compose -f docker-compose.profiles.yml up -d --build
 
 profiles-down:
 	@echo "Stopping profiles service and dependencies..."
-	@docker-compose -f docker-compose.profiles.yml down
+	@docker compose -f docker-compose.profiles.yml down
 
 profiles-reboot:
 	@echo "Rebooting profiles service and dependencies..."
@@ -155,11 +155,11 @@ profiles-reboot:
 
 posts-up: setup-network
 	@echo "Starting posts service and dependencies..."
-	docker-compose -f docker-compose.posts.yml up -d --build
+	docker compose -f docker-compose.posts.yml up -d --build
 
 posts-down:
 	@echo "Stopping posts service and dependencies..."
-	@docker-compose -f docker-compose.posts.yml down
+	@docker compose -f docker-compose.posts.yml down
 
 posts-reboot:
 	@echo "Rebooting posts service and dependencies..."
