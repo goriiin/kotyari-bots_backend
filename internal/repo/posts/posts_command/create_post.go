@@ -39,7 +39,15 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 		RETURNING created_at, updated_at
 	`
 
-	row := tx.QueryRow(ctx, query, post.ID, post.OtvetiID, post.BotID, post.ProfileID, post.Platform, postType, post.Title, post.Text)
+	row := tx.QueryRow(ctx, query,
+		post.ID,
+		post.OtvetiID,
+		post.BotID,
+		post.ProfileID,
+		post.Platform,
+		postType,
+		post.Title,
+		post.Text)
 	if err = row.Scan(&post.CreatedAt, &post.UpdatedAt); err != nil {
 		return model.Post{}, errors.Wrapf(constants.ErrInternal, "failed to scan row: %s", err.Error())
 	}

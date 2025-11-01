@@ -24,4 +24,6 @@ const (
 	UnauthorizedMsg       = "UNAUTHORIZED"
 	InvalidMsg            = "INVALID_ERROR"
 	RequiredMsg           = "REQUIRED_ERROR"
+	MarshalMsg            = "MARSHALLING_ERROR"
+	UnmarshalMsg          = "UNMARSHALLING_ERROR"
 )

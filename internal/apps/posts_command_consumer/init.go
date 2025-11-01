@@ -18,8 +18,14 @@ type consumerRunner interface {
 	HandleCommands() error
 }
 
+type kafkaConsumer interface {
+	Start(ctx context.Context) <-chan kafka.CommittableMessage
+	Close() error
+}
+
 type PostsCommandConsumer struct {
 	consumerRunner consumerRunner
+	consumer       kafkaConsumer
 }
 
 func NewPostsCommandConsumer() (*PostsCommandConsumer, error) {
@@ -59,5 +65,6 @@ func NewPostsCommandConsumer() (*PostsCommandConsumer, error) {
 
 	return &PostsCommandConsumer{
 		consumerRunner: runner,
+		consumer:       cons,
 	}, nil
 }
