@@ -208,10 +208,6 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
-		e.FieldStart("autoPublish")
-		e.Bool(s.AutoPublish)
-	}
-	{
 		e.FieldStart("createdAt")
 		json.EncodeDateTime(e, s.CreatedAt)
 	}
@@ -221,16 +217,15 @@ func (s *Bot) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfBot = [9]string{
+var jsonFieldsNameOfBot = [8]string{
 	0: "id",
 	1: "name",
 	2: "profiles",
 	3: "profilesCount",
 	4: "systemPrompt",
 	5: "moderationRequired",
-	6: "autoPublish",
-	7: "createdAt",
-	8: "updatedAt",
+	6: "createdAt",
+	7: "updatedAt",
 }
 
 // Decode decodes Bot from json.
@@ -238,7 +233,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode Bot to nil")
 	}
-	var requiredBitSet [2]uint8
+	var requiredBitSet [1]uint8
 	s.setDefaults()
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
@@ -316,20 +311,8 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"moderationRequired\"")
 			}
-		case "autoPublish":
-			requiredBitSet[0] |= 1 << 6
-			if err := func() error {
-				v, err := d.Bool()
-				s.AutoPublish = bool(v)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"autoPublish\"")
-			}
 		case "createdAt":
-			requiredBitSet[0] |= 1 << 7
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.CreatedAt = v
@@ -341,7 +324,7 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"createdAt\"")
 			}
 		case "updatedAt":
-			requiredBitSet[1] |= 1 << 0
+			requiredBitSet[0] |= 1 << 7
 			if err := func() error {
 				v, err := json.DecodeDateTime(d)
 				s.UpdatedAt = v
@@ -361,9 +344,8 @@ func (s *Bot) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [2]uint8{
+	for i, mask := range [1]uint8{
 		0b11001011,
-		0b00000001,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -435,9 +417,13 @@ func (s *BotInput) encodeFields(e *jx.Encoder) {
 		}
 	}
 	{
-		if s.AutoPublish.Set {
-			e.FieldStart("autoPublish")
-			s.AutoPublish.Encode(e)
+		if s.Profiles != nil {
+			e.FieldStart("profiles")
+			e.ArrStart()
+			for _, elem := range s.Profiles {
+				elem.Encode(e)
+			}
+			e.ArrEnd()
 		}
 	}
 }
@@ -446,7 +432,7 @@ var jsonFieldsNameOfBotInput = [4]string{
 	0: "name",
 	1: "systemPrompt",
 	2: "moderationRequired",
-	3: "autoPublish",
+	3: "profiles",
 }
 
 // Decode decodes BotInput from json.
@@ -491,15 +477,22 @@ func (s *BotInput) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"moderationRequired\"")
 			}
-		case "autoPublish":
+		case "profiles":
 			if err := func() error {
-				s.AutoPublish.Reset()
-				if err := s.AutoPublish.Decode(d); err != nil {
+				s.Profiles = make([]Profile, 0)
+				if err := d.Arr(func(d *jx.Decoder) error {
+					var elem Profile
+					if err := elem.Decode(d); err != nil {
+						return err
+					}
+					s.Profiles = append(s.Profiles, elem)
+					return nil
+				}); err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"autoPublish\"")
+				return errors.Wrap(err, "decode field \"profiles\"")
 			}
 		default:
 			return d.Skip()
@@ -1728,6 +1721,12 @@ func (s *Profile) encodeFields(e *jx.Encoder) {
 		e.Str(s.Name)
 	}
 	{
+		if s.Email.Set {
+			e.FieldStart("email")
+			s.Email.Encode(e)
+		}
+	}
+	{
 		if s.SystemPrompt.Set {
 			e.FieldStart("systemPrompt")
 			s.SystemPrompt.Encode(e)
@@ -1735,10 +1734,11 @@ func (s *Profile) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfProfile = [3]string{
+var jsonFieldsNameOfProfile = [4]string{
 	0: "id",
 	1: "name",
-	2: "systemPrompt",
+	2: "email",
+	3: "systemPrompt",
 }
 
 // Decode decodes Profile from json.
@@ -1773,6 +1773,16 @@ func (s *Profile) Decode(d *jx.Decoder) error {
 				return nil
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"name\"")
+			}
+		case "email":
+			if err := func() error {
+				s.Email.Reset()
+				if err := s.Email.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"email\"")
 			}
 		case "systemPrompt":
 			if err := func() error {

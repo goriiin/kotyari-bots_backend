@@ -50,9 +50,6 @@ components:
         moderationRequired:
           type: boolean
           default: false
-        autoPublish:
-          type: boolean
-          default: false
         createdAt:
           type: string
           format: date-time
@@ -64,9 +61,7 @@ components:
       required:
         - id
         - name
-        - email
         - profilesCount
-        - autoPublish
         - createdAt
         - updatedAt
 
@@ -81,9 +76,11 @@ components:
         moderationRequired:
           type: boolean
           default: false
-        autoPublish:
-          type: boolean
-          default: false
+        profiles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+
       required:
         - name
 
@@ -96,8 +93,6 @@ components:
         systemPrompt:
           type: string
         moderationRequired:
-          type: boolean
-        autoPublish:
           type: boolean
 
     BotsSummary:
@@ -125,6 +120,9 @@ components:
           format: uuid
         name:
           type: string
+        email:
+          type: string
+          format: email
         systemPrompt:
           type: string
       required:
