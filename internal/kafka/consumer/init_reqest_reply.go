@@ -60,6 +60,9 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 			}
 		}(c.reader)
 
+		// lint
+		fmt.Println("CFG: ", c.config)
+
 		for {
 			m, err := c.reader.FetchMessage(ctx)
 			if err != nil {
