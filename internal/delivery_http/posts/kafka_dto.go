@@ -13,13 +13,10 @@ const (
 	CmdDelete kafkaConfig.Command = "delete"
 )
 
-// KafkaResponse TODO: Мб должно быть не тут
-// TODO: работу с ошибками наверное лучше поменять, чекать через error.Is например и завести отдельные ошибки для кафки
-// И вообще может быть идея с общей структурой так себе
+// KafkaResponse TODO: model.Post -> []model.Post?
 type KafkaResponse struct {
-	StatusMessage string     `json:"status"`
-	IsError       bool       `json:"is_error"`
-	Post          model.Post `json:"post"`
+	Error string     `json:"error,omitempty"`
+	Post  model.Post `json:"post"`
 }
 
 type KafkaDeletePostRequest struct {
@@ -49,11 +46,9 @@ type KafkaUpdatePostRequest struct {
 
 func PayloadToEnvelope(command kafkaConfig.Command, entityID string, payload []byte) kafkaConfig.Envelope {
 	return kafkaConfig.Envelope{
-		Command:       command,
-		EntityID:      entityID,
-		Payload:       payload,
-		CorrelationID: "",
-		Attempt:       0,
+		Command:  command,
+		EntityID: entityID,
+		Payload:  payload,
 	}
 }
 

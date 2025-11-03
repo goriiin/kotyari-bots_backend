@@ -12,6 +12,7 @@ import (
 
 type replier interface {
 	Publish(ctx context.Context, message kafka.Message) error
+	Close() error
 }
 
 type KafkaRequestReplyConsumer struct {
@@ -48,7 +49,6 @@ func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, repli
 }
 
 func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfig.CommittableMessage {
-	fmt.Println("START", c.config)
 	out := make(chan kafkaConfig.CommittableMessage)
 	go func() {
 		defer close(out)
@@ -59,6 +59,9 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 				fmt.Println(err)
 			}
 		}(c.reader)
+
+		// lint
+		fmt.Println("CFG: ", c.config)
 
 		for {
 			m, err := c.reader.FetchMessage(ctx)
@@ -116,8 +119,6 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 			select {
 			case decideErr := <-done:
 				if decideErr == nil {
-					fmt.Println("КОММИТ СООБЩЕНИЙ")
-
 					if err := c.reader.CommitMessages(ctx, m); err != nil {
 						// log.Printf("commit err: %v", err)
 						return
@@ -135,4 +136,8 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 		}
 	}()
 	return out
+}
+
+func (c *KafkaRequestReplyConsumer) Close() error {
+	return errors.Join(c.reader.Close(), c.replier.Close())
 }

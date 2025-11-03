@@ -12,7 +12,7 @@ import (
 )
 
 type repliesDispatcher interface {
-	StartConsumingReplies()
+	StartConsumingReplies(ctx context.Context)
 	Dispatch(msg kafka.Message)
 	Register(correlationID string) <-chan kafka.Message
 	Unregister(correlationID string)
@@ -24,13 +24,15 @@ type KafkaRequestReplyProducer struct {
 	replyTopic string
 	replyGroup string
 	dispatcher repliesDispatcher
+	shutdown   context.CancelFunc
 }
 
 func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, replyGroup string, dispatcher repliesDispatcher) (*KafkaRequestReplyProducer, error) {
-	// TODO: XDDDDDDD
 	if err := kafkaConfig.EnsureTopicCreated(config.Brokers[0], replyTopic); err != nil {
 		fmt.Println("Failed to create topic", err.Error())
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
 
 	producer := &KafkaRequestReplyProducer{
 		writer: &kafka.Writer{
@@ -43,9 +45,10 @@ func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, r
 		replyGroup: replyGroup,
 		config:     config,
 		dispatcher: dispatcher,
+		shutdown:   cancel,
 	}
 
-	go producer.dispatcher.StartConsumingReplies()
+	go producer.dispatcher.StartConsumingReplies(ctx)
 	return producer, nil
 }
 
@@ -71,19 +74,12 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 	replyChan := p.dispatcher.Register(env.CorrelationID)
 	defer p.dispatcher.Unregister(env.CorrelationID)
 
-	fmt.Println("Зашли в publish: ", time.Now())
 	if err := p.Publish(ctx, env); err != nil {
 		return nil, err
 	}
-	fmt.Println("Вышли из publish: ", time.Now())
-
-	fmt.Printf("CFG PROD: %+v\n", p.config)
-	fmt.Printf("CFG READ: repl topic: %v, replc group: %v", p.replyTopic, p.replyGroup)
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-
-	fmt.Println("COR ID", env.CorrelationID)
 
 	select {
 	case msg := <-replyChan:
@@ -93,4 +89,10 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 		fmt.Printf("Timed out waiting for reply for CorrelationID: %s\n", env.CorrelationID)
 		return nil, ctx.Err()
 	}
+}
+
+func (p *KafkaRequestReplyProducer) Close() error {
+	p.shutdown()
+
+	return p.writer.Close()
 }

@@ -2,7 +2,6 @@ package posts_command_consumer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
@@ -10,8 +9,6 @@ import (
 )
 
 func (p *PostsCommandConsumer) DeletePost(ctx context.Context, payload []byte) error {
-	fmt.Println("DELETE POST cons")
-
 	var req posts.KafkaDeletePostRequest
 	err := jsoniter.Unmarshal(payload, &req)
 	if err != nil {

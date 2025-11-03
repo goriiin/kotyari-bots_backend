@@ -12,7 +12,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	defer func(app *posts_command_consumer.PostsCommandConsumer) {
+		err := app.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(app)
+
 	if err = app.Run(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
