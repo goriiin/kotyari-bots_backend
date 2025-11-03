@@ -81,8 +81,6 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	fmt.Println("COR ID", env.CorrelationID)
-
 	select {
 	case msg := <-replyChan:
 		fmt.Printf("Received reply for CorrelationID: %s\n", env.CorrelationID)
@@ -94,7 +92,6 @@ func (p *KafkaRequestReplyProducer) Request(ctx context.Context, env kafkaConfig
 }
 
 func (p *KafkaRequestReplyProducer) Close() error {
-	fmt.Println("Shutting down KafkaRequestReplyProducer...")
 	p.shutdown()
 
 	return p.writer.Close()

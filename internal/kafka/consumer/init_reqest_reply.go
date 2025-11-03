@@ -49,7 +49,6 @@ func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, repli
 }
 
 func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfig.CommittableMessage {
-	fmt.Println("START", c.config)
 	out := make(chan kafkaConfig.CommittableMessage)
 	go func() {
 		defer close(out)
@@ -117,8 +116,6 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 			select {
 			case decideErr := <-done:
 				if decideErr == nil {
-					fmt.Println("КОММИТ СООБЩЕНИЙ")
-
 					if err := c.reader.CommitMessages(ctx, m); err != nil {
 						// log.Printf("commit err: %v", err)
 						return
@@ -139,6 +136,5 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 }
 
 func (c *KafkaRequestReplyConsumer) Close() error {
-	fmt.Println("Shutting down KafkaRequestReplyConsumer...")
 	return errors.Join(c.reader.Close(), c.replier.Close())
 }

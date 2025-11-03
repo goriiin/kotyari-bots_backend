@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/apps/posts_command_consumer"
@@ -21,6 +20,6 @@ func main() {
 	}(app)
 
 	if err = app.Run(); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/json-iterator/go"
 )
 
-const failedToSendReplyMsg = "failed to send success reply"
+const failedToSendReplyMsg = "failed to send reply successfully"
 
 func (p *PostsCommandConsumer) HandleCommands() error {
 	ctx := context.Background()

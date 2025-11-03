@@ -2,7 +2,6 @@ package posts_command_consumer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
@@ -11,8 +10,6 @@ import (
 )
 
 func (p *PostsCommandConsumer) UpdatePost(ctx context.Context, payload []byte) (model.Post, error) {
-	fmt.Println("UPDATE POST cons")
-
 	var postToUpdate posts.KafkaUpdatePostRequest
 
 	err := jsoniter.Unmarshal(payload, &postToUpdate)
