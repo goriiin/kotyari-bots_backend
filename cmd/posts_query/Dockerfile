@@ -14,5 +14,7 @@ FROM alpine:edge AS prod
 WORKDIR /app
 
 COPY --from=build /var/backend/main /app/main
+COPY ./configs/posts-local.yaml /app/configs/posts-local.yaml
+COPY .env /app/.env
 
-ENTRYPOINT ["/app/main"]
+ENTRYPOINT ["/app/main", "--env=local", "--config=./configs/posts-local.yaml"]

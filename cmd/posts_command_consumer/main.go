@@ -4,10 +4,16 @@ import (
 	"log"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/apps/posts_command_consumer"
+	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
 func main() {
-	app, err := posts_command_consumer.NewPostsCommandConsumer()
+	cfg, err := config.New[posts_command_consumer.PostsCommandConsumerConfig]()
+	if err != nil {
+		log.Fatalf("config load: %v", err)
+	}
+
+	app, err := posts_command_consumer.NewPostsCommandConsumer(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -20,15 +20,14 @@ type repliesDispatcher interface {
 
 type KafkaRequestReplyProducer struct {
 	writer     *kafka.Writer
-	config     *kafkaConfig.KafkaConfig
-	replyTopic string
-	replyGroup string
+	prodConfig *kafkaConfig.KafkaConfig
+	consConfig *kafkaConfig.KafkaConfig
 	dispatcher repliesDispatcher
 	shutdown   context.CancelFunc
 }
 
-func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, replyGroup string, dispatcher repliesDispatcher) (*KafkaRequestReplyProducer, error) {
-	if err := kafkaConfig.EnsureTopicCreated(config.Brokers[0], replyTopic); err != nil {
+func NewKafkaRequestReplyProducer(prodConfig *kafkaConfig.KafkaConfig, consConfig *kafkaConfig.KafkaConfig, dispatcher repliesDispatcher) (*KafkaRequestReplyProducer, error) {
+	if err := kafkaConfig.EnsureTopicCreated(prodConfig.Brokers[0], consConfig.Topic); err != nil {
 		fmt.Println("Failed to create topic", err.Error())
 	}
 
@@ -36,14 +35,13 @@ func NewKafkaRequestReplyProducer(config *kafkaConfig.KafkaConfig, replyTopic, r
 
 	producer := &KafkaRequestReplyProducer{
 		writer: &kafka.Writer{
-			Addr:                   kafka.TCP(config.Brokers...),
-			Topic:                  config.Topic,
+			Addr:                   kafka.TCP(prodConfig.Brokers...),
+			Topic:                  prodConfig.Topic,
 			Balancer:               &kafka.Hash{},
 			AllowAutoTopicCreation: true,
 		},
-		replyTopic: replyTopic,
-		replyGroup: replyGroup,
-		config:     config,
+		consConfig: consConfig,
+		prodConfig: prodConfig,
 		dispatcher: dispatcher,
 		shutdown:   cancel,
 	}
@@ -64,7 +62,7 @@ func (p *KafkaRequestReplyProducer) Publish(ctx context.Context, env kafkaConfig
 		Headers: []kafka.Header{
 			{Key: "correlation_id", Value: []byte(env.CorrelationID)},
 			{Key: "command", Value: []byte(env.Command)},
-			{Key: "reply_to", Value: []byte(p.replyTopic)},
+			{Key: "reply_to", Value: []byte(p.consConfig.Topic)},
 		},
 	})
 }

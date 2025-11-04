@@ -23,19 +23,19 @@ type KafkaRequestReplyConsumer struct {
 	baseBackoff      time.Duration
 }
 
-// NewKafkaRequestReplyConsumer TODO: Разобраться с инитом с помощью конфига
-func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, replier replier) (*KafkaRequestReplyConsumer, error) {
-	if err := kafkaConfig.EnsureTopicCreated(brokers[0], topic); err != nil {
+func NewKafkaRequestReplyConsumer(config *kafkaConfig.KafkaConfig, replier replier) (*KafkaRequestReplyConsumer, error) {
+	// TODO: Check if needed
+	if err := kafkaConfig.EnsureTopicCreated(config.Brokers[0], config.Topic); err != nil {
 		fmt.Println("failed to create topic")
 
 		return nil, err
 	}
 
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:               brokers,
-		Topic:                 topic,
-		GroupID:               groupID,
-		GroupTopics:           []string{topic},
+		Brokers:               config.Brokers,
+		Topic:                 config.Topic,
+		GroupID:               config.GroupID,
+		GroupTopics:           []string{config.Topic},
 		MinBytes:              1,
 		MaxBytes:              10e6,
 		WatchPartitionChanges: true, // ???
@@ -45,6 +45,7 @@ func NewKafkaRequestReplyConsumer(brokers []string, topic, groupID string, repli
 		replier:          replier,
 		maxCreateRetries: 5,
 		baseBackoff:      500 * time.Millisecond,
+		config:           config,
 	}, nil
 }
 
@@ -59,9 +60,6 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 				fmt.Println(err)
 			}
 		}(c.reader)
-
-		// lint
-		fmt.Println("CFG: ", c.config)
 
 		for {
 			m, err := c.reader.FetchMessage(ctx)

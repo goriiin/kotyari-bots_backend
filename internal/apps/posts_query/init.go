@@ -17,17 +17,11 @@ type postsGetter interface {
 
 type PostsQueryApp struct {
 	handler postsGetter
+	config  *PostsQueryConfig
 }
 
-func NewPostsQueryApp() (*PostsQueryApp, error) {
-	// TODO: вынести в конфиг
-	pool, err := postgres.GetPool(context.Background(), postgres.Config{
-		Host:     "posts_db",
-		Port:     5432,
-		Name:     "posts",
-		User:     "postgres",
-		Password: "123",
-	})
+func NewPostsQueryApp(config *PostsQueryConfig) (*PostsQueryApp, error) {
+	pool, err := postgres.GetPool(context.Background(), config.Database)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to connect to postgres")
@@ -37,5 +31,8 @@ func NewPostsQueryApp() (*PostsQueryApp, error) {
 
 	handler := postsQueryHandler.NewPostsQueryHandler(repo)
 
-	return &PostsQueryApp{handler: handler}, nil
+	return &PostsQueryApp{
+		handler: handler,
+		config:  config,
+	}, nil
 }
