@@ -2,57 +2,43 @@ posts_query_api:
   host: "0.0.0.0"
   port: 8089
 
-posts_query_db:
-  host: "posts_db"
-  port: 5432
-  user: "postgres"
-  password: "123"
-  name: "posts"
+posts_database:
   sslmode: "disable"
 
-posts_prod_api:
+posts_producer_api:
   host: "0.0.0.0"
   port: 8088
 
-posts_prod_grpc:
+posts_producer_grpc:
   bots_addr: "bots_go:8001"
   profiles_addr: "profiles_go:8003"
   dial_timeout: 10
 
-posts_prod_p:
+posts_producer_request:
   brokers:
     - "kafka:29092"
   topic: "posts-topic"
-#  group_id: "posts-group"
   kind: producer
 
-posts_prod_c:
+posts_producer_reply:
   brokers:
     - "kafka:29092"
   topic: "posts-replies"
   group_id: "posts-replies-group"
   kind: consumer
 
-posts_cons_grpc:
+posts_consumer_grpc:
   posts_addr: "host.docker.internal:50051" # Создать общий network между docker-compose.yml
   dial_timeout: 10
 
-posts_cons_db:
-  host: "posts_db"
-  port: 5432
-  user: "postgres"
-  password: "123"
-  name: "posts"
-  sslmode: "disable"
-
-posts_cons_c:
+posts_consumer_request:
   brokers:
     - "kafka:29092"
   topic: "posts-topic"
   group_id: "posts-group-2"
   kind: consumer
 
-posts_cons_p:
+posts_consumer_reply:
   brokers:
     - "kafka:29092"
   topic: "posts-replies"

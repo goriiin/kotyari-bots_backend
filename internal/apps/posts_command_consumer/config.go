@@ -9,8 +9,8 @@ import (
 
 type PostsCommandConsumerConfig struct {
 	config.ConfigBase
-	GRPCServerCfg posts_consumer_client.PostsConsGRPCClientConfig `mapstructure:"posts_cons_grpc"`
-	Database      postgres.Config                                 `mapstructure:"posts_cons_db"`
-	KafkaCons     kafka.KafkaConfig                               `mapstructure:"posts_cons_c"`
-	KafkaProd     kafka.KafkaConfig                               `mapstructure:"posts_cons_p"`
+	GRPCServerCfg posts_consumer_client.PostsConsGRPCClientConfig `mapstructure:"posts_consumer_grpc"`
+	Database      postgres.Config                                 `mapstructure:"posts_database"`
+	KafkaCons     kafka.KafkaConfig                               `mapstructure:"posts_consumer_request"`
+	KafkaProd     kafka.KafkaConfig                               `mapstructure:"posts_consumer_reply"`
 }

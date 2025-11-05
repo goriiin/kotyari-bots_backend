@@ -13,8 +13,8 @@ type configAPI struct {
 
 type PostsCommandProducerConfig struct {
 	config.ConfigBase
-	API           configAPI                                       `mapstructure:"posts_prod_api"`
-	GRPCServerCfg posts_producer_client.PostsProdGRPCClientConfig `mapstructure:"posts_prod_grpc"`
-	KafkaProd     kafka.KafkaConfig                               `mapstructure:"posts_prod_p"`
-	KafkaCons     kafka.KafkaConfig                               `mapstructure:"posts_prod_c"`
+	API           configAPI                                       `mapstructure:"posts_producer_api"`
+	GRPCServerCfg posts_producer_client.PostsProdGRPCClientConfig `mapstructure:"posts_producer_grpc"`
+	KafkaProd     kafka.KafkaConfig                               `mapstructure:"posts_producer_request"`
+	KafkaCons     kafka.KafkaConfig                               `mapstructure:"posts_producer_reply"`
 }

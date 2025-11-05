@@ -13,5 +13,5 @@ type configAPI struct {
 type PostsQueryConfig struct {
 	config.ConfigBase
 	API      configAPI       `mapstructure:"posts_query_api"`
-	Database postgres.Config `mapstructure:"posts_query_db"`
+	Database postgres.Config `mapstructure:"posts_database"`
 }
