@@ -60,7 +60,7 @@ func (rm *ReplyManager) Dispatch(msg kafka.Message) {
 	select {
 	case ch <- msg:
 	default:
-		// TODO: тоже error
+		// TODO: тоже error?
 		fmt.Println("Warning: Could not send reply to blocked channel for correlationID:", correlationID)
 	}
 }

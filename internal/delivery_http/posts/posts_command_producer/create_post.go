@@ -39,7 +39,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		BotPrompt string
 	}{
 		req.BotId,
-		"You are a test assistant.",
+		"",
 	}
 
 	mockedProfiles := []struct {
@@ -48,11 +48,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	}{
 		{
 			uuid.New(),
-			"Testing. Just say hi and hello world and nothing else.",
-		},
-		{
-			uuid.New(),
-			"Add a word test in the end",
+			"",
 		},
 	}
 
@@ -109,7 +105,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 
 	if strings.Contains(resp.Error, constants.InternalMsg) {
 		return &gen.CreatePostInternalServerError{
-			ErrorCode: http.StatusNotFound,
+			ErrorCode: http.StatusInternalServerError,
 			Message:   constants.InternalMsg,
 		}, nil
 	}

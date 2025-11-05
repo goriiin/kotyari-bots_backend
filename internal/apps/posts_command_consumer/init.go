@@ -10,7 +10,6 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
 	postsRepoLib "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_command"
-	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
 
@@ -26,27 +25,18 @@ type kafkaConsumer interface {
 type PostsCommandConsumer struct {
 	consumerRunner consumerRunner
 	consumer       kafkaConsumer
+	config         *PostsCommandConsumerConfig
 }
 
-func NewPostsCommandConsumer() (*PostsCommandConsumer, error) {
-	pool, err := postgres.GetPool(context.Background(), postgres.Config{
-		Host:     "posts_db",
-		Port:     5432,
-		Name:     "posts",
-		User:     "postgres",
-		Password: "123",
-	})
+func NewPostsCommandConsumer(config *PostsCommandConsumerConfig) (*PostsCommandConsumer, error) {
+	pool, err := postgres.GetPool(context.Background(), config.Database)
 	if err != nil {
 		return nil, err
 	}
 
-	basicReplier := producer.NewKafkaProducer(&kafka.KafkaConfig{
-		Kind:    "producer",
-		Brokers: []string{"kafka:29092"},
-		Topic:   "posts-replies",
-	})
+	basicReplier := producer.NewKafkaProducer(&config.KafkaProd)
 
-	cons, err := consumer.NewKafkaRequestReplyConsumer([]string{"kafka:29092"}, "posts-topic", "posts-group-2", basicReplier)
+	cons, err := consumer.NewKafkaRequestReplyConsumer(&config.KafkaCons, basicReplier)
 	if err != nil {
 		fmt.Println("error happened while creating consumer", err)
 		return nil, err
@@ -54,17 +44,16 @@ func NewPostsCommandConsumer() (*PostsCommandConsumer, error) {
 
 	repo := postsRepoLib.NewPostsCommandRepo(pool)
 
-	grpcClientCfg := &posts_consumer_client.PostsConsGRPCClientConfig{
-		ConfigBase: config.ConfigBase{},
-		PostsAddr:  "localhost:8080",
-		Timeout:    10,
+	grpc, err := posts_consumer_client.NewPostsConsGRPCClient(&config.GRPCServerCfg)
+	if err != nil {
+		return nil, err
 	}
-	grpc, _ := posts_consumer_client.NewPostsConsGRPCClient(grpcClientCfg)
 
 	runner := posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc)
 
 	return &PostsCommandConsumer{
 		consumerRunner: runner,
 		consumer:       cons,
+		config:         config,
 	}, nil
 }

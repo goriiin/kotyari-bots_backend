@@ -12,7 +12,6 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
 	"github.com/goriiin/kotyari-bots_backend/internal/logger"
-	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
 type postsCommandHandler interface {
@@ -29,40 +28,23 @@ type requester interface {
 type PostsCommandProducerApp struct {
 	handler  postsCommandHandler
 	producer requester
+	config   *PostsCommandProducerConfig
 }
 
-func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
-	// PIVO
-	grpcClientCfg := &posts_producer_client.PostsProdGRPCClientConfig{
-		ConfigBase:   config.ConfigBase{},
-		BotsAddr:     "localhost:8080",
-		ProfilesAddr: "localhost:8081",
-		Timeout:      10,
+func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsCommandProducerApp, error) {
+	grpc, err := posts_producer_client.NewPostsProdGRPCClient(&config.GRPCServerCfg)
+	if err != nil {
+		return nil, err
 	}
 
-	grpc, _ := posts_producer_client.NewPostsProdGRPCClient(grpcClientCfg)
+	// TODO: ???
+	log := logger.NewLogger("xdd", &config.ConfigBase)
 
-	kafkaCfg := &kafka.KafkaConfig{
-		Kind:    "producer",
-		Brokers: []string{"kafka:29092"},
-		Topic:   "posts-topic",
-		GroupID: "posts-group",
-	}
-
-	readerCfg := &kafka.KafkaConfig{
-		Kind:    "consumer",
-		Brokers: []string{"kafka:29092"},
-		Topic:   "posts-replies",
-		GroupID: "posts-replies-group",
-	}
-
-	log := logger.NewLogger("xdd", &grpcClientCfg.ConfigBase)
-
-	reader := consumer.NewKafkaConsumer(log, readerCfg)
+	reader := consumer.NewKafkaConsumer(log, &config.KafkaCons)
 
 	repliesDispatcher := consumer.NewReplyManager(reader)
 
-	p, err := producer.NewKafkaRequestReplyProducer(kafkaCfg, "posts-replies", "posts-replies-group", repliesDispatcher)
+	p, err := producer.NewKafkaRequestReplyProducer(&config.KafkaProd, &config.KafkaCons, repliesDispatcher)
 	if err != nil {
 		fmt.Println("error happened while creating producer", err.Error())
 		return nil, err
@@ -73,5 +55,6 @@ func NewPostsCommandProducerApp() (*PostsCommandProducerApp, error) {
 	return &PostsCommandProducerApp{
 		handler:  handler,
 		producer: p,
+		config:   config,
 	}, nil
 }

@@ -1,0 +1,45 @@
+posts_query_api:
+  host: "0.0.0.0"
+  port: 8089
+
+posts_database:
+  sslmode: "disable"
+
+posts_producer_api:
+  host: "0.0.0.0"
+  port: 8088
+
+posts_producer_grpc:
+  bots_addr: "bots_go:8001"
+  profiles_addr: "profiles_go:8003"
+  dial_timeout: 10
+
+posts_producer_request:
+  brokers:
+    - "kafka:29092"
+  topic: "posts-topic"
+  kind: producer
+
+posts_producer_reply:
+  brokers:
+    - "kafka:29092"
+  topic: "posts-replies"
+  group_id: "posts-replies-group"
+  kind: consumer
+
+posts_consumer_grpc:
+  posts_addr: "host.docker.internal:50051" # Создать общий network между docker-compose.yml
+  dial_timeout: 10
+
+posts_consumer_request:
+  brokers:
+    - "kafka:29092"
+  topic: "posts-topic"
+  group_id: "posts-group-2"
+  kind: consumer
+
+posts_consumer_reply:
+  brokers:
+    - "kafka:29092"
+  topic: "posts-replies"
+  kind: producer

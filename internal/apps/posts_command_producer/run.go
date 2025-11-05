@@ -24,17 +24,16 @@ func (p *PostsCommandProducerApp) startHTTPServer(handler gen.Handler) error {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}
 
-	// TODO: XDDD
-	// httpAddr := fmt.Sprintf("%s:%d", p.appCfg.API.Host, p.appCfg.API.Port)
+	httpAddr := fmt.Sprintf("%s:%d", p.config.API.Host, p.config.API.Port)
 	httpServer := &http.Server{
-		Addr:         "0.0.0.0:8088",
+		Addr:         httpAddr,
 		Handler:      svr,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
-	log.Printf("PostsApp HTTP service listening on %s", "0.0.0.0:8088")
+	log.Printf("PostsCommandApp HTTP service listening on %s", httpAddr)
 	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http server exited with error: %w", err)
 	}
