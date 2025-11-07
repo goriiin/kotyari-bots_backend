@@ -2,8 +2,12 @@ package posts_command_consumer
 
 import (
 	"context"
+	"fmt"
+	"sync"
+	"time"
 
 	"github.com/go-faster/errors"
+	"github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	jsoniter "github.com/json-iterator/go"
@@ -25,6 +29,34 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) (
 	// }
 	//
 	// fmt.Println(generatedPost)
+
+	fmt.Println("TIME BEFORE: ", time.Now())
+
+	postsChan := make(chan *gen.GetPostResponse, 2)
+	var wg sync.WaitGroup
+	for range 2 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			generatedPost, err := p.getter.GetPost(ctx, req.UserPrompt, req.Profiles[0].ProfilePrompt, req.BotPrompt)
+			if err != nil {
+				fmt.Println("error getting post", err)
+				//return model.Post{}, errors.Wrap(err, constants.InternalMsg)
+			}
+
+			postsChan <- generatedPost
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(postsChan)
+	}()
+
+	for post := range postsChan {
+		fmt.Println(post, time.Now())
+	}
 
 	finalPost := model.Post{
 		ID:        req.PostID,
