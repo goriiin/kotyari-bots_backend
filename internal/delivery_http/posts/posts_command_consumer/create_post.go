@@ -22,7 +22,6 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 	postsChan := make(chan model.Post, len(req.Profiles))
 	var wg sync.WaitGroup
 	for _, profile := range req.Profiles {
-
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -69,7 +68,6 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 					mutex.Lock()
 					profilesPosts = append(profilesPosts, post)
 					mutex.Unlock()
-					//postsChan <- post
 				}()
 			}
 
@@ -104,26 +102,6 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 		wg.Wait()
 		close(postsChan)
 	}()
-
-	// fmt.Printf("%+v\n", req)
-
-	//var testPosts []model.Post
-	//for i, profile := range req.Profiles {
-	//	testPosts = append(testPosts, model.Post{
-	//		ID:          uuid.New(),
-	//		OtvetiID:    0,
-	//		BotID:       req.BotID,
-	//		BotName:     req.BotName,
-	//		ProfileID:   profile.ProfileID,
-	//		ProfileName: profile.ProfileName,
-	//		GroupID:     req.GroupID,
-	//		Platform:    req.Platform,
-	//		Type:        req.PostType,
-	//		UserPrompt:  req.UserPrompt,
-	//		Title:       fmt.Sprintf("Test title %d, frontend <3", i),
-	//		Text:        fmt.Sprintf("Test text %d", i),
-	//	})
-	//}
 
 	finalPosts := make([]model.Post, 0, len(req.Profiles))
 	for post := range postsChan {
