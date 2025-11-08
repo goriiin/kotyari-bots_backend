@@ -1,9 +1,8 @@
-package grok_client
+package grok
 
 const (
-	systemRole   = "system"
-	userRole     = "user"
-	defaultModel = "grok-3-mini"
+	systemRole = "system"
+	userRole   = "user"
 )
 
 type GrokRequest struct {
