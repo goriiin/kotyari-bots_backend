@@ -3,6 +3,7 @@ package posts_command_consumer
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_consumer_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command_consumer"
@@ -10,7 +11,10 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
 	postsRepoLib "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_command"
+	"github.com/goriiin/kotyari-bots_backend/pkg/evals"
+	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
+	"github.com/goriiin/kotyari-bots_backend/pkg/rewriter"
 )
 
 type consumerRunner interface {
@@ -28,7 +32,7 @@ type PostsCommandConsumer struct {
 	config         *PostsCommandConsumerConfig
 }
 
-func NewPostsCommandConsumer(config *PostsCommandConsumerConfig) (*PostsCommandConsumer, error) {
+func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMConfig) (*PostsCommandConsumer, error) {
 	pool, err := postgres.GetPool(context.Background(), config.Database)
 	if err != nil {
 		return nil, err
@@ -49,10 +53,27 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig) (*PostsCommandC
 		return nil, err
 	}
 
-	runner := posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc)
+	cfgRewriter := rewriter.Config{
+		NumRewrites: 5,
+		Timeout:     60 * time.Second,
+	}
+
+	grokClient, err := grok.NewGrokClient(&llmConfig.LLM, &llmConfig.Proxy)
+	if err != nil {
+		return nil, err
+	}
+
+	rw := rewriter.NewGrokRewriter(cfgRewriter, grokClient, "grok-4")
+
+	cfg := evals.Config{
+		Timeout: 60 * time.Second,
+		Model:   "grok-2-mini",
+	}
+
+	j := evals.NewJudge(cfg, grokClient)
 
 	return &PostsCommandConsumer{
-		consumerRunner: runner,
+		consumerRunner: posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc, rw, j),
 		consumer:       cons,
 		config:         config,
 	}, nil

@@ -8,12 +8,17 @@ import (
 )
 
 func main() {
-	cfg, err := config.New[posts_command_consumer.PostsCommandConsumerConfig]()
+	appCfg, err := config.New[posts_command_consumer.PostsCommandConsumerConfig]()
 	if err != nil {
 		log.Fatalf("config load: %v", err)
 	}
 
-	app, err := posts_command_consumer.NewPostsCommandConsumer(cfg)
+	llmCfg, err := config.New[posts_command_consumer.LLMConfig]()
+	if err != nil {
+		log.Fatalf("config load: %v", err)
+	}
+
+	app, err := posts_command_consumer.NewPostsCommandConsumer(appCfg, llmCfg)
 	if err != nil {
 		log.Fatal(err)
 	}

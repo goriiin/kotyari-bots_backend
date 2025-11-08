@@ -25,16 +25,34 @@ type consumer interface {
 	Start(ctx context.Context) <-chan kafkaConfig.CommittableMessage
 }
 
+type rewriter interface {
+	Rewrite(ctx context.Context, user, profile, bot string) ([]string, error)
+}
+
+type judge interface {
+	SelectBest(ctx context.Context, userPrompt, profilePrompt, botPrompt string, candidates []model.Candidate) (model.Candidate, error)
+}
+
 type PostsCommandConsumer struct {
 	consumer consumer
 	repo     repo
 	getter   postsGetter
+	rewriter rewriter
+	judge    judge
 }
 
-func NewPostsCommandConsumer(consumer consumer, repo repo, getter postsGetter) *PostsCommandConsumer {
+func NewPostsCommandConsumer(
+	consumer consumer,
+	repo repo,
+	getter postsGetter,
+	rewriter rewriter,
+	judge judge,
+) *PostsCommandConsumer {
 	return &PostsCommandConsumer{
 		consumer: consumer,
 		repo:     repo,
 		getter:   getter,
+		rewriter: rewriter,
+		judge:    judge,
 	}
 }
