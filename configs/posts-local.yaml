@@ -11,7 +11,7 @@ posts_producer_api:
 
 posts_producer_grpc:
   bots_addr: "bots_go:8002"
-  profiles_addr: "profiles_go:8003"
+  profiles_addr: "profiles_go:8002"
   dial_timeout: 10
 
 posts_producer_request:

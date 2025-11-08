@@ -2,6 +2,7 @@ package posts_command_consumer
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
@@ -51,6 +52,8 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 	//	wg.Wait()
 	//	close(postsChan)
 	//}()
+
+	fmt.Printf("%+v\n", req)
 
 	postTest := []model.Post{
 		{

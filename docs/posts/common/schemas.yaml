@@ -146,7 +146,7 @@ PostInput:
       description: "UUID-ы категорий поста, обязательные для ответов, nullable для возможной поддержки других платформ"
   required:
     - botId
-    - profileId
+    - profileIds
     - taskText
     - platform
   example:
