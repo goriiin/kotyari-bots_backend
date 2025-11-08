@@ -11,7 +11,7 @@ const GrokTargetUrl = "https://api.x.ai/v1/chat/completions"
 
 type GrokClientConfig struct {
 	config.ConfigBase
-	ApiKey  string        `mapstructure:"api_key"`
+	ApiKey  string        `mapstructure:"xai_api_key"`
 	Timeout time.Duration `mapstructure:"request_timeout"`
 }
 

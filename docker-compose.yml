@@ -107,12 +107,12 @@ services:
 
   xray-proxy:
     image: teddysun/xray:latest
-    container_name: xray-proxy
+    container_name: xray-proxy-backend
     command: [ "xray", "run", "-c", "/etc/xray/config.json" ]
     volumes:
       - ./configs/xray-config.json:/etc/xray/config.json:ro
     expose:
-      - "8100"
+      - "8111:8100"
     restart: unless-stopped
     networks:
       - app-network
@@ -162,8 +162,6 @@ volumes:
 
 networks:
   app-network:
-    driver: bridge
-  public-gateway-network:
     driver: bridge
 
 include:
