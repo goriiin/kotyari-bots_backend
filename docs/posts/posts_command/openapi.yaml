@@ -4,7 +4,7 @@ info:
   description: "API для работы с постами."
   version: "1.0.0"
 servers:
-  - url: http://localhost:8002
+  - url: http://localhost:8088
 tags:
   - name: "Posts"
     description: "Операции для управления постами."
@@ -48,11 +48,11 @@ paths:
               $ref: '../common/schemas.yaml#/PostInput'
       responses:
         '201':
-          description: "Посты успешно создан."
+          description: "Посты начали создаваться"
           content:
             application/json:
               schema:
-                $ref: '../common/schemas.yaml#/PostList'
+                $ref: '../common/schemas.yaml#/PostCreateResponse'
         '400':
           $ref: '../common/responses.yaml#/BadRequest'
         '401':

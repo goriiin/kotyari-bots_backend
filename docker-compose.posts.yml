@@ -21,6 +21,21 @@ services:
       timeout: 5s
       retries: 5
 
+  posts_migrate:
+    build:
+      context: .
+      dockerfile: ./cmd/posts_command_consumer/Dockerfile
+      target: migrator
+    container_name: posts_migrate
+    image: bots_migrate_image
+    env_file: .env
+    networks:
+      - posts-internal-network
+    depends_on:
+      posts_db:
+        condition: service_healthy
+    restart: on-failure
+
   posts_command_prod_go:
     build:
       context: .

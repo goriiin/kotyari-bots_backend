@@ -26,14 +26,24 @@ Post:
       type: integer
       format: uint64
       description: "Опциональный ID ответов"
+    groupId:
+      type: string
+      format: uuid
+      description: "ID группы, к которой привязан пост"
     botId:
       type: string
       format: uuid
       description: "ID бота, к которому привязан пост."
+    botName:
+      type: string
+      description: "Название бота, к которому привязан пост"
     profileId:
       type: string
       format: uuid
       description: "ID профиля, к которому относится пост."
+    profileName:
+      type: string
+      description: "Название профиля, к которому привязан пост"
     platform:
       type: string
       enum:
@@ -69,8 +79,11 @@ Post:
   required:
     - id
     - otvetiId
+    - groupId
     - botId
+    - botName
     - profileId
+    - profileName
     - platform
     - title
     - text
@@ -133,9 +146,10 @@ PostInput:
       description: "UUID-ы категорий поста, обязательные для ответов, nullable для возможной поддержки других платформ"
   required:
     - botId
-    - profileId
+    - profileIds
     - taskText
     - platform
+    - postType
   example:
     botId: "b046aea8-5692-46ab-bc51-7c479584bb36"
     profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"
@@ -173,6 +187,16 @@ PostList:
       type: array
       items:
         $ref: './schemas.yaml#/Post'
+
+PostCreateResponse:
+  type: object
+  properties:
+    groupID:
+      type: string
+      format: uuid
+      description: "GroupID постов, отданных для создания"
+  required:
+    - groupID
 
 Error:
   type: object

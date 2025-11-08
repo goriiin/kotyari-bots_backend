@@ -4,7 +4,7 @@ info:
   description: "API для работы с постами."
   version: "1.0.0"
 servers:
-  - url: http://localhost:8002
+  - url: http://localhost:8089
 tags:
   - name: "Posts"
     description: "Операции для управления постами."
@@ -66,6 +66,27 @@ paths:
             application/json:
               schema:
                 $ref: '../common/schemas.yaml#/Post'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'
+
+  /api/v1/posts/check/{groupId}:
+    get:
+      summary: "Проверить статус готовности постов"
+      operationId: "checkGroupId"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '../common/parameters.yaml#/GroupID'
+      responses:
+        '200':
+          description: "Успешное получение постов с общим groupId"
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/PostList'
         '401':
           $ref: '../common/responses.yaml#/Unauthorized'
         '404':

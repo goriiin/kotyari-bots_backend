@@ -76,6 +76,43 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case 'c': // Prefix: "check/"
+					origElem := elem
+					if l := len("check/"); len(elem) >= l && elem[0:l] == "check/" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					// Param: "groupId"
+					// Leaf parameter, slashes are prohibited
+					idx := strings.IndexByte(elem, '/')
+					if idx >= 0 {
+						break
+					}
+					args[0] = elem
+					elem = ""
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "GET":
+							s.handleCheckGroupIdRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "GET")
+						}
+
+						return
+					}
+
+					elem = origElem
+				}
 				// Param: "postId"
 				// Leaf parameter, slashes are prohibited
 				idx := strings.IndexByte(elem, '/')
@@ -212,6 +249,45 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case 'c': // Prefix: "check/"
+					origElem := elem
+					if l := len("check/"); len(elem) >= l && elem[0:l] == "check/" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					// Param: "groupId"
+					// Leaf parameter, slashes are prohibited
+					idx := strings.IndexByte(elem, '/')
+					if idx >= 0 {
+						break
+					}
+					args[0] = elem
+					elem = ""
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch method {
+						case "GET":
+							r.name = CheckGroupIdOperation
+							r.summary = "Проверить статус готовности постов"
+							r.operationID = "checkGroupId"
+							r.pathPattern = "/api/v1/posts/check/{groupId}"
+							r.args = args
+							r.count = 1
+							return r, true
+						default:
+							return
+						}
+					}
+
+					elem = origElem
+				}
 				// Param: "postId"
 				// Leaf parameter, slashes are prohibited
 				idx := strings.IndexByte(elem, '/')

@@ -6,3 +6,12 @@ PostID:
   schema:
     type: string
     format: uuid
+
+GroupID:
+  name: groupId
+  in: path
+  required: true
+  description: "Уникальный идентификатор группы постов."
+  schema:
+    type: string
+    format: uuid

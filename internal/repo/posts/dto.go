@@ -9,16 +9,20 @@ import (
 )
 
 type PostDTO struct {
-	ID        uuid.UUID     `db:"id"`
-	OtvetiID  pgtype.Uint64 `db:"otveti_id"`
-	BotID     uuid.UUID     `db:"bot_id"`
-	ProfileID uuid.UUID     `db:"profile_id"`
-	Platform  string        `db:"platform_type"`
-	Type      pgtype.Text   `db:"post_type"`
-	Title     string        `db:"post_title"`
-	Text      string        `db:"post_text"`
-	CreatedAt time.Time     `db:"created_at"`
-	UpdatedAt time.Time     `db:"updated_at"`
+	ID          uuid.UUID     `db:"id"`
+	OtvetiID    pgtype.Uint64 `db:"otveti_id"`
+	BotID       uuid.UUID     `db:"bot_id"`
+	BotName     string        `db:"bot_name"`
+	ProfileID   uuid.UUID     `db:"profile_id"`
+	ProfileName string        `db:"profile_name"`
+	GroupID     uuid.UUID     `db:"group_id"`
+	UserPrompt  string        `db:"user_prompt"`
+	Platform    string        `db:"platform_type"`
+	Type        pgtype.Text   `db:"post_type"`
+	Title       string        `db:"post_title"`
+	Text        string        `db:"post_text"`
+	CreatedAt   time.Time     `db:"created_at"`
+	UpdatedAt   time.Time     `db:"updated_at"`
 }
 
 func (d PostDTO) ToModel() model.Post {
@@ -28,16 +32,19 @@ func (d PostDTO) ToModel() model.Post {
 	}
 
 	return model.Post{
-		ID:        d.ID,
-		OtvetiID:  d.OtvetiID.Uint64,
-		BotID:     d.BotID,
-		ProfileID: d.ProfileID,
-		Platform:  model.PlatformType(d.Platform),
-		Type:      postType,
-		Title:     d.Title,
-		Text:      d.Text,
-		CreatedAt: d.CreatedAt,
-		UpdatedAt: d.UpdatedAt,
+		ID:          d.ID,
+		GroupID:     d.GroupID,
+		OtvetiID:    d.OtvetiID.Uint64,
+		BotID:       d.BotID,
+		BotName:     d.BotName,
+		ProfileID:   d.ProfileID,
+		ProfileName: d.ProfileName,
+		Platform:    model.PlatformType(d.Platform),
+		Type:        postType,
+		Title:       d.Title,
+		Text:        d.Text,
+		CreatedAt:   d.CreatedAt,
+		UpdatedAt:   d.UpdatedAt,
 	}
 }
 

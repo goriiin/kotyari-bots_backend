@@ -114,6 +114,51 @@ func (s *ErrorDetails) init() ErrorDetails {
 	return m
 }
 
+// NewNilPostInputPostType returns new NilPostInputPostType with value set to v.
+func NewNilPostInputPostType(v PostInputPostType) NilPostInputPostType {
+	return NilPostInputPostType{
+		Value: v,
+	}
+}
+
+// NilPostInputPostType is nullable PostInputPostType.
+type NilPostInputPostType struct {
+	Value PostInputPostType
+	Null  bool
+}
+
+// SetTo sets value to v.
+func (o *NilPostInputPostType) SetTo(v PostInputPostType) {
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o NilPostInputPostType) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *NilPostInputPostType) SetToNull() {
+	o.Null = true
+	var v PostInputPostType
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o NilPostInputPostType) Get() (v PostInputPostType, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o NilPostInputPostType) Or(d PostInputPostType) PostInputPostType {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // Ref: #/NoContent
 type NoContent struct{}
 
@@ -159,69 +204,6 @@ func (o OptErrorDetails) Get() (v ErrorDetails, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptErrorDetails) Or(d ErrorDetails) ErrorDetails {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptNilPostInputPostType returns new OptNilPostInputPostType with value set to v.
-func NewOptNilPostInputPostType(v PostInputPostType) OptNilPostInputPostType {
-	return OptNilPostInputPostType{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptNilPostInputPostType is optional nullable PostInputPostType.
-type OptNilPostInputPostType struct {
-	Value PostInputPostType
-	Set   bool
-	Null  bool
-}
-
-// IsSet returns true if OptNilPostInputPostType was set.
-func (o OptNilPostInputPostType) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptNilPostInputPostType) Reset() {
-	var v PostInputPostType
-	o.Value = v
-	o.Set = false
-	o.Null = false
-}
-
-// SetTo sets value to v.
-func (o *OptNilPostInputPostType) SetTo(v PostInputPostType) {
-	o.Set = true
-	o.Null = false
-	o.Value = v
-}
-
-// IsNull returns true if value is Null.
-func (o OptNilPostInputPostType) IsNull() bool { return o.Null }
-
-// SetToNull sets value to null.
-func (o *OptNilPostInputPostType) SetToNull() {
-	o.Set = true
-	o.Null = true
-	var v PostInputPostType
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptNilPostInputPostType) Get() (v PostInputPostType, ok bool) {
-	if o.Null {
-		return v, false
-	}
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptNilPostInputPostType) Or(d PostInputPostType) PostInputPostType {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -361,10 +343,16 @@ type Post struct {
 	ID uuid.UUID `json:"id"`
 	// Опциональный ID ответов.
 	OtvetiId uint64 `json:"otvetiId"`
+	// ID группы, к которой привязан пост.
+	GroupId uuid.UUID `json:"groupId"`
 	// ID бота, к которому привязан пост.
 	BotId uuid.UUID `json:"botId"`
+	// Название бота, к которому привязан пост.
+	BotName string `json:"botName"`
 	// ID профиля, к которому относится пост.
 	ProfileId uuid.UUID `json:"profileId"`
+	// Название профиля, к которому привязан пост.
+	ProfileName string `json:"profileName"`
 	// Платформа, для которой создавался пост.
 	Platform PostPlatform `json:"platform"`
 	// Тип поста.
@@ -389,14 +377,29 @@ func (s *Post) GetOtvetiId() uint64 {
 	return s.OtvetiId
 }
 
+// GetGroupId returns the value of GroupId.
+func (s *Post) GetGroupId() uuid.UUID {
+	return s.GroupId
+}
+
 // GetBotId returns the value of BotId.
 func (s *Post) GetBotId() uuid.UUID {
 	return s.BotId
 }
 
+// GetBotName returns the value of BotName.
+func (s *Post) GetBotName() string {
+	return s.BotName
+}
+
 // GetProfileId returns the value of ProfileId.
 func (s *Post) GetProfileId() uuid.UUID {
 	return s.ProfileId
+}
+
+// GetProfileName returns the value of ProfileName.
+func (s *Post) GetProfileName() string {
+	return s.ProfileName
 }
 
 // GetPlatform returns the value of Platform.
@@ -444,14 +447,29 @@ func (s *Post) SetOtvetiId(val uint64) {
 	s.OtvetiId = val
 }
 
+// SetGroupId sets the value of GroupId.
+func (s *Post) SetGroupId(val uuid.UUID) {
+	s.GroupId = val
+}
+
 // SetBotId sets the value of BotId.
 func (s *Post) SetBotId(val uuid.UUID) {
 	s.BotId = val
 }
 
+// SetBotName sets the value of BotName.
+func (s *Post) SetBotName(val string) {
+	s.BotName = val
+}
+
 // SetProfileId sets the value of ProfileId.
 func (s *Post) SetProfileId(val uuid.UUID) {
 	s.ProfileId = val
+}
+
+// SetProfileName sets the value of ProfileName.
+func (s *Post) SetProfileName(val string) {
+	s.ProfileName = val
 }
 
 // SetPlatform sets the value of Platform.
@@ -491,6 +509,24 @@ func (s *Post) SetUpdatedAt(val time.Time) {
 
 func (*Post) updatePostByIdRes() {}
 
+// Ref: #/PostCreateResponse
+type PostCreateResponse struct {
+	// GroupID постов, отданных для создания.
+	GroupID uuid.UUID `json:"groupID"`
+}
+
+// GetGroupID returns the value of GroupID.
+func (s *PostCreateResponse) GetGroupID() uuid.UUID {
+	return s.GroupID
+}
+
+// SetGroupID sets the value of GroupID.
+func (s *PostCreateResponse) SetGroupID(val uuid.UUID) {
+	s.GroupID = val
+}
+
+func (*PostCreateResponse) createPostRes() {}
+
 // Данные для создания нового поста.
 // Ref: #/PostInput
 type PostInput struct {
@@ -504,7 +540,7 @@ type PostInput struct {
 	Platform PostInputPlatform `json:"platform"`
 	// Тип поста - обязательное поле для ответов, nullable для
 	// возможной поддержки других платформ.
-	PostType OptNilPostInputPostType `json:"postType"`
+	PostType NilPostInputPostType `json:"postType"`
 	// UUID-ы категорий поста, обязательные для ответов, nullable
 	// для возможной поддержки других платформ.
 	CategoryIds OptNilUUIDArray `json:"categoryIds"`
@@ -531,7 +567,7 @@ func (s *PostInput) GetPlatform() PostInputPlatform {
 }
 
 // GetPostType returns the value of PostType.
-func (s *PostInput) GetPostType() OptNilPostInputPostType {
+func (s *PostInput) GetPostType() NilPostInputPostType {
 	return s.PostType
 }
 
@@ -561,7 +597,7 @@ func (s *PostInput) SetPlatform(val PostInputPlatform) {
 }
 
 // SetPostType sets the value of PostType.
-func (s *PostInput) SetPostType(val OptNilPostInputPostType) {
+func (s *PostInput) SetPostType(val NilPostInputPostType) {
 	s.PostType = val
 }
 
@@ -654,23 +690,6 @@ func (s *PostInputPostType) UnmarshalText(data []byte) error {
 		return errors.Errorf("invalid value: %q", data)
 	}
 }
-
-// Ref: #/PostList
-type PostList struct {
-	Data []Post `json:"data"`
-}
-
-// GetData returns the value of Data.
-func (s *PostList) GetData() []Post {
-	return s.Data
-}
-
-// SetData sets the value of Data.
-func (s *PostList) SetData(val []Post) {
-	s.Data = val
-}
-
-func (*PostList) createPostRes() {}
 
 // Платформа, для которой создавался пост.
 type PostPlatform string

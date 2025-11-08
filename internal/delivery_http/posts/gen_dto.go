@@ -16,16 +16,19 @@ func QueryModelToHttp(post model.Post) *genQuery.Post {
 	}
 
 	return &genQuery.Post{
-		ID:         post.ID,
-		BotId:      post.BotID,
-		ProfileId:  post.ProfileID,
-		Platform:   genQuery.PostPlatform(post.Platform),
-		PostType:   postType,
-		Title:      post.Title,
-		Text:       post.Text,
-		Categories: nil,
-		CreatedAt:  post.CreatedAt,
-		UpdatedAt:  post.UpdatedAt,
+		ID:          post.ID,
+		GroupId:     post.GroupID,
+		BotId:       post.BotID,
+		BotName:     post.BotName,
+		ProfileId:   post.ProfileID,
+		ProfileName: post.ProfileName,
+		Platform:    genQuery.PostPlatform(post.Platform),
+		PostType:    postType,
+		Title:       post.Title,
+		Text:        post.Text,
+		Categories:  nil,
+		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
 	}
 }
 
@@ -50,16 +53,19 @@ func ModelToHttp(post model.Post) *genCommand.Post {
 	}
 
 	return &genCommand.Post{
-		ID:         post.ID,
-		BotId:      post.BotID,
-		ProfileId:  post.ProfileID,
-		Platform:   genCommand.PostPlatform(post.Platform),
-		PostType:   postType,
-		Title:      post.Title,
-		Text:       post.Text,
-		Categories: nil,
-		CreatedAt:  post.CreatedAt,
-		UpdatedAt:  post.UpdatedAt,
+		ID:          post.ID,
+		GroupId:     post.GroupID,
+		BotId:       post.BotID,
+		BotName:     post.BotName,
+		ProfileId:   post.ProfileID,
+		ProfileName: post.ProfileName,
+		Platform:    genCommand.PostPlatform(post.Platform),
+		PostType:    postType,
+		Title:       post.Title,
+		Text:        post.Text,
+		Categories:  nil,
+		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
 	}
 }
 
