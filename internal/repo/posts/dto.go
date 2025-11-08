@@ -32,16 +32,19 @@ func (d PostDTO) ToModel() model.Post {
 	}
 
 	return model.Post{
-		ID:        d.ID,
-		OtvetiID:  d.OtvetiID.Uint64,
-		BotID:     d.BotID,
-		ProfileID: d.ProfileID,
-		Platform:  model.PlatformType(d.Platform),
-		Type:      postType,
-		Title:     d.Title,
-		Text:      d.Text,
-		CreatedAt: d.CreatedAt,
-		UpdatedAt: d.UpdatedAt,
+		ID:          d.ID,
+		GroupID:     d.GroupID,
+		OtvetiID:    d.OtvetiID.Uint64,
+		BotID:       d.BotID,
+		BotName:     d.BotName,
+		ProfileID:   d.ProfileID,
+		ProfileName: d.ProfileName,
+		Platform:    model.PlatformType(d.Platform),
+		Type:        postType,
+		Title:       d.Title,
+		Text:        d.Text,
+		CreatedAt:   d.CreatedAt,
+		UpdatedAt:   d.UpdatedAt,
 	}
 }
 

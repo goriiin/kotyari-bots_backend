@@ -12,7 +12,8 @@ import (
 
 func (p *PostsQueryRepo) ListPosts(ctx context.Context) ([]model.Post, error) {
 	const query = `
-		SELECT id, otveti_id, bot_id, profile_id, platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
+		SELECT id, otveti_id, group_id, user_prompt, bot_id, bot_name, profile_id, profile_name, 
+		       platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
 		FROM posts
 	`
 
