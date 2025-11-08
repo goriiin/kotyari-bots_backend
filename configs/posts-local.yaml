@@ -10,7 +10,7 @@ posts_producer_api:
   port: 8088
 
 posts_producer_grpc:
-  bots_addr: "bots_go:8001"
+  bots_addr: "bots_go:8002"
   profiles_addr: "profiles_go:8003"
   dial_timeout: 10
 

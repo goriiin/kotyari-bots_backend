@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-faster/errors"
+	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
-	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -17,7 +17,7 @@ type PostsProdGRPCClient struct {
 	profilesConn *grpc.ClientConn
 
 	Bots     botsgen.BotServiceClient
-	Profiles profilesgen.ProfileServiceClient
+	Profiles profilesgen.ProfilesServiceClient
 	config   PostsProdGRPCClientConfig
 }
 
@@ -38,7 +38,7 @@ func NewPostsProdGRPCClient(config *PostsProdGRPCClientConfig) (*PostsProdGRPCCl
 		botsConn:     botsConn,
 		profilesConn: profilesConn,
 		Bots:         botsgen.NewBotServiceClient(botsConn),
-		Profiles:     profilesgen.NewProfileServiceClient(profilesConn),
+		Profiles:     profilesgen.NewProfilesServiceClient(profilesConn),
 		config:       *config,
 	}
 	return c, nil
@@ -59,16 +59,9 @@ func (c *PostsProdGRPCClient) GetBot(ctx context.Context, id string, opts ...grp
 	return c.Bots.GetBot(ctx, &botsgen.GetBotRequest{Id: id}, opts...)
 }
 
-func (c *PostsProdGRPCClient) GetProfile(ctx context.Context, id string, opts ...grpc.CallOption) (*profilesgen.Profile, error) {
+func (c *PostsProdGRPCClient) GetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.GetProfilesResponse, error) {
 	if c == nil || c.Profiles == nil {
 		return nil, clientNotInitializedErr
 	}
-	return c.Profiles.GetProfile(ctx, &profilesgen.GetProfileRequest{Id: id}, opts...)
-}
-
-func (c *PostsProdGRPCClient) BatchGetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.BatchGetProfilesResponse, error) {
-	if c == nil || c.Profiles == nil {
-		return nil, clientNotInitializedErr
-	}
-	return c.Profiles.BatchGetProfiles(ctx, &profilesgen.BatchGetProfilesRequest{Id: ids}, opts...)
+	return c.Profiles.GetProfiles(ctx, &profilesgen.GetProfilesRequest{ProfileIds: ids}, opts...)
 }

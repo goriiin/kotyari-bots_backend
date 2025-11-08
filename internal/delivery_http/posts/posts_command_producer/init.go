@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
-	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/profiles/gen"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"google.golang.org/grpc"
 )
@@ -16,8 +16,7 @@ type producer interface {
 }
 
 type profilesFetcher interface {
-	GetProfile(ctx context.Context, id string, opts ...grpc.CallOption) (*profilesgen.Profile, error)
-	BatchGetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.BatchGetProfilesResponse, error)
+	GetProfiles(ctx context.Context, ids []string, opts ...grpc.CallOption) (*profilesgen.GetProfilesResponse, error)
 }
 
 type botsFetcher interface {

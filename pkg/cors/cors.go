@@ -11,6 +11,14 @@ func New() *cors.Cors {
 			"http://localhost:8003",
 			"http://83.166.253.130:8003",
 			"http://127.0.0.1:8003",
+
+			"http://localhost:8088",
+			"http://83.166.253.130:8088",
+			"http://127.0.0.1:8088",
+
+			"http://localhost:8089",
+			"http://83.166.253.130:8089",
+			"http://127.0.0.1:8089",
 		},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

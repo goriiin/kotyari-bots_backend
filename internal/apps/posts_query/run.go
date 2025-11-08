@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-faster/errors"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_query"
+	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
 )
 
 func (p *PostsQueryApp) Run() error {
@@ -27,7 +28,7 @@ func (p *PostsQueryApp) startHTTPServer(handler gen.Handler) error {
 	httpAddr := fmt.Sprintf("%s:%d", p.config.API.Host, p.config.API.Port)
 	httpServer := &http.Server{
 		Addr:         httpAddr,
-		Handler:      svr,
+		Handler:      cors.New().Handler(svr),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  120 * time.Second,
