@@ -8,16 +8,16 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
-type Usecase interface {
+type usecase interface {
 	GetByIDs(ctx context.Context, ids []uuid.UUID) ([]model.Profile, error)
 	Exist(ctx context.Context, ids []uuid.UUID) (map[string]bool, error)
 }
 
 type GRPCHandler struct {
 	profiles.UnimplementedProfilesServiceServer
-	u Usecase
+	u usecase
 }
 
-func NewGRPCHandler(u Usecase) *GRPCHandler {
+func NewGRPCHandler(u usecase) *GRPCHandler {
 	return &GRPCHandler{u: u}
 }

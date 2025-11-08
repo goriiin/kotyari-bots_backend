@@ -25,6 +25,7 @@ type Bot struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	BotPrompt     string                 `protobuf:"bytes,2,opt,name=bot_prompt,json=botPrompt,proto3" json:"bot_prompt,omitempty"`
+	BotName       string                 `protobuf:"bytes,3,opt,name=bot_name,json=botName,proto3" json:"bot_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -69,6 +70,13 @@ func (x *Bot) GetId() string {
 func (x *Bot) GetBotPrompt() string {
 	if x != nil {
 		return x.BotPrompt
+	}
+	return ""
+}
+
+func (x *Bot) GetBotName() string {
+	if x != nil {
+		return x.BotName
 	}
 	return ""
 }
@@ -121,11 +129,12 @@ var File_get_bot_proto protoreflect.FileDescriptor
 
 const file_get_bot_proto_rawDesc = "" +
 	"\n" +
-	"\rget_bot.proto\x12\x04bots\"4\n" +
+	"\rget_bot.proto\x12\x04bots\"O\n" +
 	"\x03Bot\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
-	"bot_prompt\x18\x02 \x01(\tR\tbotPrompt\"\x1f\n" +
+	"bot_prompt\x18\x02 \x01(\tR\tbotPrompt\x12\x19\n" +
+	"\bbot_name\x18\x03 \x01(\tR\abotName\"\x1f\n" +
 	"\rGetBotRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id26\n" +
 	"\n" +

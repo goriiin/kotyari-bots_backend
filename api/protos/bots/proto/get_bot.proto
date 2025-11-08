@@ -11,6 +11,7 @@ service BotService {
 message Bot {
   string id = 1;
   string bot_prompt = 2;
+  string bot_name = 3;
 }
 
 message GetBotRequest {
