@@ -149,6 +149,7 @@ PostInput:
     - profileIds
     - taskText
     - platform
+    - postType
   example:
     botId: "b046aea8-5692-46ab-bc51-7c479584bb36"
     profileId: "d1aa90d8-70e4-4fd2-bbfa-84ee67154305"

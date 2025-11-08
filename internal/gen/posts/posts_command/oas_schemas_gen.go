@@ -114,6 +114,51 @@ func (s *ErrorDetails) init() ErrorDetails {
 	return m
 }
 
+// NewNilPostInputPostType returns new NilPostInputPostType with value set to v.
+func NewNilPostInputPostType(v PostInputPostType) NilPostInputPostType {
+	return NilPostInputPostType{
+		Value: v,
+	}
+}
+
+// NilPostInputPostType is nullable PostInputPostType.
+type NilPostInputPostType struct {
+	Value PostInputPostType
+	Null  bool
+}
+
+// SetTo sets value to v.
+func (o *NilPostInputPostType) SetTo(v PostInputPostType) {
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o NilPostInputPostType) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *NilPostInputPostType) SetToNull() {
+	o.Null = true
+	var v PostInputPostType
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o NilPostInputPostType) Get() (v PostInputPostType, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o NilPostInputPostType) Or(d PostInputPostType) PostInputPostType {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // Ref: #/NoContent
 type NoContent struct{}
 
@@ -159,69 +204,6 @@ func (o OptErrorDetails) Get() (v ErrorDetails, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptErrorDetails) Or(d ErrorDetails) ErrorDetails {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptNilPostInputPostType returns new OptNilPostInputPostType with value set to v.
-func NewOptNilPostInputPostType(v PostInputPostType) OptNilPostInputPostType {
-	return OptNilPostInputPostType{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptNilPostInputPostType is optional nullable PostInputPostType.
-type OptNilPostInputPostType struct {
-	Value PostInputPostType
-	Set   bool
-	Null  bool
-}
-
-// IsSet returns true if OptNilPostInputPostType was set.
-func (o OptNilPostInputPostType) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptNilPostInputPostType) Reset() {
-	var v PostInputPostType
-	o.Value = v
-	o.Set = false
-	o.Null = false
-}
-
-// SetTo sets value to v.
-func (o *OptNilPostInputPostType) SetTo(v PostInputPostType) {
-	o.Set = true
-	o.Null = false
-	o.Value = v
-}
-
-// IsNull returns true if value is Null.
-func (o OptNilPostInputPostType) IsNull() bool { return o.Null }
-
-// SetToNull sets value to null.
-func (o *OptNilPostInputPostType) SetToNull() {
-	o.Set = true
-	o.Null = true
-	var v PostInputPostType
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptNilPostInputPostType) Get() (v PostInputPostType, ok bool) {
-	if o.Null {
-		return v, false
-	}
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptNilPostInputPostType) Or(d PostInputPostType) PostInputPostType {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -558,7 +540,7 @@ type PostInput struct {
 	Platform PostInputPlatform `json:"platform"`
 	// Тип поста - обязательное поле для ответов, nullable для
 	// возможной поддержки других платформ.
-	PostType OptNilPostInputPostType `json:"postType"`
+	PostType NilPostInputPostType `json:"postType"`
 	// UUID-ы категорий поста, обязательные для ответов, nullable
 	// для возможной поддержки других платформ.
 	CategoryIds OptNilUUIDArray `json:"categoryIds"`
@@ -585,7 +567,7 @@ func (s *PostInput) GetPlatform() PostInputPlatform {
 }
 
 // GetPostType returns the value of PostType.
-func (s *PostInput) GetPostType() OptNilPostInputPostType {
+func (s *PostInput) GetPostType() NilPostInputPostType {
 	return s.PostType
 }
 
@@ -615,7 +597,7 @@ func (s *PostInput) SetPlatform(val PostInputPlatform) {
 }
 
 // SetPostType sets the value of PostType.
-func (s *PostInput) SetPostType(val OptNilPostInputPostType) {
+func (s *PostInput) SetPostType(val NilPostInputPostType) {
 	s.PostType = val
 }
 
