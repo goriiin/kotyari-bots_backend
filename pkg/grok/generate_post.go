@@ -1,4 +1,4 @@
-package grok_client
+package grok
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
-	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
 )
 
 const (
@@ -33,7 +32,7 @@ func (c *GrokClient) GeneratePost(ctx context.Context, botPrompt, taskText, prof
 		return "", errors.Wrap(err, "failed to marshal request")
 	}
 
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, grok.GrokTargetUrl, bytes.NewBuffer(body))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, GrokTargetUrl, bytes.NewBuffer(body))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to create request")
 	}
