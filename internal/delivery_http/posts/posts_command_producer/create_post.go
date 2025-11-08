@@ -34,21 +34,21 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 
 	fmt.Printf("profiles batch: %+v\n", idsString)
 
-	//mockedBot := struct {
+	// mockedBot := struct {
 	//	Id        uuid.UUID
 	//	BotPrompt string
 	//	BotName   string
-	//}{
+	// }{
 	//	req.BotId,
 	//	"Промт бота",
 	//	"Крутой бот",
-	//}
+	// }
 	//
-	//mockedProfiles := []struct {
+	// mockedProfiles := []struct {
 	//	Id            uuid.UUID
 	//	ProfilePrompt string
 	//	ProfileName   string
-	//}{
+	// }{
 	//	{
 	//		uuid.New(),
 	//		"Крутой промт профиля",
@@ -59,7 +59,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	//		"Супер-пупер промт",
 	//		"Профиль 2",
 	//	},
-	//}
+	// }
 
 	postProfiles := make([]posts.CreatePostProfiles, 0, len(idsString))
 	for _, profile := range profilesBatch.Profiles {
@@ -101,39 +101,6 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 			Message:   err.Error(),
 		}, nil
 	}
-	//// TODO: В рамках теста пока будет создаваться один пост
-	//rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.PostID.String(), rawReq), 10*time.Second)
-	//if err != nil {
-	//	fmt.Println("Ошибка при запросе", err)
-	//	return &gen.CreatePostInternalServerError{
-	//		ErrorCode: http.StatusInternalServerError,
-	//		Message:   err.Error(),
-	//	}, nil
-	//}
-	//
-	//var resp posts.KafkaResponse
-	//err = jsoniter.Unmarshal(rawResp, &resp)
-	//if err != nil {
-	//	return &gen.CreatePostInternalServerError{
-	//		ErrorCode: http.StatusInternalServerError,
-	//		Message:   err.Error(),
-	//	}, nil
-	//}
-
-	// TODO: Оставить для timeout-а RAG-a
-	//	switch {
-	//	case strings.Contains(resp.Error, constants.InternalMsg):
-	//	return &gen.CreatePostInternalServerError{ErrorCode: http.StatusNotFound, Message: constants.InternalMsg}, nil
-	//}
-
-	//if strings.Contains(resp.Error, constants.InternalMsg) {
-	//	return &gen.CreatePostInternalServerError{
-	//		ErrorCode: http.StatusInternalServerError,
-	//		Message:   constants.InternalMsg,
-	//	}, nil
-	//}
-	//
-	//returnedPosts := []gen.Post{*resp.PostCommandToGen()}
 
 	return &gen.PostCreateResponse{GroupID: groupID}, nil
 }

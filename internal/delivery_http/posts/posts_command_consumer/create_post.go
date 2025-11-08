@@ -18,9 +18,9 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 		return errors.Wrap(err, "failed to unmarshal")
 	}
 
-	//postsChan := make(chan model.Post, len(req.Profiles))
-	//var wg sync.WaitGroup
-	//for _, profile := range req.Profiles {
+	// postsChan := make(chan model.Post, len(req.Profiles))
+	// var wg sync.WaitGroup
+	// for _, profile := range req.Profiles {
 	//	wg.Add(1)
 	//	go func() {
 	//		defer wg.Done()
@@ -46,12 +46,12 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 	//
 	//		postsChan <- post
 	//	}()
-	//}
+	// }
 	//
-	//go func() {
+	// go func() {
 	//	wg.Wait()
 	//	close(postsChan)
-	//}()
+	// }()
 
 	fmt.Printf("%+v\n", req)
 
@@ -86,10 +86,10 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 		},
 	}
 
-	//finalPosts := make([]model.Post, 0, len(req.Profiles))
-	//for post := range postsChan {
+	// finalPosts := make([]model.Post, 0, len(req.Profiles))
+	// for post := range postsChan {
 	//	finalPosts = append(finalPosts, post)
-	//}
+	// }
 
 	err = p.repo.CreatePostsBatch(ctx, postTest)
 	if err != nil {
