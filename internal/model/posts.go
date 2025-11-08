@@ -20,18 +20,20 @@ const (
 )
 
 type Post struct {
-	ID         uuid.UUID
-	OtvetiID   uint64
-	BotID      uuid.UUID
-	ProfileID  uuid.UUID
-	GroupID    uuid.UUID
-	Platform   PlatformType
-	Type       PostType
-	UserPrompt string
-	Title      string
-	Text       string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	ID          uuid.UUID
+	OtvetiID    uint64
+	BotID       uuid.UUID
+	BotName     string
+	ProfileID   uuid.UUID
+	ProfileName string
+	GroupID     uuid.UUID
+	Platform    PlatformType
+	Type        PostType
+	UserPrompt  string
+	Title       string
+	Text        string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type Category struct {

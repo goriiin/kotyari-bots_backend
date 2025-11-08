@@ -33,22 +33,27 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	mockedBot := struct {
 		Id        uuid.UUID
 		BotPrompt string
+		BotName   string
 	}{
 		req.BotId,
 		"Промт бота",
+		"Крутой бот",
 	}
 
 	mockedProfiles := []struct {
 		Id            uuid.UUID
 		ProfilePrompt string
+		ProfileName   string
 	}{
 		{
 			uuid.New(),
 			"Крутой промт профиля",
+			"Профиль 1",
 		},
 		{
 			uuid.New(),
 			"Супер-пупер промт",
+			"Профиль 2",
 		},
 	}
 
@@ -57,14 +62,15 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		postProfiles = append(postProfiles, posts.CreatePostProfiles{
 			ProfileID:     profile.Id,
 			ProfilePrompt: profile.ProfilePrompt,
+			ProfileName:   profile.ProfileName,
 		})
 	}
 
 	groupID := uuid.New()
 	createPostRequest := posts.KafkaCreatePostRequest{
-		//PostID:     uuid.New(),
 		GroupID:    groupID,
 		BotID:      mockedBot.Id,
+		BotName:    mockedBot.BotName,
 		BotPrompt:  mockedBot.BotPrompt,
 		UserPrompt: req.TaskText,
 		Profiles:   postProfiles,

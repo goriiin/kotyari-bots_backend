@@ -25,6 +25,7 @@ type KafkaDeletePostRequest struct {
 type KafkaCreatePostRequest struct {
 	PostID     uuid.UUID            `json:"post_id"`
 	BotID      uuid.UUID            `json:"bot_id"`
+	BotName    string               `json:"bot_name"`
 	GroupID    uuid.UUID            `json:"group_id"`
 	UserPrompt string               `json:"user_prompt"`
 	BotPrompt  string               `json:"bot_prompt"`
@@ -36,6 +37,7 @@ type KafkaCreatePostRequest struct {
 type CreatePostProfiles struct {
 	ProfileID     uuid.UUID `json:"profile_id"`
 	ProfilePrompt string    `json:"profile_prompt"`
+	ProfileName   string    `json:"profile_name"`
 }
 
 type KafkaUpdatePostRequest struct {

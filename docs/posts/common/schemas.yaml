@@ -26,14 +26,24 @@ Post:
       type: integer
       format: uint64
       description: "Опциональный ID ответов"
+    groupId:
+      type: string
+      format: uuid
+      description: "ID группы, к которой привязан пост"
     botId:
       type: string
       format: uuid
       description: "ID бота, к которому привязан пост."
+    botName:
+      type: string
+      description: "Название бота, к которому привязан пост"
     profileId:
       type: string
       format: uuid
       description: "ID профиля, к которому относится пост."
+    profileName:
+      type: string
+      description: "Название профиля, к которому привязан пост"
     platform:
       type: string
       enum:
@@ -69,8 +79,11 @@ Post:
   required:
     - id
     - otvetiId
+    - groupId
     - botId
+    - botName
     - profileId
+    - profileName
     - platform
     - title
     - text

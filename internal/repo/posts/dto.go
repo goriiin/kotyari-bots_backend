@@ -9,18 +9,20 @@ import (
 )
 
 type PostDTO struct {
-	ID         uuid.UUID     `db:"id"`
-	OtvetiID   pgtype.Uint64 `db:"otveti_id"`
-	BotID      uuid.UUID     `db:"bot_id"`
-	ProfileID  uuid.UUID     `db:"profile_id"`
-	GroupID    uuid.UUID     `db:"group_id"`
-	UserPrompt string        `db:"user_prompt"`
-	Platform   string        `db:"platform_type"`
-	Type       pgtype.Text   `db:"post_type"`
-	Title      string        `db:"post_title"`
-	Text       string        `db:"post_text"`
-	CreatedAt  time.Time     `db:"created_at"`
-	UpdatedAt  time.Time     `db:"updated_at"`
+	ID          uuid.UUID     `db:"id"`
+	OtvetiID    pgtype.Uint64 `db:"otveti_id"`
+	BotID       uuid.UUID     `db:"bot_id"`
+	BotName     string        `db:"bot_name"`
+	ProfileID   uuid.UUID     `db:"profile_id"`
+	ProfileName string        `db:"profile_name"`
+	GroupID     uuid.UUID     `db:"group_id"`
+	UserPrompt  string        `db:"user_prompt"`
+	Platform    string        `db:"platform_type"`
+	Type        pgtype.Text   `db:"post_type"`
+	Title       string        `db:"post_title"`
+	Text        string        `db:"post_text"`
+	CreatedAt   time.Time     `db:"created_at"`
+	UpdatedAt   time.Time     `db:"updated_at"`
 }
 
 func (d PostDTO) ToModel() model.Post {

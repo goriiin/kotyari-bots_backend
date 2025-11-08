@@ -54,28 +54,32 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 
 	postTest := []model.Post{
 		{
-			ID:         uuid.New(),
-			OtvetiID:   0, // Пока так
-			BotID:      req.BotID,
-			ProfileID:  req.Profiles[0].ProfileID,
-			GroupID:    req.GroupID,
-			Platform:   req.Platform,
-			Type:       req.PostType,
-			UserPrompt: req.UserPrompt,
-			Title:      "TITLE ONE",
-			Text:       "TEXT ONE",
+			ID:          uuid.New(),
+			OtvetiID:    0, // Пока так
+			BotID:       req.BotID,
+			BotName:     req.BotName,
+			ProfileID:   req.Profiles[0].ProfileID,
+			ProfileName: req.Profiles[0].ProfileName,
+			GroupID:     req.GroupID,
+			Platform:    req.Platform,
+			Type:        req.PostType,
+			UserPrompt:  req.UserPrompt,
+			Title:       "TITLE ONE",
+			Text:        "TEXT ONE",
 		},
 		{
-			ID:         uuid.New(),
-			OtvetiID:   0, // Пока так
-			BotID:      req.BotID,
-			ProfileID:  req.Profiles[1].ProfileID,
-			GroupID:    req.GroupID,
-			Platform:   req.Platform,
-			Type:       req.PostType,
-			UserPrompt: req.UserPrompt,
-			Title:      "TITLE ZWEI",
-			Text:       "TEXT ZWEI",
+			ID:          uuid.New(),
+			OtvetiID:    0, // Пока так
+			BotID:       req.BotID,
+			BotName:     req.BotName,
+			ProfileID:   req.Profiles[1].ProfileID,
+			ProfileName: req.Profiles[1].ProfileName,
+			GroupID:     req.GroupID,
+			Platform:    req.Platform,
+			Type:        req.PostType,
+			UserPrompt:  req.UserPrompt,
+			Title:       "TITLE ZWEI",
+			Text:        "TEXT ZWEI",
 		},
 	}
 

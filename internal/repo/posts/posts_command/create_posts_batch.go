@@ -12,8 +12,8 @@ import (
 
 func (p *PostsCommandRepo) CreatePostsBatch(ctx context.Context, posts []model.Post) (err error) {
 	const query = `
-		INSERT INTO posts (id, otveti_id, bot_id, profile_id, group_id, user_prompt, platform_type, post_type, post_title, post_text)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		INSERT INTO posts (id, otveti_id, bot_id, bot_name, profile_id, profile_name, group_id, user_prompt, platform_type, post_type, post_title, post_text)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
 		RETURNING created_at, updated_at
 	`
 
@@ -24,7 +24,9 @@ func (p *PostsCommandRepo) CreatePostsBatch(ctx context.Context, posts []model.P
 			post.ID,
 			post.OtvetiID,
 			post.BotID,
+			post.BotName,
 			post.ProfileID,
+			post.ProfileName,
 			post.GroupID,
 			post.UserPrompt,
 			post.Platform,

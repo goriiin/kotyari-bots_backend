@@ -226,10 +226,16 @@ type Post struct {
 	ID uuid.UUID `json:"id"`
 	// Опциональный ID ответов.
 	OtvetiId uint64 `json:"otvetiId"`
+	// ID группы, к которой привязан пост.
+	GroupId uuid.UUID `json:"groupId"`
 	// ID бота, к которому привязан пост.
 	BotId uuid.UUID `json:"botId"`
+	// Название бота, к которому привязан пост.
+	BotName string `json:"botName"`
 	// ID профиля, к которому относится пост.
 	ProfileId uuid.UUID `json:"profileId"`
+	// Название профиля, к которому привязан пост.
+	ProfileName string `json:"profileName"`
 	// Платформа, для которой создавался пост.
 	Platform PostPlatform `json:"platform"`
 	// Тип поста.
@@ -254,14 +260,29 @@ func (s *Post) GetOtvetiId() uint64 {
 	return s.OtvetiId
 }
 
+// GetGroupId returns the value of GroupId.
+func (s *Post) GetGroupId() uuid.UUID {
+	return s.GroupId
+}
+
 // GetBotId returns the value of BotId.
 func (s *Post) GetBotId() uuid.UUID {
 	return s.BotId
 }
 
+// GetBotName returns the value of BotName.
+func (s *Post) GetBotName() string {
+	return s.BotName
+}
+
 // GetProfileId returns the value of ProfileId.
 func (s *Post) GetProfileId() uuid.UUID {
 	return s.ProfileId
+}
+
+// GetProfileName returns the value of ProfileName.
+func (s *Post) GetProfileName() string {
+	return s.ProfileName
 }
 
 // GetPlatform returns the value of Platform.
@@ -309,14 +330,29 @@ func (s *Post) SetOtvetiId(val uint64) {
 	s.OtvetiId = val
 }
 
+// SetGroupId sets the value of GroupId.
+func (s *Post) SetGroupId(val uuid.UUID) {
+	s.GroupId = val
+}
+
 // SetBotId sets the value of BotId.
 func (s *Post) SetBotId(val uuid.UUID) {
 	s.BotId = val
 }
 
+// SetBotName sets the value of BotName.
+func (s *Post) SetBotName(val string) {
+	s.BotName = val
+}
+
 // SetProfileId sets the value of ProfileId.
 func (s *Post) SetProfileId(val uuid.UUID) {
 	s.ProfileId = val
+}
+
+// SetProfileName sets the value of ProfileName.
+func (s *Post) SetProfileName(val string) {
+	s.ProfileName = val
 }
 
 // SetPlatform sets the value of Platform.
