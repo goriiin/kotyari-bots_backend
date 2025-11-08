@@ -111,6 +111,17 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       CLUSTER_ID: '6aa74627-ee8e-4b0c-ac0f-20c8ec74069f'
 
+  xray-proxy:
+    image: teddysun/xray:latest
+    container_name: xray-proxy-backend
+    command: [ "xray", "run", "-c", "/etc/xray/config.json" ]
+    volumes:
+      - ./configs/xray-config.json:/etc/xray/config.json:ro
+    expose:
+      - "8200"
+    restart: unless-stopped
+    networks:
+      - posts-internal-network
 
 networks:
   posts-internal-network:

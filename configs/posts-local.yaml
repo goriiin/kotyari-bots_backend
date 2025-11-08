@@ -43,3 +43,8 @@ posts_consumer_reply:
     - "kafka:29092"
   topic: "posts-replies"
   kind: producer
+
+proxy:
+  proxy_server:
+    host: "xray-proxy"
+    port: 8200

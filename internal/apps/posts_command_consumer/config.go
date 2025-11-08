@@ -19,6 +19,6 @@ type PostsCommandConsumerConfig struct {
 
 type LLMConfig struct {
 	config.ConfigBase
-	Proxy *proxy.ProxyConfig     `mapstructure:"proxy"`
-	LLM   *grok.GrokClientConfig `mapstructure:"llm"`
+	Proxy proxy.ProxyConfig     `mapstructure:"proxy"`
+	LLM   grok.GrokClientConfig `mapstructure:"llm" env:"LLM"`
 }

@@ -55,10 +55,10 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 
 	cfgRewriter := rewriter.Config{
 		NumRewrites: 5,
-		Timeout:     10 * time.Second,
+		Timeout:     60 * time.Second,
 	}
 
-	grokClient, err := grok.NewGrokClient(llmConfig.LLM, llmConfig.Proxy)
+	grokClient, err := grok.NewGrokClient(&llmConfig.LLM, &llmConfig.Proxy)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 	rw := rewriter.NewGrokRewriter(cfgRewriter, grokClient, "grok-4")
 
 	cfg := evals.Config{
-		Timeout: 15 * time.Second,
+		Timeout: 60 * time.Second,
 		Model:   "grok-2-mini",
 	}
 

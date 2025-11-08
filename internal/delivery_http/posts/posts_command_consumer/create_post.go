@@ -22,19 +22,28 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 	postsChan := make(chan model.Post, len(req.Profiles))
 	var wg sync.WaitGroup
 	for _, profile := range req.Profiles {
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 
-			rewrited, err := p.rewriter.Rewrite(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt)
+			var (
+				mutex     sync.Mutex
+				profileWg sync.WaitGroup
+			)
+
+			profilesPosts := make([]model.Post, 0, 5)
+
+			rewritten, err := p.rewriter.Rewrite(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt)
 			if err != nil {
+				fmt.Println("error rewriting prompts", err)
 				return
 			}
 
-			for _, rw := range rewrited {
-				wg.Add(1)
+			for _, rw := range rewritten {
+				profileWg.Add(1)
 				go func() {
-					defer wg.Done()
+					defer profileWg.Done()
 
 					generatedPostContent, err := p.getter.GetPost(ctx, rw, profile.ProfilePrompt, req.BotPrompt)
 					if err != nil {
@@ -51,15 +60,43 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 						ProfileName: profile.ProfileName,
 						GroupID:     req.GroupID,
 						Platform:    req.Platform,
-						Type:        "opinion",
+						Type:        "opinion", // Пока так
 						UserPrompt:  req.UserPrompt,
 						Title:       generatedPostContent.PostTitle,
 						Text:        generatedPostContent.PostText,
 					}
 
-					postsChan <- post
+					mutex.Lock()
+					profilesPosts = append(profilesPosts, post)
+					mutex.Unlock()
+					//postsChan <- post
 				}()
 			}
+
+			profileWg.Wait()
+			bestPostCandidate, err := p.judge.SelectBest(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt,
+				posts.PostsToCandidates(profilesPosts))
+			if err != nil {
+				fmt.Println("error getting best post ", err)
+				return // Можно будет потом создать хоть какой-то пост
+			}
+
+			bestPost := model.Post{
+				ID:          uuid.New(),
+				OtvetiID:    0, // Пока так
+				BotID:       req.BotID,
+				BotName:     req.BotName,
+				ProfileID:   profile.ProfileID,
+				ProfileName: profile.ProfileName,
+				GroupID:     req.GroupID,
+				Platform:    req.Platform,
+				Type:        "opinion", // Пока так
+				UserPrompt:  req.UserPrompt,
+				Title:       bestPostCandidate.Title,
+				Text:        bestPostCandidate.Text,
+			}
+
+			postsChan <- bestPost
 		}()
 	}
 

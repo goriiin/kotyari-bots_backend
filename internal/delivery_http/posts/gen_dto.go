@@ -69,6 +69,18 @@ func ModelToHttp(post model.Post) *genCommand.Post {
 	}
 }
 
+func PostsToCandidates(posts []model.Post) []model.Candidate {
+	candidates := make([]model.Candidate, 0, len(posts))
+	for _, post := range posts {
+		candidates = append(candidates, model.Candidate{
+			Title: post.Title,
+			Text:  post.Text,
+		})
+	}
+
+	return candidates
+}
+
 func ModelSliceToHttpSlice(posts []model.Post) []genCommand.Post {
 	var httpPosts []genCommand.Post
 	for _, p := range posts {
