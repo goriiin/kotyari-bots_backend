@@ -2,7 +2,6 @@ package posts_query
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -12,8 +11,6 @@ import (
 )
 
 func (p *PostsQueryHandler) CheckGroupId(ctx context.Context, params gen.CheckGroupIdParams) (gen.CheckGroupIdRes, error) {
-	fmt.Println(params)
-
 	groupPosts, err := p.repo.GetByGroupId(ctx, params.GroupId)
 	if err != nil {
 		switch {

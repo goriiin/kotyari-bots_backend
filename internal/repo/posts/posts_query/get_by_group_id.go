@@ -13,8 +13,6 @@ import (
 )
 
 func (p *PostsQueryRepo) GetByGroupId(ctx context.Context, groupID uuid.UUID) ([]model.Post, error) {
-	fmt.Println(groupID)
-
 	const query = `
 		SELECT id, otveti_id, group_id, user_prompt, bot_id, bot_name, profile_id, profile_name, 
 		       platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
