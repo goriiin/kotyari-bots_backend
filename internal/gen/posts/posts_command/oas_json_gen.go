@@ -1172,14 +1172,12 @@ func (s *PostInput) encodeFields(e *jx.Encoder) {
 		json.EncodeUUID(e, s.BotId)
 	}
 	{
-		if s.ProfileIds != nil {
-			e.FieldStart("profileIds")
-			e.ArrStart()
-			for _, elem := range s.ProfileIds {
-				json.EncodeUUID(e, elem)
-			}
-			e.ArrEnd()
+		e.FieldStart("profileIds")
+		e.ArrStart()
+		for _, elem := range s.ProfileIds {
+			json.EncodeUUID(e, elem)
 		}
+		e.ArrEnd()
 	}
 	{
 		e.FieldStart("taskText")
@@ -1234,6 +1232,7 @@ func (s *PostInput) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"botId\"")
 			}
 		case "profileIds":
+			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
 				s.ProfileIds = make([]uuid.UUID, 0)
 				if err := d.Arr(func(d *jx.Decoder) error {
@@ -1304,7 +1303,7 @@ func (s *PostInput) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00001101,
+		0b00001111,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

@@ -56,7 +56,7 @@ func (s *PostInput) Validate() error {
 	var failures []validate.FieldError
 	if err := func() error {
 		if s.ProfileIds == nil {
-			return nil // optional
+			return errors.New("nil is invalid value")
 		}
 		if err := (validate.Array{
 			MinLength:    1,
