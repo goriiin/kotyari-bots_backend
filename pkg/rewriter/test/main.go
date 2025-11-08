@@ -13,13 +13,12 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-
 	cfg := rewriter.Config{
-		NumRewrites: 5, // K — можно менять для проверки
+		NumRewrites: 5,
 		Timeout:     10 * time.Second,
-		MaxLen:      220, // мягкое ограничение длины перефрейма (опционально)
 	}
+
+	ctx := context.Background()
 
 	llmConfig, err := config.New[grok.GrokClientConfig]()
 	if err != nil {

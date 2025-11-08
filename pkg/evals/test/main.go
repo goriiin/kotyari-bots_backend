@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 	"github.com/goriiin/kotyari-bots_backend/pkg/evals"
 	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
@@ -18,7 +19,6 @@ func main() {
 	// Конфигурация для Judge
 	cfg := evals.Config{
 		Timeout: 15 * time.Second,
-		MaxLen:  300,
 		Model:   "grok-2-mini",
 	}
 
@@ -48,7 +48,7 @@ func main() {
 	botPrompt := "Ты — дружелюбный ассистент, который любит кошек."
 
 	// Кандидаты для оценки
-	candidates := []evals.Candidate{
+	candidates := []model.Candidate{
 		{
 			Title: "Мейн-кун: нежный гигант",
 			Text:  "Мейн-куны — одна из самых крупных пород домашних кошек. Они известны своим дружелюбным и игривым характером, что делает их прекрасными компаньонами. Несмотря на свой размер, они очень нежны и хорошо ладят с детьми и другими животными.",
@@ -64,13 +64,11 @@ func main() {
 	}
 
 	// Выбор лучшего кандидата
-	bestIndex, bestCandidate, err := judge.SelectBest(ctx, userPrompt, profilePrompt, botPrompt, candidates)
+	bestCandidate, err := judge.SelectBest(ctx, userPrompt, profilePrompt, botPrompt, candidates)
 	if err != nil {
 		log.Fatalf("failed to select best candidate: %v", err)
 	}
 
-	// Вывод результата
-	fmt.Printf("Лучший кандидат (индекс %d):\n", bestIndex)
 	fmt.Printf("Заголовок: %s\n", bestCandidate.Title)
 	fmt.Printf("Текст: %s\n", bestCandidate.Text)
 }

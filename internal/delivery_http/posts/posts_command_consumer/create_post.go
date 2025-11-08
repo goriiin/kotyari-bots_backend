@@ -26,28 +26,40 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 		go func() {
 			defer wg.Done()
 
-			generatedPostContent, err := p.getter.GetPost(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt)
+			rewrited, err := p.rewriter.Rewrite(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt)
 			if err != nil {
-				fmt.Println("error getting post", err)
 				return
 			}
 
-			post := model.Post{
-				ID:          uuid.New(),
-				OtvetiID:    0, // Пока так
-				BotID:       req.BotID,
-				BotName:     req.BotName,
-				ProfileID:   profile.ProfileID,
-				ProfileName: profile.ProfileName,
-				GroupID:     req.GroupID,
-				Platform:    req.Platform,
-				Type:        "opinion",
-				UserPrompt:  req.UserPrompt,
-				Title:       generatedPostContent.PostTitle,
-				Text:        generatedPostContent.PostText,
-			}
+			for _, rw := range rewrited {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
 
-			postsChan <- post
+					generatedPostContent, err := p.getter.GetPost(ctx, rw, profile.ProfilePrompt, req.BotPrompt)
+					if err != nil {
+						fmt.Println("error getting post", err)
+						return
+					}
+
+					post := model.Post{
+						ID:          uuid.New(),
+						OtvetiID:    0, // Пока так
+						BotID:       req.BotID,
+						BotName:     req.BotName,
+						ProfileID:   profile.ProfileID,
+						ProfileName: profile.ProfileName,
+						GroupID:     req.GroupID,
+						Platform:    req.Platform,
+						Type:        "opinion",
+						UserPrompt:  req.UserPrompt,
+						Title:       generatedPostContent.PostTitle,
+						Text:        generatedPostContent.PostText,
+					}
+
+					postsChan <- post
+				}()
+			}
 		}()
 	}
 

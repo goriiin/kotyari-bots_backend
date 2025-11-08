@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -17,8 +18,7 @@ type grokClient interface {
 
 type Config struct {
 	Timeout time.Duration
-	MaxLen  int    // опционально: ограничение длины текста кандидата перед судейством
-	Model   string // если потребуется маршрутизация моделей
+	Model   string
 }
 
 type Judge struct {
@@ -33,17 +33,11 @@ func NewJudge(cfg Config, client grokClient) *Judge {
 	return &Judge{cfg: cfg, client: client}
 }
 
-type Candidate struct {
-	Title string `json:"title,omitempty"`
-	Text  string `json:"text,omitempty"`
-	// Можно добавить любые тех. поля (id, score из retriever и т.д.)
-}
-
 type judgeInput struct {
-	UserPrompt    string      `json:"user_prompt"`
-	ProfilePrompt string      `json:"profile_prompt,omitempty"`
-	BotPrompt     string      `json:"bot_prompt,omitempty"`
-	Candidates    []Candidate `json:"candidates"`
+	UserPrompt    string            `json:"user_prompt"`
+	ProfilePrompt string            `json:"profile_prompt,omitempty"`
+	BotPrompt     string            `json:"bot_prompt,omitempty"`
+	Candidates    []model.Candidate `json:"candidates"`
 }
 
 type judgeOutput struct {
@@ -53,20 +47,12 @@ type judgeOutput struct {
 
 // SelectBest выбирает лучший ответ из candidates.
 // Возвращает индекс лучшего и нормализованного кандидата.
-func (j *Judge) SelectBest(ctx context.Context, userPrompt, profilePrompt, botPrompt string, candidates []Candidate) (int, Candidate, error) {
+func (j *Judge) SelectBest(ctx context.Context, userPrompt, profilePrompt, botPrompt string, candidates []model.Candidate) (model.Candidate, error) {
 	if len(candidates) == 0 {
-		return -1, Candidate{}, errors.New("no candidates")
+		return model.Candidate{}, errors.New("no candidates")
 	}
 	if len(candidates) == 1 {
-		return 0, candidates[0], nil
-	}
-
-	// Подрежем тексты, если задан MaxLen.
-	if j.cfg.MaxLen > 0 {
-		for i := range candidates {
-			candidates[i].Text = trimRunes(candidates[i].Text, j.cfg.MaxLen)
-			candidates[i].Title = trimRunes(candidates[i].Title, j.cfg.MaxLen/5)
-		}
+		return candidates[0], nil
 	}
 
 	in := judgeInput{
@@ -83,17 +69,17 @@ func (j *Judge) SelectBest(ctx context.Context, userPrompt, profilePrompt, botPr
 	sys := judgeSystemPromptRU
 	raw, err := j.client.Generate(ctx, sys, string(usr))
 	if err != nil {
-		return -1, Candidate{}, fmt.Errorf("judge generate failed: %w", err)
+		return model.Candidate{}, fmt.Errorf("judge generate failed: %w", err)
 	}
 
 	out, err := parseJudgeJSON(raw)
 	if err != nil {
-		return -1, Candidate{}, fmt.Errorf("judge parse failed: %w; raw=%s", err, raw)
+		return model.Candidate{}, fmt.Errorf("judge parse failed: %w; raw=%s", err, raw)
 	}
 	if out.BestIndex < 0 || out.BestIndex >= len(candidates) {
-		return -1, Candidate{}, fmt.Errorf("judge returned invalid index: %d", out.BestIndex)
+		return model.Candidate{}, fmt.Errorf("judge returned invalid index: %d", out.BestIndex)
 	}
-	return out.BestIndex, candidates[out.BestIndex], nil
+	return candidates[out.BestIndex], nil
 }
 
 const judgeSystemPromptRU = `
