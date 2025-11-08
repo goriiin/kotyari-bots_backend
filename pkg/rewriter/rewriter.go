@@ -2,7 +2,6 @@ package rewriter
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	posts "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type Config struct {
@@ -79,14 +79,14 @@ func buildUserPrompt(user, profile, bot string, k int) string {
 
 func parseJSONList(s string) ([]string, error) {
 	var arr []string
-	dec := json.NewDecoder(strings.NewReader(s))
+	dec := jsoniter.NewDecoder(strings.NewReader(s))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&arr); err != nil {
 		// часто модели добавляют префиксы; попробуем найти первую '['
 		if idx := strings.Index(s, "["); idx >= 0 {
 			if j := strings.LastIndex(s, "]"); j > idx {
 				sub := s[idx : j+1]
-				if err2 := json.Unmarshal([]byte(sub), &arr); err2 == nil {
+				if err2 := jsoniter.Unmarshal([]byte(sub), &arr); err2 == nil {
 					return arr, nil
 				}
 			}

@@ -3,11 +3,12 @@ package evals
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 type grokClient interface {
@@ -74,7 +75,7 @@ func (j *Judge) SelectBest(ctx context.Context, userPrompt, profilePrompt, botPr
 		BotPrompt:     botPrompt,
 		Candidates:    candidates,
 	}
-	usr, _ := json.Marshal(in)
+	usr, _ := jsoniter.Marshal(in)
 
 	ctx, cancel := context.WithTimeout(ctx, j.cfg.Timeout)
 	defer cancel()
@@ -116,12 +117,12 @@ func parseJudgeJSON(s string) (judgeOutput, error) {
 	end := strings.LastIndexByte(s, '}')
 	var out judgeOutput
 	if start >= 0 && end > start {
-		if err := json.Unmarshal([]byte(s[start:end+1]), &out); err == nil {
+		if err := jsoniter.Unmarshal([]byte(s[start:end+1]), &out); err == nil {
 			return out, nil
 		}
 	}
 	// Прямая попытка
-	if err := json.Unmarshal([]byte(s), &out); err != nil {
+	if err := jsoniter.Unmarshal([]byte(s), &out); err != nil {
 		return out, err
 	}
 	return out, nil
