@@ -4,7 +4,7 @@
 // 	protoc        v6.32.0
 // source: get_profiles.proto
 
-package profiles
+package gen
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -292,7 +292,7 @@ const file_get_profiles_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x012\xaf\x01\n" +
 	"\x0fProfilesService\x12J\n" +
 	"\vGetProfiles\x12\x1c.profiles.GetProfilesRequest\x1a\x1d.profiles.GetProfilesResponse\x12P\n" +
-	"\rProfilesExist\x12\x1e.profiles.ProfilesExistRequest\x1a\x1f.profiles.ProfilesExistResponseB?Z=github.com/goriiin/kotyari-bots_backend/api/gen/grpc/profilesb\x06proto3"
+	"\rProfilesExist\x12\x1e.profiles.ProfilesExistRequest\x1a\x1f.profiles.ProfilesExistResponseBDZBgithub.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/genb\x06proto3"
 
 var (
 	file_get_profiles_proto_rawDescOnce sync.Once

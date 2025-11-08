@@ -4,7 +4,7 @@
 // - protoc             v6.32.0
 // source: get_profiles.proto
 
-package profiles
+package gen
 
 import (
 	context "context"
