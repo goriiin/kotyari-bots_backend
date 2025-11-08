@@ -37,6 +37,18 @@ func (s *Category) SetTitle(val string) {
 	s.Title = val
 }
 
+type CheckGroupIdInternalServerError Error
+
+func (*CheckGroupIdInternalServerError) checkGroupIdRes() {}
+
+type CheckGroupIdNotFound Error
+
+func (*CheckGroupIdNotFound) checkGroupIdRes() {}
+
+type CheckGroupIdUnauthorized Error
+
+func (*CheckGroupIdUnauthorized) checkGroupIdRes() {}
+
 // Стандартизированная структура ошибки.
 // Ref: #/Error
 type Error struct {
@@ -407,7 +419,8 @@ func (s *PostList) SetData(val []Post) {
 	s.Data = val
 }
 
-func (*PostList) listPostsRes() {}
+func (*PostList) checkGroupIdRes() {}
+func (*PostList) listPostsRes()    {}
 
 // Платформа, для которой создавался пост.
 type PostPlatform string

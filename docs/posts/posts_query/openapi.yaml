@@ -72,3 +72,24 @@ paths:
           $ref: '../common/responses.yaml#/NotFound'
         '500':
           $ref: '../common/responses.yaml#/InternalServerError'
+
+  /api/v1/posts/check/{groupId}:
+    get:
+      summary: "Проверить статус готовности постов"
+      operationId: "checkGroupId"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '../common/parameters.yaml#/GroupID'
+      responses:
+        '200':
+          description: "Успешное получение постов с общим groupId"
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/PostList'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'

@@ -13,6 +13,15 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
+// CheckGroupId implements checkGroupId operation.
+//
+// Проверить статус готовности постов.
+//
+// GET /api/v1/posts/check/{groupId}
+func (UnimplementedHandler) CheckGroupId(ctx context.Context, params CheckGroupIdParams) (r CheckGroupIdRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetPostById implements getPostById operation.
 //
 // Получить пост по ID.

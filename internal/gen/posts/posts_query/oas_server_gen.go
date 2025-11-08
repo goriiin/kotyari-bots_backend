@@ -8,6 +8,12 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
+	// CheckGroupId implements checkGroupId operation.
+	//
+	// Проверить статус готовности постов.
+	//
+	// GET /api/v1/posts/check/{groupId}
+	CheckGroupId(ctx context.Context, params CheckGroupIdParams) (CheckGroupIdRes, error)
 	// GetPostById implements getPostById operation.
 	//
 	// Получить пост по ID.
