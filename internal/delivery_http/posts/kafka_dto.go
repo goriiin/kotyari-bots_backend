@@ -22,10 +22,10 @@ type KafkaResponse struct {
 type KafkaDeletePostRequest struct {
 	PostID uuid.UUID `json:"post_id"`
 }
-
 type KafkaCreatePostRequest struct {
 	PostID     uuid.UUID            `json:"post_id"`
 	BotID      uuid.UUID            `json:"bot_id"`
+	GroupID    uuid.UUID            `json:"group_id"`
 	UserPrompt string               `json:"user_prompt"`
 	BotPrompt  string               `json:"bot_prompt"`
 	Profiles   []CreatePostProfiles `json:"profiles"`

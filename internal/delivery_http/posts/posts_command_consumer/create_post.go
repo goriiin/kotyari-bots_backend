@@ -2,77 +2,92 @@ package posts_command_consumer
 
 import (
 	"context"
-	"fmt"
-	"sync"
-	"time"
 
 	"github.com/go-faster/errors"
-	"github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
+	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	jsoniter "github.com/json-iterator/go"
 )
 
-func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) (model.Post, error) {
+func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) error {
 	var req posts.KafkaCreatePostRequest
 	err := jsoniter.Unmarshal(payload, &req)
 	if err != nil {
-		return model.Post{}, errors.Wrap(err, "failed to unmarshal")
+		return errors.Wrap(err, "failed to unmarshal")
 	}
 
-	// TODO: тут должен быть либо поход батчами c несколькими профилями для создания постов,
-	// либо асинк GetPost c wg например, для тестов путь пока будет один
-	// generatedPost, err := p.getter.GetPost(ctx, req.UserPrompt, req.Profiles[0].ProfilePrompt, req.BotPrompt)
-	// if err != nil {
-	//	fmt.Println("error getting post", err)
-	//	return model.Post{}, errors.Wrap(err, constants.InternalMsg)
-	// }
+	//postsChan := make(chan model.Post, len(req.Profiles))
+	//var wg sync.WaitGroup
+	//for _, profile := range req.Profiles {
+	//	wg.Add(1)
+	//	go func() {
+	//		defer wg.Done()
 	//
-	// fmt.Println(generatedPost)
+	//		generatedPostContent, err := p.getter.GetPost(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt)
+	//		if err != nil {
+	//			fmt.Println("error getting post", err)
+	//			return
+	//		}
+	//
+	//		post := model.Post{
+	//			ID:         req.PostID,
+	//			OtvetiID:   0, // Пока так
+	//			BotID:      req.BotID,
+	//			ProfileID:  profile.ProfileID,
+	//			GroupID:    req.GroupID,
+	//			Platform:   req.Platform,
+	//			Type:       req.PostType,
+	//			UserPrompt: req.UserPrompt,
+	//			Title:      generatedPostContent.PostTitle,
+	//			Text:       generatedPostContent.PostText,
+	//		}
+	//
+	//		postsChan <- post
+	//	}()
+	//}
+	//
+	//go func() {
+	//	wg.Wait()
+	//	close(postsChan)
+	//}()
 
-	fmt.Println("TIME BEFORE: ", time.Now())
-
-	postsChan := make(chan *gen.GetPostResponse, 2)
-	var wg sync.WaitGroup
-	for range 2 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			generatedPost, err := p.getter.GetPost(ctx, req.UserPrompt, req.Profiles[0].ProfilePrompt, req.BotPrompt)
-			if err != nil {
-				fmt.Println("error getting post", err)
-				//return model.Post{}, errors.Wrap(err, constants.InternalMsg)
-			}
-
-			postsChan <- generatedPost
-		}()
+	postTest := []model.Post{
+		{
+			ID:         uuid.New(),
+			OtvetiID:   0, // Пока так
+			BotID:      req.BotID,
+			ProfileID:  req.Profiles[0].ProfileID,
+			GroupID:    req.GroupID,
+			Platform:   req.Platform,
+			Type:       req.PostType,
+			UserPrompt: req.UserPrompt,
+			Title:      "TITLE ONE",
+			Text:       "TEXT ONE",
+		},
+		{
+			ID:         uuid.New(),
+			OtvetiID:   0, // Пока так
+			BotID:      req.BotID,
+			ProfileID:  req.Profiles[1].ProfileID,
+			GroupID:    req.GroupID,
+			Platform:   req.Platform,
+			Type:       req.PostType,
+			UserPrompt: req.UserPrompt,
+			Title:      "TITLE ZWEI",
+			Text:       "TEXT ZWEI",
+		},
 	}
 
-	go func() {
-		wg.Wait()
-		close(postsChan)
-	}()
+	//finalPosts := make([]model.Post, 0, len(req.Profiles))
+	//for post := range postsChan {
+	//	finalPosts = append(finalPosts, post)
+	//}
 
-	for post := range postsChan {
-		fmt.Println(post, time.Now())
-	}
-
-	finalPost := model.Post{
-		ID:        req.PostID,
-		OtvetiID:  100, // че с этим делать пока непонятно
-		BotID:     req.BotID,
-		ProfileID: req.Profiles[0].ProfileID, // опять батчи или что-то такое
-		Platform:  req.Platform,
-		Type:      req.PostType,
-		Title:     "Title поста, полученный от геттера",
-		Text:      "Text поста, полученный от геттера",
-	}
-
-	post, err := p.repo.CreatePost(ctx, finalPost, nil) // Пока без категорий =(
+	err = p.repo.CreatePostsBatch(ctx, postTest)
 	if err != nil {
-		return model.Post{}, errors.Wrap(err, "failed to create post")
+		return errors.Wrap(err, "failed to create posts")
 	}
 
-	return post, nil
+	return nil
 }

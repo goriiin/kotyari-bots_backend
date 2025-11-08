@@ -491,6 +491,24 @@ func (s *Post) SetUpdatedAt(val time.Time) {
 
 func (*Post) updatePostByIdRes() {}
 
+// Ref: #/PostCreateResponse
+type PostCreateResponse struct {
+	// GroupID постов, отданных для создания.
+	GroupID uuid.UUID `json:"groupID"`
+}
+
+// GetGroupID returns the value of GroupID.
+func (s *PostCreateResponse) GetGroupID() uuid.UUID {
+	return s.GroupID
+}
+
+// SetGroupID sets the value of GroupID.
+func (s *PostCreateResponse) SetGroupID(val uuid.UUID) {
+	s.GroupID = val
+}
+
+func (*PostCreateResponse) createPostRes() {}
+
 // Данные для создания нового поста.
 // Ref: #/PostInput
 type PostInput struct {
@@ -654,23 +672,6 @@ func (s *PostInputPostType) UnmarshalText(data []byte) error {
 		return errors.Errorf("invalid value: %q", data)
 	}
 }
-
-// Ref: #/PostList
-type PostList struct {
-	Data []Post `json:"data"`
-}
-
-// GetData returns the value of Data.
-func (s *PostList) GetData() []Post {
-	return s.Data
-}
-
-// SetData sets the value of Data.
-func (s *PostList) SetData(val []Post) {
-	s.Data = val
-}
-
-func (*PostList) createPostRes() {}
 
 // Платформа, для которой создавался пост.
 type PostPlatform string

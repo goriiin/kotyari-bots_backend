@@ -18,6 +18,7 @@ type repo interface {
 	CreatePost(ctx context.Context, post model.Post, categoryIDs []uuid.UUID) (model.Post, error)
 	UpdatePost(ctx context.Context, post model.Post) (model.Post, error)
 	DeletePost(ctx context.Context, id uuid.UUID) error
+	CreatePostsBatch(ctx context.Context, posts []model.Post) (err error)
 }
 
 type consumer interface {

@@ -29,7 +29,7 @@ func decodeCreatePostResponse(resp *http.Response) (res CreatePostRes, _ error) 
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response PostList
+			var response PostCreateResponse
 			if err := func() error {
 				if err := response.Decode(d); err != nil {
 					return err
@@ -45,15 +45,6 @@ func decodeCreatePostResponse(resp *http.Response) (res CreatePostRes, _ error) 
 					Err:         err,
 				}
 				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
 			}
 			return &response, nil
 		default:

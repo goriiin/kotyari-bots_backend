@@ -82,23 +82,14 @@ func (p *PostsCommandConsumer) handleDeleteCommand(ctx context.Context, message 
 }
 
 func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
-	post, err := p.CreatePost(ctx, payload)
+	err := p.CreatePost(ctx, payload)
 	if err != nil {
 		// TODO: Handle RAG timeout error specifically if needed, otherwise send generic error.
 		return sendErrReply(ctx, message, err)
 	}
 
-	resp := posts.KafkaResponse{
-		Post: post,
-	}
-
-	rawResp, err := jsoniter.Marshal(resp)
-	if err != nil {
-		return errors.Wrap(err, constants.MarshalMsg)
-	}
-
-	if err := message.Reply(ctx, rawResp); err != nil {
-		return errors.Wrap(err, failedToSendReplyMsg)
+	if err = message.Ack(ctx); err != nil {
+		return errors.Wrap(err, "failed to ACK posts creation")
 	}
 
 	return nil

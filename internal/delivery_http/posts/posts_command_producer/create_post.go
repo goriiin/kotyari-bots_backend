@@ -2,16 +2,12 @@ package posts_command_producer
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -39,7 +35,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		BotPrompt string
 	}{
 		req.BotId,
-		"",
+		"Промт бота",
 	}
 
 	mockedProfiles := []struct {
@@ -48,7 +44,11 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	}{
 		{
 			uuid.New(),
-			"",
+			"Крутой промт профиля",
+		},
+		{
+			uuid.New(),
+			"Супер-пупер промт",
 		},
 	}
 
@@ -60,8 +60,10 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		})
 	}
 
+	groupID := uuid.New()
 	createPostRequest := posts.KafkaCreatePostRequest{
-		PostID:     uuid.New(), // Создаем uuid поста тут
+		//PostID:     uuid.New(),
+		GroupID:    groupID,
 		BotID:      mockedBot.Id,
 		BotPrompt:  mockedBot.BotPrompt,
 		UserPrompt: req.TaskText,
@@ -78,24 +80,31 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		}, nil
 	}
 
-	// TODO: В рамках теста пока будет создаваться один пост
-	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.PostID.String(), rawReq), 10*time.Second)
-	if err != nil {
-		fmt.Println("Ошибка при запросе", err)
-		return &gen.CreatePostInternalServerError{
-			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
-		}, nil
-	}
-
-	var resp posts.KafkaResponse
-	err = jsoniter.Unmarshal(rawResp, &resp)
+	err = p.producer.Publish(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.GroupID.String(), rawReq))
 	if err != nil {
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
 		}, nil
 	}
+	//// TODO: В рамках теста пока будет создаваться один пост
+	//rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.PostID.String(), rawReq), 10*time.Second)
+	//if err != nil {
+	//	fmt.Println("Ошибка при запросе", err)
+	//	return &gen.CreatePostInternalServerError{
+	//		ErrorCode: http.StatusInternalServerError,
+	//		Message:   err.Error(),
+	//	}, nil
+	//}
+	//
+	//var resp posts.KafkaResponse
+	//err = jsoniter.Unmarshal(rawResp, &resp)
+	//if err != nil {
+	//	return &gen.CreatePostInternalServerError{
+	//		ErrorCode: http.StatusInternalServerError,
+	//		Message:   err.Error(),
+	//	}, nil
+	//}
 
 	// TODO: Оставить для timeout-а RAG-a
 	//	switch {
@@ -103,16 +112,14 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	//	return &gen.CreatePostInternalServerError{ErrorCode: http.StatusNotFound, Message: constants.InternalMsg}, nil
 	//}
 
-	if strings.Contains(resp.Error, constants.InternalMsg) {
-		return &gen.CreatePostInternalServerError{
-			ErrorCode: http.StatusInternalServerError,
-			Message:   constants.InternalMsg,
-		}, nil
-	}
+	//if strings.Contains(resp.Error, constants.InternalMsg) {
+	//	return &gen.CreatePostInternalServerError{
+	//		ErrorCode: http.StatusInternalServerError,
+	//		Message:   constants.InternalMsg,
+	//	}, nil
+	//}
+	//
+	//returnedPosts := []gen.Post{*resp.PostCommandToGen()}
 
-	returnedPosts := []gen.Post{*resp.PostCommandToGen()}
-
-	return &gen.PostList{
-		Data: returnedPosts,
-	}, nil
+	return &gen.PostCreateResponse{GroupID: groupID}, nil
 }

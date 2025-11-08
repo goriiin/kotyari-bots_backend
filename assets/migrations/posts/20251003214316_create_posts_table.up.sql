@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS posts(
     "otveti_id" BIGINT,
     "bot_id" UUID NOT NULL,
     "profile_id" UUID NOT NULL,
+    "user_prompt" TEXT NOT NULL,
+    "group_id" UUID NOT NULL,
     "platform_type" platform_type_enum NOT NULL,
     "post_type" post_type_enum,
     "post_title" TEXT NOT NULL,
