@@ -3,6 +3,8 @@ package posts_command_consumer
 import (
 	"context"
 	"fmt"
+	"maps"
+	"slices"
 	"sync"
 
 	"github.com/go-faster/errors"
@@ -17,6 +19,34 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 	err := jsoniter.Unmarshal(payload, &req)
 	if err != nil {
 		return errors.Wrap(err, "failed to unmarshal")
+	}
+
+	var postsMapMutex sync.RWMutex
+	initialPosts := make(map[uuid.UUID]model.Post, len(req.Profiles))
+
+	//initialPosts := make([]model.Post, 0, len(req.Profiles))
+	for _, profile := range req.Profiles {
+		post := model.Post{
+			ID:          uuid.New(),
+			OtvetiID:    0, // Пока так
+			BotID:       req.BotID,
+			BotName:     req.BotName,
+			ProfileID:   profile.ProfileID,
+			ProfileName: profile.ProfileName,
+			GroupID:     req.GroupID,
+			Platform:    req.Platform,
+			Type:        "opinion", // Пока так
+			UserPrompt:  req.UserPrompt,
+			Title:       "",
+			Text:        "",
+		}
+
+		initialPosts[profile.ProfileID] = post
+	}
+
+	err = p.repo.CreatePostsBatch(ctx, slices.Collect(maps.Values(initialPosts)))
+	if err != nil {
+		return errors.Wrap(err, "failed to create initial posts")
 	}
 
 	postsChan := make(chan model.Post, len(req.Profiles))
@@ -50,20 +80,13 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 						return
 					}
 
-					post := model.Post{
-						ID:          uuid.New(),
-						OtvetiID:    0, // Пока так
-						BotID:       req.BotID,
-						BotName:     req.BotName,
-						ProfileID:   profile.ProfileID,
-						ProfileName: profile.ProfileName,
-						GroupID:     req.GroupID,
-						Platform:    req.Platform,
-						Type:        "opinion", // Пока так
-						UserPrompt:  req.UserPrompt,
-						Title:       generatedPostContent.PostTitle,
-						Text:        generatedPostContent.PostText,
-					}
+					// TODO: Mutex не нужен вроде
+					postsMapMutex.RLock()
+					post := initialPosts[profile.ProfileID]
+					postsMapMutex.RUnlock()
+
+					post.Title = generatedPostContent.PostTitle
+					post.Text = generatedPostContent.PostText
 
 					mutex.Lock()
 					profilesPosts = append(profilesPosts, post)
@@ -79,20 +102,12 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 				return // Можно будет потом создать хоть какой-то пост
 			}
 
-			bestPost := model.Post{
-				ID:          uuid.New(),
-				OtvetiID:    0, // Пока так
-				BotID:       req.BotID,
-				BotName:     req.BotName,
-				ProfileID:   profile.ProfileID,
-				ProfileName: profile.ProfileName,
-				GroupID:     req.GroupID,
-				Platform:    req.Platform,
-				Type:        "opinion", // Пока так
-				UserPrompt:  req.UserPrompt,
-				Title:       bestPostCandidate.Title,
-				Text:        bestPostCandidate.Text,
-			}
+			postsMapMutex.RLock()
+			bestPost := initialPosts[profile.ProfileID]
+			postsMapMutex.RUnlock()
+
+			bestPost.Text = bestPostCandidate.Text
+			bestPost.Title = bestPostCandidate.Title
 
 			postsChan <- bestPost
 		}()
@@ -108,7 +123,7 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 		finalPosts = append(finalPosts, post)
 	}
 
-	err = p.repo.CreatePostsBatch(ctx, finalPosts)
+	err = p.repo.UpdatePostsBatch(ctx, finalPosts)
 	if err != nil {
 		return errors.Wrap(err, "failed to create posts")
 	}

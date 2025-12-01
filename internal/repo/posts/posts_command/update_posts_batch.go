@@ -10,28 +10,23 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostsCommandRepo) CreatePostsBatch(ctx context.Context, posts []model.Post) (err error) {
+func (p *PostsCommandRepo) UpdatePostsBatch(ctx context.Context, posts []model.Post) (err error) {
 	const query = `
-		INSERT INTO posts (id, otveti_id, bot_id, bot_name, profile_id, profile_name, group_id, user_prompt, platform_type, post_type, post_title, post_text)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-	`
+        UPDATE posts
+        SET post_title = $1,
+            post_text = $2,
+            updated_at = NOW()
+        WHERE id = $3 AND group_id = $4
+    `
 
 	batch := &pgx.Batch{}
 
 	for _, post := range posts {
 		batch.Queue(query,
-			post.ID,
-			post.OtvetiID,
-			post.BotID,
-			post.BotName,
-			post.ProfileID,
-			post.ProfileName,
-			post.GroupID,
-			post.UserPrompt,
-			post.Platform,
-			post.Type,
-			post.Title,
 			post.Text,
+			post.Title,
+			post.ID,
+			post.GroupID,
 		)
 	}
 
