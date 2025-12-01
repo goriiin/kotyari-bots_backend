@@ -8,6 +8,31 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type PostCheckDTO struct {
+	ID      uuid.UUID `db:"id"`
+	GroupID uuid.UUID `db:"group_id"`
+	Title   string    `db:"post_title"`
+	Text    string    `db:"post_text"`
+}
+
+func (c PostCheckDTO) ToModel() model.Post {
+	return model.Post{
+		ID:      c.ID,
+		GroupID: c.GroupID,
+		Title:   c.Title,
+		Text:    c.Text,
+	}
+}
+
+func PostCheckDTOToModelSlice(dto []PostCheckDTO) []model.Post {
+	posts := make([]model.Post, 0, len(dto))
+	for _, postCheckDTO := range dto {
+		posts = append(posts, postCheckDTO.ToModel())
+	}
+
+	return posts
+}
+
 type PostDTO struct {
 	ID          uuid.UUID     `db:"id"`
 	OtvetiID    pgtype.Uint64 `db:"otveti_id"`

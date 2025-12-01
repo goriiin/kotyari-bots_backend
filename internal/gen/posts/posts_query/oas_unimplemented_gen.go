@@ -15,10 +15,19 @@ var _ Handler = UnimplementedHandler{}
 
 // CheckGroupId implements checkGroupId operation.
 //
-// Проверить статус готовности постов.
+// Проверить статус готовности отпределенного.
 //
 // GET /api/v1/posts/check/{groupId}
 func (UnimplementedHandler) CheckGroupId(ctx context.Context, params CheckGroupIdParams) (r CheckGroupIdRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// CheckGroupIds implements checkGroupIds operation.
+//
+// Проверить статус готовности всех постов.
+//
+// GET /api/v1/posts/check
+func (UnimplementedHandler) CheckGroupIds(ctx context.Context) (r CheckGroupIdsRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

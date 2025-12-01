@@ -1,6 +1,8 @@
 package posts_query
 
-import "github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
+import (
+	"github.com/goriiin/kotyari-bots_backend/internal/repo/pool"
+)
 
 type PostsQueryRepo struct {
 	db pool.DBPool

@@ -5,6 +5,10 @@ type CheckGroupIdRes interface {
 	checkGroupIdRes()
 }
 
+type CheckGroupIdsRes interface {
+	checkGroupIdsRes()
+}
+
 type GetPostByIdRes interface {
 	getPostByIdRes()
 }
