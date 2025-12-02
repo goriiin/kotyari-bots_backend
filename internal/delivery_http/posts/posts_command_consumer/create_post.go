@@ -12,7 +12,6 @@ import (
 )
 
 func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid.UUID]model.Post, req posts.KafkaCreatePostRequest) error {
-
 	postsChan := make(chan model.Post, len(req.Profiles))
 	var wg sync.WaitGroup
 	for _, profile := range req.Profiles {

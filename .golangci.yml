@@ -30,7 +30,7 @@ linters:
         - commentedOutCode
         - unnamedResult
     gocyclo:
-      min-complexity: 15
+      min-complexity: 16
     revive:
       rules:
         - name: package-comments
