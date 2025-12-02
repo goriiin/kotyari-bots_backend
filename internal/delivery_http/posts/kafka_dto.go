@@ -16,7 +16,7 @@ const (
 // KafkaResponse TODO: model.Post -> []model.Post?
 type KafkaResponse struct {
 	Error string     `json:"error,omitempty"`
-	Post  model.Post `json:"post"`
+	Post  model.Post `json:"post,omitempty"`
 }
 
 type KafkaDeletePostRequest struct {

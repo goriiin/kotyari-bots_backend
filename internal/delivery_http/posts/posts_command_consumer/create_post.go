@@ -3,51 +3,15 @@ package posts_command_consumer
 import (
 	"context"
 	"fmt"
-	"maps"
-	"slices"
 	"sync"
 
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	jsoniter "github.com/json-iterator/go"
 )
 
-func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) error {
-	var req posts.KafkaCreatePostRequest
-	err := jsoniter.Unmarshal(payload, &req)
-	if err != nil {
-		return errors.Wrap(err, "failed to unmarshal")
-	}
-
-	var postsMapMutex sync.RWMutex
-	initialPosts := make(map[uuid.UUID]model.Post, len(req.Profiles))
-
-	//initialPosts := make([]model.Post, 0, len(req.Profiles))
-	for _, profile := range req.Profiles {
-		post := model.Post{
-			ID:          uuid.New(),
-			OtvetiID:    0, // Пока так
-			BotID:       req.BotID,
-			BotName:     req.BotName,
-			ProfileID:   profile.ProfileID,
-			ProfileName: profile.ProfileName,
-			GroupID:     req.GroupID,
-			Platform:    req.Platform,
-			Type:        "opinion", // Пока так
-			UserPrompt:  req.UserPrompt,
-			Title:       "",
-			Text:        "",
-		}
-
-		initialPosts[profile.ProfileID] = post
-	}
-
-	err = p.repo.CreatePostsBatch(ctx, slices.Collect(maps.Values(initialPosts)))
-	if err != nil {
-		return errors.Wrap(err, "failed to create initial posts")
-	}
+func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid.UUID]model.Post, req posts.KafkaCreatePostRequest) error {
 
 	postsChan := make(chan model.Post, len(req.Profiles))
 	var wg sync.WaitGroup
@@ -80,11 +44,7 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 						return
 					}
 
-					// TODO: Mutex не нужен вроде
-					postsMapMutex.RLock()
-					post := initialPosts[profile.ProfileID]
-					postsMapMutex.RUnlock()
-
+					post := postsMap[profile.ProfileID]
 					post.Title = generatedPostContent.PostTitle
 					post.Text = generatedPostContent.PostText
 
@@ -99,12 +59,10 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 				posts.PostsToCandidates(profilesPosts))
 			if err != nil {
 				fmt.Println("error getting best post ", err)
-				return // Можно будет потом создать хоть какой-то пост
+				return
 			}
 
-			postsMapMutex.RLock()
-			bestPost := initialPosts[profile.ProfileID]
-			postsMapMutex.RUnlock()
+			bestPost := postsMap[profile.ProfileID]
 
 			bestPost.Text = bestPostCandidate.Text
 			bestPost.Title = bestPostCandidate.Title
@@ -123,9 +81,9 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 		finalPosts = append(finalPosts, post)
 	}
 
-	err = p.repo.UpdatePostsBatch(ctx, finalPosts)
+	err := p.repo.UpdatePostsBatch(ctx, finalPosts)
 	if err != nil {
-		return errors.Wrap(err, "failed to create posts")
+		return errors.Wrap(err, "failed to update posts")
 	}
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
@@ -94,11 +95,27 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		}, nil
 	}
 
-	err = p.producer.Publish(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.GroupID.String(), rawReq))
+	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.GroupID.String(), rawReq), 30*time.Second)
 	if err != nil {
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
+		}, nil
+	}
+
+	var resp posts.KafkaResponse
+	err = jsoniter.Unmarshal(rawResp, &resp)
+	if err != nil {
+		return &gen.CreatePostInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   err.Error(),
+		}, nil
+	}
+
+	if resp.Error != "" {
+		return &gen.CreatePostInternalServerError{
+			ErrorCode: http.StatusInternalServerError,
+			Message:   fmt.Sprintf("Failed to create post, %s", resp.Error),
 		}, nil
 	}
 

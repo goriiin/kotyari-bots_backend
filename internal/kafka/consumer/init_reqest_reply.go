@@ -94,7 +94,7 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 						return nil
 					},
 
-					Reply: func(replyCtx context.Context, body []byte) error {
+					Reply: func(replyCtx context.Context, body []byte, moveOffset bool) error {
 						headers := []kafka.Header{{Key: "correlation_id", Value: []byte(corrID)}}
 						err := c.replier.Publish(replyCtx, kafka.Message{
 							Key:     []byte(corrID),
@@ -105,22 +105,11 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 							done <- fmt.Errorf("failed to reply: %w", err)
 							return err
 						}
-						done <- nil
-						return nil
-					},
 
-					ReplyWithError: func(replyCtx context.Context, body []byte) error {
-						headers := []kafka.Header{
-							{Key: "correlation_id", Value: []byte(corrID)},
+						if moveOffset {
+							done <- nil
 						}
 
-						_ = c.replier.Publish(replyCtx, kafka.Message{
-							Key:     []byte(corrID),
-							Value:   body,
-							Headers: headers,
-						})
-
-						done <- nil
 						return nil
 					},
 				}

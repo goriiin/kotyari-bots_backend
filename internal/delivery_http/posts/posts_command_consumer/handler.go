@@ -57,7 +57,7 @@ func (p *PostsCommandConsumer) handleUpdateCommand(ctx context.Context, message 
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
-	if err := message.Reply(ctx, rawResp); err != nil {
+	if err := message.Reply(ctx, rawResp, true); err != nil {
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 
@@ -74,7 +74,7 @@ func (p *PostsCommandConsumer) handleDeleteCommand(ctx context.Context, message 
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
-	if err := message.Reply(ctx, resp); err != nil {
+	if err := message.Reply(ctx, resp, true); err != nil {
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 
@@ -82,10 +82,22 @@ func (p *PostsCommandConsumer) handleDeleteCommand(ctx context.Context, message 
 }
 
 func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
-	err := p.CreatePost(ctx, payload)
+	postsMapping, req, err := p.CreateInitialPosts(ctx, payload)
 	if err != nil {
-		// TODO: Handle RAG timeout error specifically if needed, otherwise send generic error.
 		return sendErrReply(ctx, message, err)
+	}
+
+	err = sendOkReply(ctx, message)
+	if err != nil {
+		return errors.Wrap(err, "failed to ACK posts creation")
+	}
+
+	err = p.CreatePost(ctx, postsMapping, req)
+	if err != nil {
+		// TODO: LOG
+		fmt.Printf("failed to create post: %s", err.Error())
+
+		return message.Nack(ctx, err)
 	}
 
 	if err = message.Ack(ctx); err != nil {
@@ -102,8 +114,22 @@ func sendErrReply(ctx context.Context, message kafkaConfig.CommittableMessage, o
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
-	if err := message.Reply(ctx, resp); err != nil {
+	if err := message.Reply(ctx, resp, true); err != nil {
 		return errors.Wrap(err, "failed to send error reply")
+	}
+
+	return nil
+}
+
+func sendOkReply(ctx context.Context, message kafkaConfig.CommittableMessage) error {
+	msg := posts.KafkaResponse{}
+	resp, err := jsoniter.Marshal(msg)
+	if err != nil {
+		return errors.Wrap(err, constants.MarshalMsg)
+	}
+
+	if err := message.Reply(ctx, resp, false); err != nil {
+		return errors.Wrap(err, "failed to send ok reply")
 	}
 
 	return nil

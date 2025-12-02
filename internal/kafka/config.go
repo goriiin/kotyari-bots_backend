@@ -20,11 +20,10 @@ type Envelope struct {
 }
 
 type CommittableMessage struct {
-	Msg            kafka.Message
-	Ack            func(ctx context.Context) error
-	Nack           func(ctx context.Context, err error) error
-	Reply          func(ctx context.Context, body []byte) error
-	ReplyWithError func(ctx context.Context, body []byte) error
+	Msg   kafka.Message
+	Ack   func(ctx context.Context) error
+	Nack  func(ctx context.Context, err error) error
+	Reply func(ctx context.Context, body []byte, moveOffset bool) error
 }
 
 type KafkaConfig struct {
