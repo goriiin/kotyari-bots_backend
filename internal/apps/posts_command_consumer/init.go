@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_consumer_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command_consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka"
@@ -13,6 +14,7 @@ import (
 	postsRepoLib "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/evals"
 	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
+	"github.com/goriiin/kotyari-bots_backend/pkg/otvet"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 	"github.com/goriiin/kotyari-bots_backend/pkg/rewriter"
 )
@@ -72,8 +74,13 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 
 	j := evals.NewJudge(cfg, grokClient)
 
+	otvetClient, err := otvet.NewOtvetClient(&config.Otvet)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create otvet client")
+	}
+
 	return &PostsCommandConsumer{
-		consumerRunner: posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc, rw, j),
+		consumerRunner: posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc, rw, j, otvetClient),
 		consumer:       cons,
 		config:         config,
 	}, nil
