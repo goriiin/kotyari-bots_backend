@@ -29,6 +29,10 @@ func (c *codeRecorder) WriteHeader(status int) {
 	c.ResponseWriter.WriteHeader(status)
 }
 
+func (c *codeRecorder) Unwrap() http.ResponseWriter {
+	return c.ResponseWriter
+}
+
 // handleCheckGroupIdRequest handles checkGroupId operation.
 //
 // Проверить статус готовности отпределенного.

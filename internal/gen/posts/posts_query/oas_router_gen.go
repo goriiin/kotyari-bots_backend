@@ -80,56 +80,35 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 				switch elem[0] {
-				case 'c': // Prefix: "check"
+				case 'c': // Prefix: "check/"
 					origElem := elem
-					if l := len("check"); len(elem) >= l && elem[0:l] == "check" {
+					if l := len("check/"); len(elem) >= l && elem[0:l] == "check/" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
+					// Param: "groupId"
+					// Leaf parameter, slashes are prohibited
+					idx := strings.IndexByte(elem, '/')
+					if idx >= 0 {
+						break
+					}
+					args[0] = elem
+					elem = ""
+
 					if len(elem) == 0 {
+						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleCheckGroupIdsRequest([0]string{}, elemIsEscaped, w, r)
+							s.handleCheckGroupIdRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET")
 						}
 
 						return
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/"
-
-						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						// Param: "groupId"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
-							break
-						}
-						args[0] = elem
-						elem = ""
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "GET":
-								s.handleCheckGroupIdRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, "GET")
-							}
-
-							return
-						}
-
 					}
 
 					elem = origElem
@@ -166,12 +145,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Route is route object.
 type Route struct {
-	name        string
-	summary     string
-	operationID string
-	pathPattern string
-	count       int
-	args        [1]string
+	name           string
+	summary        string
+	operationID    string
+	operationGroup string
+	pathPattern    string
+	count          int
+	args           [1]string
 }
 
 // Name returns ogen operation name.
@@ -189,6 +169,11 @@ func (r Route) Summary() string {
 // OperationID returns OpenAPI operationId.
 func (r Route) OperationID() string {
 	return r.operationID
+}
+
+// OperationGroup returns the x-ogen-operation-group value.
+func (r Route) OperationGroup() string {
+	return r.operationGroup
 }
 
 // PathPattern returns OpenAPI path.
@@ -253,6 +238,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					r.name = ListPostsOperation
 					r.summary = "Получить список постов"
 					r.operationID = "listPosts"
+					r.operationGroup = ""
 					r.pathPattern = "/api/v1/posts"
 					r.args = args
 					r.count = 0
@@ -274,62 +260,38 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 				switch elem[0] {
-				case 'c': // Prefix: "check"
+				case 'c': // Prefix: "check/"
 					origElem := elem
-					if l := len("check"); len(elem) >= l && elem[0:l] == "check" {
+					if l := len("check/"); len(elem) >= l && elem[0:l] == "check/" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
+					// Param: "groupId"
+					// Leaf parameter, slashes are prohibited
+					idx := strings.IndexByte(elem, '/')
+					if idx >= 0 {
+						break
+					}
+					args[0] = elem
+					elem = ""
+
 					if len(elem) == 0 {
+						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = CheckGroupIdsOperation
-							r.summary = "Проверить статус готовности всех постов"
-							r.operationID = "checkGroupIds"
-							r.pathPattern = "/api/v1/posts/check"
+							r.name = CheckGroupIdOperation
+							r.summary = "Проверить статус готовности постов"
+							r.operationID = "checkGroupId"
+							r.operationGroup = ""
+							r.pathPattern = "/api/v1/posts/check/{groupId}"
 							r.args = args
-							r.count = 0
+							r.count = 1
 							return r, true
 						default:
 							return
 						}
-					}
-					switch elem[0] {
-					case '/': // Prefix: "/"
-
-						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
-							elem = elem[l:]
-						} else {
-							break
-						}
-
-						// Param: "groupId"
-						// Leaf parameter, slashes are prohibited
-						idx := strings.IndexByte(elem, '/')
-						if idx >= 0 {
-							break
-						}
-						args[0] = elem
-						elem = ""
-
-						if len(elem) == 0 {
-							// Leaf node.
-							switch method {
-							case "GET":
-								r.name = CheckGroupIdOperation
-								r.summary = "Проверить статус готовности отпределенного"
-								r.operationID = "checkGroupId"
-								r.pathPattern = "/api/v1/posts/check/{groupId}"
-								r.args = args
-								r.count = 1
-								return r, true
-							default:
-								return
-							}
-						}
-
 					}
 
 					elem = origElem
@@ -350,6 +312,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = GetPostByIdOperation
 						r.summary = "Получить пост по ID"
 						r.operationID = "getPostById"
+						r.operationGroup = ""
 						r.pathPattern = "/api/v1/posts/{postId}"
 						r.args = args
 						r.count = 1
