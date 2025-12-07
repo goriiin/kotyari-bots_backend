@@ -138,13 +138,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Route is route object.
 type Route struct {
-	name           string
-	summary        string
-	operationID    string
-	operationGroup string
-	pathPattern    string
-	count          int
-	args           [1]string
+	name        string
+	summary     string
+	operationID string
+	pathPattern string
+	count       int
+	args        [1]string
 }
 
 // Name returns ogen operation name.
@@ -162,11 +161,6 @@ func (r Route) Summary() string {
 // OperationID returns OpenAPI operationId.
 func (r Route) OperationID() string {
 	return r.operationID
-}
-
-// OperationGroup returns the x-ogen-operation-group value.
-func (r Route) OperationGroup() string {
-	return r.operationGroup
 }
 
 // PathPattern returns OpenAPI path.
@@ -231,7 +225,6 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					r.name = CreatePostOperation
 					r.summary = "Создать новые посты"
 					r.operationID = "createPost"
-					r.operationGroup = ""
 					r.pathPattern = "/api/v1/posts"
 					r.args = args
 					r.count = 0
@@ -295,7 +288,6 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = DeletePostByIdOperation
 						r.summary = "Удалить пост по ID"
 						r.operationID = "deletePostById"
-						r.operationGroup = ""
 						r.pathPattern = "/api/v1/posts/{postId}"
 						r.args = args
 						r.count = 1
@@ -304,7 +296,6 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = UpdatePostByIdOperation
 						r.summary = "Обновить пост по ID"
 						r.operationID = "updatePostById"
-						r.operationGroup = ""
 						r.pathPattern = "/api/v1/posts/{postId}"
 						r.args = args
 						r.count = 1
