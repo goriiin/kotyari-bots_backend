@@ -26,4 +26,3 @@ func (o *OtvetClientConfig) Validate() error {
 
 	return nil
 }
-
