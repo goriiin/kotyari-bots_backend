@@ -239,12 +239,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Route is route object.
 type Route struct {
-	name        string
-	summary     string
-	operationID string
-	pathPattern string
-	count       int
-	args        [2]string
+	name           string
+	summary        string
+	operationID    string
+	operationGroup string
+	pathPattern    string
+	count          int
+	args           [2]string
 }
 
 // Name returns ogen operation name.
@@ -262,6 +263,11 @@ func (r Route) Summary() string {
 // OperationID returns OpenAPI operationId.
 func (r Route) OperationID() string {
 	return r.operationID
+}
+
+// OperationGroup returns the x-ogen-operation-group value.
+func (r Route) OperationGroup() string {
+	return r.operationGroup
 }
 
 // PathPattern returns OpenAPI path.
@@ -326,6 +332,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					r.name = ListBotsOperation
 					r.summary = "Получить список своих ботов"
 					r.operationID = "ListBots"
+					r.operationGroup = ""
 					r.pathPattern = "/api/v1/bots"
 					r.args = args
 					r.count = 0
@@ -334,6 +341,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					r.name = CreateBotOperation
 					r.summary = "Создать нового бота"
 					r.operationID = "CreateBot"
+					r.operationGroup = ""
 					r.pathPattern = "/api/v1/bots"
 					r.args = args
 					r.count = 0
@@ -382,6 +390,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								r.name = SearchBotsOperation
 								r.summary = "Поиск ботов по названию или системному промпту"
 								r.operationID = "SearchBots"
+								r.operationGroup = ""
 								r.pathPattern = "/api/v1/bots/search"
 								r.args = args
 								r.count = 0
@@ -406,6 +415,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								r.name = SummaryBotsOperation
 								r.summary = "Получить сводную информацию по ботам"
 								r.operationID = "SummaryBots"
+								r.operationGroup = ""
 								r.pathPattern = "/api/v1/bots/summary"
 								r.args = args
 								r.count = 0
@@ -434,6 +444,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = DeleteBotByIdOperation
 						r.summary = "Удалить бота по ID"
 						r.operationID = "DeleteBotById"
+						r.operationGroup = ""
 						r.pathPattern = "/api/v1/bots/{botId}"
 						r.args = args
 						r.count = 1
@@ -442,6 +453,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = GetBotByIdOperation
 						r.summary = "Получить бота по ID"
 						r.operationID = "GetBotById"
+						r.operationGroup = ""
 						r.pathPattern = "/api/v1/bots/{botId}"
 						r.args = args
 						r.count = 1
@@ -450,6 +462,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.name = UpdateBotByIdOperation
 						r.summary = "Полностью обновить бота по ID"
 						r.operationID = "UpdateBotById"
+						r.operationGroup = ""
 						r.pathPattern = "/api/v1/bots/{botId}"
 						r.args = args
 						r.count = 1
@@ -473,6 +486,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							r.name = GetBotProfilesOperation
 							r.summary = "Получить список профилей, привязанных к боту"
 							r.operationID = "GetBotProfiles"
+							r.operationGroup = ""
 							r.pathPattern = "/api/v1/bots/{botId}/profiles"
 							r.args = args
 							r.count = 1
@@ -506,6 +520,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								r.name = RemoveProfileFromBotOperation
 								r.summary = "Отвязать профиль от бота"
 								r.operationID = "RemoveProfileFromBot"
+								r.operationGroup = ""
 								r.pathPattern = "/api/v1/bots/{botId}/profiles/{profileId}"
 								r.args = args
 								r.count = 2
@@ -514,6 +529,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								r.name = AddProfileToBotOperation
 								r.summary = "Привязать профиль к боту"
 								r.operationID = "AddProfileToBot"
+								r.operationGroup = ""
 								r.pathPattern = "/api/v1/bots/{botId}/profiles/{profileId}"
 								r.args = args
 								r.count = 2
