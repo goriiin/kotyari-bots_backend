@@ -7,6 +7,7 @@ import (
 	postssgen "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/otvet"
 	"google.golang.org/grpc"
 )
 
@@ -35,12 +36,19 @@ type judge interface {
 	SelectBest(ctx context.Context, userPrompt, profilePrompt, botPrompt string, candidates []model.Candidate) (model.Candidate, error)
 }
 
+type otvetClient interface {
+	CreatePost(ctx context.Context, req *otvet.CreatePostRequest) (*otvet.CreatePostResponse, error)
+	CreatePostSimple(ctx context.Context, title string, contentText string, topicType int, spaces []otvet.Space) (*otvet.CreatePostResponse, error)
+	PredictTagsSpaces(ctx context.Context, text string) (*otvet.PredictTagsSpacesResponse, error)
+}
+
 type PostsCommandConsumer struct {
-	consumer consumer
-	repo     repo
-	getter   postsGetter
-	rewriter rewriter
-	judge    judge
+	consumer    consumer
+	repo        repo
+	getter      postsGetter
+	rewriter    rewriter
+	judge       judge
+	otvetClient otvetClient
 }
 
 func NewPostsCommandConsumer(
@@ -49,12 +57,14 @@ func NewPostsCommandConsumer(
 	getter postsGetter,
 	rewriter rewriter,
 	judge judge,
+	otvetClient otvetClient,
 ) *PostsCommandConsumer {
 	return &PostsCommandConsumer{
-		consumer: consumer,
-		repo:     repo,
-		getter:   getter,
-		rewriter: rewriter,
-		judge:    judge,
+		consumer:    consumer,
+		repo:        repo,
+		getter:      getter,
+		rewriter:    rewriter,
+		judge:       judge,
+		otvetClient: otvetClient,
 	}
 }
