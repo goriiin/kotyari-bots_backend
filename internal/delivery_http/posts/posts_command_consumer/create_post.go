@@ -3,6 +3,7 @@ package posts_command_consumer
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/go-faster/errors"
@@ -133,11 +134,15 @@ func (p *PostsCommandConsumer) publishToOtvet(ctx context.Context, req posts.Kaf
 	topicType := getTopicTypeFromPostType(req.PostType)
 	spaces := p.getSpacesForPost(ctx, candidate)
 
+	log.Printf("INFO: topicType: %+v\t spaces: %+v\n", topicType, spaces)
+
 	otvetResp, err := p.otvetClient.CreatePostSimple(ctx, candidate.Title, candidate.Text, topicType, spaces)
 	if err != nil {
 		fmt.Printf("error publishing post to otvet: %v\n", err)
 		return
 	}
+
+	log.Printf("INFO: published post to otvet: %v\n", otvetResp)
 
 	if otvetResp != nil && otvetResp.Result != nil {
 		post.OtvetiID = uint64(otvetResp.Result.ID)
