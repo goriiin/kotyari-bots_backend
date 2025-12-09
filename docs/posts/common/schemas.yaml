@@ -263,3 +263,29 @@ Error:
   required:
     - errorCode
     - message
+
+PublishPostRequest:
+  type: object
+  description: "Данные для публикации поста."
+  properties:
+    approved:
+      type: boolean
+      description: "Одобрен ли пост для публикации"
+      example: true
+  required:
+    - approved
+
+PublishPostResponse:
+  type: object
+  description: "Результат публикации поста."
+  properties:
+    success:
+      type: boolean
+      description: "Успешно ли опубликован пост"
+      example: true
+    message:
+      type: string
+      description: "Сообщение о результате"
+      example: "Пост успешно опубликован"
+  required:
+    - success

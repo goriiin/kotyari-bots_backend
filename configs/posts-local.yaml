@@ -48,3 +48,12 @@ proxy:
   proxy_server:
     host: "xray-proxy"
     port: 8200
+
+posting_queue:
+  moderation_required: false
+  posting_interval: 30m
+  processing_interval: 1m
+
+otvet:
+  auth_token: "" # Set via LOCAL_OTVET_AUTH_TOKEN env var
+  request_timeout: 30s

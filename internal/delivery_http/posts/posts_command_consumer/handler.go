@@ -32,7 +32,8 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 			err = p.handleCreateCommand(ctx, message, env.Payload)
 		case posts.CmdSeen:
 			err = p.handleSeenCommand(ctx, message, env.Payload)
-
+		case posts.CmdPublish:
+			err = p.handlePublishCommand(ctx, message, env.Payload)
 		default:
 			err = errors.Errorf("unknown command received: %s", env.Command)
 		}
@@ -110,19 +111,28 @@ func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message 
 	return nil
 }
 
-func (p *PostsCommandConsumer) handleSeenCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
-	err := p.SeenPosts(ctx, payload)
+func (p *PostsCommandConsumer) handlePublishCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
+	var req posts.KafkaPublishPostRequest
+	err := jsoniter.Unmarshal(payload, &req)
 	if err != nil {
-		return sendErrReply(ctx, message, err)
+		return sendErrReply(ctx, message, errors.Wrap(err, "failed to unmarshal"))
 	}
 
-	resp := posts.KafkaResponse{}
-	rawResp, err := jsoniter.Marshal(resp)
+	if p.queue == nil {
+		return sendErrReply(ctx, message, errors.New("queue not available"))
+	}
+
+	err = p.queue.ApprovePost(req.PostID)
+	if err != nil {
+		return sendErrReply(ctx, message, errors.Wrap(err, "failed to approve post"))
+	}
+
+	resp, err := jsoniter.Marshal(posts.KafkaResponse{})
 	if err != nil {
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
-	if err := message.Reply(ctx, rawResp, true); err != nil {
+	if err := message.Reply(ctx, resp); err != nil {
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 

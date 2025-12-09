@@ -11,6 +11,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/otvet"
+	"github.com/goriiin/kotyari-bots_backend/pkg/posting_queue"
 )
 
 func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid.UUID]model.Post, req posts.KafkaCreatePostRequest) error {
@@ -134,7 +135,27 @@ func (p *PostsCommandConsumer) publishToOtvet(ctx context.Context, req posts.Kaf
 	topicType := getTopicTypeFromPostType(req.PostType)
 	spaces := p.getSpacesForPost(ctx, candidate)
 
-	log.Printf("INFO: topicType: %+v\t spaces: %+v\n", topicType, spaces)
+	// If queue is available, add to queue instead of publishing directly
+	if p.queue != nil {
+		postRequest := posting_queue.PostRequest{
+			Platform:  req.Platform,
+			PostType:  req.PostType,
+			TopicType: topicType,
+			Spaces:    spaces,
+			// per-request moderation flag from bot
+			ModerationRequired: req.ModerationRequired,
+		}
+		p.queue.Enqueue(post, candidate, postRequest)
+		return
+	}
+
+	// Fallback to direct publishing if queue is not available
+	// Respect bot-level moderation flag: if moderation required, do not publish directly
+	if req.ModerationRequired {
+		// Create post in DB but skip publish since moderation is required
+		fmt.Printf("bot requires moderation, skipping direct publish for post %s\n", post.ID.String())
+		return
+	}
 
 	otvetResp, err := p.otvetClient.CreatePostSimple(ctx, candidate.Title, candidate.Text, topicType, spaces)
 	if err != nil {

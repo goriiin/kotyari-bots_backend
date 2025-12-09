@@ -7,11 +7,12 @@
 package gen
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -22,12 +23,14 @@ const (
 )
 
 type Bot struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BotPrompt     string                 `protobuf:"bytes,2,opt,name=bot_prompt,json=botPrompt,proto3" json:"bot_prompt,omitempty"`
-	BotName       string                 `protobuf:"bytes,3,opt,name=bot_name,json=botName,proto3" json:"bot_name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BotPrompt string                 `protobuf:"bytes,2,opt,name=bot_prompt,json=botPrompt,proto3" json:"bot_prompt,omitempty"`
+	BotName   string                 `protobuf:"bytes,3,opt,name=bot_name,json=botName,proto3" json:"bot_name,omitempty"`
+	// Added moderation flag from proto
+	ModerationRequired bool `protobuf:"varint,4,opt,name=moderation_required,json=moderationRequired,proto3" json:"moderation_required,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Bot) Reset() {
@@ -79,6 +82,14 @@ func (x *Bot) GetBotName() string {
 		return x.BotName
 	}
 	return ""
+}
+
+// GetModerationRequired returns true if moderation is required for this bot
+func (x *Bot) GetModerationRequired() bool {
+	if x != nil {
+		return x.ModerationRequired
+	}
+	return false
 }
 
 type GetBotRequest struct {
@@ -134,7 +145,8 @@ const file_get_bot_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
 	"bot_prompt\x18\x02 \x01(\tR\tbotPrompt\x12\x19\n" +
-	"\bbot_name\x18\x03 \x01(\tR\abotName\"\x1f\n" +
+	"\bbot_name\x18\x03 \x01(\tR\abotName\x12\x35\n" +
+	"\x15moderation_required\x18\x04 \x01(\tR\x15moderationRequired\"\x1f\n" +
 	"\rGetBotRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id26\n" +
 	"\n" +

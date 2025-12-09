@@ -12,6 +12,8 @@ message Bot {
   string id = 1;
   string bot_prompt = 2;
   string bot_name = 3;
+  // Indicates whether posts created by this bot require moderation
+  bool moderation_required = 4;
 }
 
 message GetBotRequest {
