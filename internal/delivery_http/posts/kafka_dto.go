@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	CmdCreate kafkaConfig.Command = "create"
-	CmdUpdate kafkaConfig.Command = "update"
-	CmdDelete kafkaConfig.Command = "delete"
+	CmdCreate  kafkaConfig.Command = "create"
+	CmdUpdate  kafkaConfig.Command = "update"
+	CmdDelete  kafkaConfig.Command = "delete"
+	CmdPublish kafkaConfig.Command = "publish"
 	CmdSeen   kafkaConfig.Command = "seen"
 )
 
@@ -33,6 +34,8 @@ type KafkaCreatePostRequest struct {
 	Profiles   []CreatePostProfiles `json:"profiles"`
 	Platform   model.PlatformType   `json:"platform_type"`
 	PostType   model.PostType       `json:"post_type"`
+	// ModerationRequired indicates whether posts from this bot require moderation before publishing
+	ModerationRequired bool `json:"moderation_required"`
 }
 
 type CreatePostProfiles struct {
@@ -49,6 +52,11 @@ type KafkaUpdatePostRequest struct {
 
 type KafkaSeenPostsRequest struct {
 	PostIDs []uuid.UUID `json:"post_ids"`
+}
+
+type KafkaPublishPostRequest struct {
+	PostID   uuid.UUID `json:"post_id"`
+	Approved bool      `json:"approved"`
 }
 
 func PayloadToEnvelope(command kafkaConfig.Command, entityID string, payload []byte) kafkaConfig.Envelope {

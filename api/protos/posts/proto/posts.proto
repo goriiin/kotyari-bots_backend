@@ -7,6 +7,7 @@ option go_package = "github.com/goriiin/kotyari-bots_backend/api/protos/posts/ge
 service PostsService {
   rpc GetPost(GetPostRequest) returns (GetPostResponse);
   rpc GetPostsBatch(GetPostsRequest) returns (GetPostsResponse);
+  rpc ApprovePost(ApprovePostRequest) returns (ApprovePostResponse);
 }
 
 message GetPostRequest {
@@ -26,4 +27,13 @@ message GetPostsRequest {
 
 message GetPostsResponse {
   repeated GetPostResponse posts_response = 1;
+}
+
+message ApprovePostRequest {
+  string post_id = 1;
+}
+
+message ApprovePostResponse {
+  bool success = 1;
+  string message = 2;
 }

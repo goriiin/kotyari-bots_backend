@@ -8,6 +8,7 @@ import (
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/otvet"
+	"github.com/goriiin/kotyari-bots_backend/pkg/posting_queue"
 	"google.golang.org/grpc"
 )
 
@@ -42,6 +43,14 @@ type otvetClient interface {
 	PredictTagsSpaces(ctx context.Context, text string) (*otvet.PredictTagsSpacesResponse, error)
 }
 
+type postingQueue interface {
+	Enqueue(post *model.Post, candidate model.Candidate, req posting_queue.PostRequest) *posting_queue.QueuedPost
+	ApprovePost(postID uuid.UUID) error
+	GetPostByID(postID uuid.UUID) (*posting_queue.QueuedPost, error)
+	StartProcessing(ctx context.Context, publishFunc func(ctx context.Context, account *posting_queue.Account, post *posting_queue.QueuedPost) error)
+	Stop()
+}
+
 type PostsCommandConsumer struct {
 	consumer    consumer
 	repo        repo
@@ -49,6 +58,7 @@ type PostsCommandConsumer struct {
 	rewriter    rewriter
 	judge       judge
 	otvetClient otvetClient
+	queue       postingQueue
 }
 
 func NewPostsCommandConsumer(
@@ -58,6 +68,7 @@ func NewPostsCommandConsumer(
 	rewriter rewriter,
 	judge judge,
 	otvetClient otvetClient,
+	queue postingQueue,
 ) *PostsCommandConsumer {
 	return &PostsCommandConsumer{
 		consumer:    consumer,
@@ -66,5 +77,6 @@ func NewPostsCommandConsumer(
 		rewriter:    rewriter,
 		judge:       judge,
 		otvetClient: otvetClient,
+		queue:       queue,
 	}
 }

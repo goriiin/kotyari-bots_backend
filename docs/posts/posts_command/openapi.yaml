@@ -124,3 +124,33 @@ paths:
           $ref: '../common/responses.yaml#/NotFound'
         '500':
           $ref: '../common/responses.yaml#/InternalServerError'
+
+  /api/v1/posts/{postId}/publish:
+    post:
+      summary: "Опубликовать пост (для модерации)"
+      operationId: "publishPost"
+      tags: ["Posts"]
+      parameters:
+        - $ref: '../common/parameters.yaml#/PostID'
+      requestBody:
+        required: true
+        description: "Данные для публикации поста."
+        content:
+          application/json:
+            schema:
+              $ref: '../common/schemas.yaml#/PublishPostRequest'
+      responses:
+        '200':
+          description: "Пост успешно опубликован."
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/PublishPostResponse'
+        '400':
+          $ref: '../common/responses.yaml#/BadRequest'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'
