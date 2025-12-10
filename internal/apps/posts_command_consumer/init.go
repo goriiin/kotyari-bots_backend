@@ -15,8 +15,8 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/evals"
 	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
 	"github.com/goriiin/kotyari-bots_backend/pkg/otvet"
-	"github.com/goriiin/kotyari-bots_backend/pkg/posting_queue"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
+	"github.com/goriiin/kotyari-bots_backend/pkg/posting_queue"
 	"github.com/goriiin/kotyari-bots_backend/pkg/rewriter"
 )
 
@@ -85,7 +85,7 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 	if postingInterval == 0 {
 		postingInterval = 30 * time.Minute // default
 	}
-	
+
 	processingInterval := config.PostingQueue.ProcessingInterval
 	if processingInterval == 0 {
 		processingInterval = 1 * time.Minute // default
@@ -103,9 +103,7 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 
 	// Start queue processing in background
 	ctx := context.Background()
-	go queue.StartProcessing(ctx, func(ctx context.Context, account *posting_queue.Account, post *posting_queue.QueuedPost) error {
-		return publishPostFromQueue(ctx, account, post)
-	})
+	go queue.StartProcessing(ctx, publishPostFromQueue)
 
 	return &PostsCommandConsumer{
 		consumerRunner: posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc, rw, j, otvetClient, queue),
