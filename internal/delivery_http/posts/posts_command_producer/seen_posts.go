@@ -26,7 +26,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		}, nil
 	}
 
-	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdSeen, uuid.New().String(), rawReq), 5*time.Second)
+	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdSeen, uuid.New().String(), rawReq), 10*time.Second)
 	if err != nil {
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
