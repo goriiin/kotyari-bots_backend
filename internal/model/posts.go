@@ -32,6 +32,7 @@ type Post struct {
 	UserPrompt  string
 	Title       string
 	Text        string
+	IsSeen      bool
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

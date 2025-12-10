@@ -227,6 +227,19 @@ PostCreateResponse:
   required:
     - groupID
 
+PostsSeenRequest:
+  type: object
+  properties:
+    seen:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      description: "Массив постов, которые увидел пользователь"
+  required:
+    - seen
+
 Error:
   type: object
   description: "Стандартизированная структура ошибки."

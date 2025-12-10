@@ -20,6 +20,13 @@ type Handler interface {
 	//
 	// DELETE /api/v1/posts/{postId}
 	DeletePostById(ctx context.Context, params DeletePostByIdParams) (DeletePostByIdRes, error)
+	// SeenPosts implements seenPosts operation.
+	//
+	// Обновить статус постов, которые пользователь уже
+	// видел.
+	//
+	// POST /api/v1/posts/seen
+	SeenPosts(ctx context.Context, req *PostsSeenRequest) (SeenPostsRes, error)
 	// UpdatePostById implements updatePostById operation.
 	//
 	// Обновить пост по ID.

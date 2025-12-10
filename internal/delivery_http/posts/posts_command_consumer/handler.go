@@ -30,6 +30,9 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 			err = p.handleDeleteCommand(ctx, message, env.Payload)
 		case posts.CmdCreate:
 			err = p.handleCreateCommand(ctx, message, env.Payload)
+		case posts.CmdSeen:
+			err = p.handleSeenCommand(ctx, message, env.Payload)
+
 		default:
 			err = errors.Errorf("unknown command received: %s", env.Command)
 		}
@@ -102,6 +105,25 @@ func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message 
 
 	if err = message.Ack(ctx); err != nil {
 		return errors.Wrap(err, "failed to ACK posts creation")
+	}
+
+	return nil
+}
+
+func (p *PostsCommandConsumer) handleSeenCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
+	err := p.SeenPosts(ctx, payload)
+	if err != nil {
+		return sendErrReply(ctx, message, err)
+	}
+
+	resp := posts.KafkaResponse{}
+	rawResp, err := jsoniter.Marshal(resp)
+	if err != nil {
+		return errors.Wrap(err, constants.MarshalMsg)
+	}
+
+	if err := message.Reply(ctx, rawResp, true); err != nil {
+		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 
 	return nil

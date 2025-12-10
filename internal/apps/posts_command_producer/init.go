@@ -18,6 +18,7 @@ type postsCommandHandler interface {
 	CreatePost(ctx context.Context, req *gen.PostInput) (gen.CreatePostRes, error)
 	UpdatePostById(ctx context.Context, req *gen.PostUpdate, params gen.UpdatePostByIdParams) (gen.UpdatePostByIdRes, error)
 	DeletePostById(ctx context.Context, params gen.DeletePostByIdParams) (gen.DeletePostByIdRes, error)
+	SeenPosts(ctx context.Context, req *gen.PostsSeenRequest) (gen.SeenPostsRes, error)
 }
 
 type requester interface {

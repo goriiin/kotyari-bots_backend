@@ -117,6 +117,12 @@ func PostsCheckModelsToHttpSlice(posts []model.Post) *genQuery.PostsCheckList {
 	checkObjects := make([]genQuery.PostsCheckObject, 0, len(posts))
 
 	for _, post := range posts {
+
+		// TODO: Плакать хочется
+		if post.IsSeen {
+			continue
+		}
+
 		checkObjects = append(checkObjects, PostsCheckModelToHttp(post))
 	}
 

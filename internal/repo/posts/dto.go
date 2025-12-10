@@ -13,6 +13,7 @@ type PostCheckDTO struct {
 	GroupID uuid.UUID `db:"group_id"`
 	Title   string    `db:"post_title"`
 	Text    string    `db:"post_text"`
+	IsSeen  bool      `db:"is_seen"`
 }
 
 func (c PostCheckDTO) ToModel() model.Post {
@@ -21,6 +22,7 @@ func (c PostCheckDTO) ToModel() model.Post {
 		GroupID: c.GroupID,
 		Title:   c.Title,
 		Text:    c.Text,
+		IsSeen:  c.IsSeen,
 	}
 }
 
@@ -46,6 +48,7 @@ type PostDTO struct {
 	Type        pgtype.Text   `db:"post_type"`
 	Title       string        `db:"post_title"`
 	Text        string        `db:"post_text"`
+	IsSeen      bool          `db:"is_seen"`
 	CreatedAt   time.Time     `db:"created_at"`
 	UpdatedAt   time.Time     `db:"updated_at"`
 }
@@ -68,6 +71,7 @@ func (d PostDTO) ToModel() model.Post {
 		Type:        postType,
 		Title:       d.Title,
 		Text:        d.Text,
+		IsSeen:      d.IsSeen,
 		CreatedAt:   d.CreatedAt,
 		UpdatedAt:   d.UpdatedAt,
 	}

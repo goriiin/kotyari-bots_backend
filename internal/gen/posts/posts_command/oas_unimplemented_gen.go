@@ -31,6 +31,16 @@ func (UnimplementedHandler) DeletePostById(ctx context.Context, params DeletePos
 	return r, ht.ErrNotImplemented
 }
 
+// SeenPosts implements seenPosts operation.
+//
+// Обновить статус постов, которые пользователь уже
+// видел.
+//
+// POST /api/v1/posts/seen
+func (UnimplementedHandler) SeenPosts(ctx context.Context, req *PostsSeenRequest) (r SeenPostsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // UpdatePostById implements updatePostById operation.
 //
 // Обновить пост по ID.

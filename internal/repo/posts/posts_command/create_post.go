@@ -34,8 +34,8 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 	}
 
 	const query = `
-		INSERT INTO posts (id, otveti_id, bot_id, profile_id, group_id, user_prompt, platform_type, post_type, post_title, post_text)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		INSERT INTO posts (id, otveti_id, bot_id, profile_id, group_id, user_prompt, platform_type, post_type, post_title, post_text, is_seen)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, $11)
 		RETURNING created_at, updated_at
 	`
 
@@ -49,7 +49,9 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 		post.Platform,
 		postType,
 		post.Title,
-		post.Text)
+		post.Text,
+		post.IsSeen)
+
 	if err = row.Scan(&post.CreatedAt, &post.UpdatedAt); err != nil {
 		return model.Post{}, errors.Wrapf(constants.ErrInternal, "failed to scan row: %s", err.Error())
 	}

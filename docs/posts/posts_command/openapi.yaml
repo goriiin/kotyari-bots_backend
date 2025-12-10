@@ -60,6 +60,26 @@ paths:
         '500':
           $ref: '../common/responses.yaml#/InternalServerError'
 
+  /api/v1/posts/seen:
+    post:
+      summary: "Обновить статус постов, которые пользователь уже видел"
+      operationId: "seenPosts"
+      tags: [ "Posts" ]
+      requestBody:
+        required: true
+        description: "Изменяет видимость постов"
+        content:
+          application/json:
+            schema:
+              $ref: '../common/schemas.yaml#/PostsSeenRequest'
+      responses:
+        '204':
+          $ref: '../common/responses.yaml#/NoContent'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'
+
   /api/v1/posts/{postId}:
     put:
       summary: "Обновить пост по ID"

@@ -12,7 +12,7 @@ import (
 
 func (p *PostsQueryRepo) CheckGroupIds(ctx context.Context) ([]model.Post, error) {
 	const query = `
-		SELECT id, group_id, post_title, post_text
+		SELECT id, group_id, post_title, post_text, is_seen
 		FROM posts
 	`
 

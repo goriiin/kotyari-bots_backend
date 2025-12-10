@@ -11,6 +11,7 @@ const (
 	CmdCreate kafkaConfig.Command = "create"
 	CmdUpdate kafkaConfig.Command = "update"
 	CmdDelete kafkaConfig.Command = "delete"
+	CmdSeen   kafkaConfig.Command = "seen"
 )
 
 // KafkaResponse TODO: model.Post -> []model.Post?
@@ -44,6 +45,10 @@ type KafkaUpdatePostRequest struct {
 	PostID uuid.UUID `json:"post_id"`
 	Title  string    `json:"title"`
 	Text   string    `json:"text"`
+}
+
+type KafkaSeenPostsRequest struct {
+	PostIDs []uuid.UUID `json:"post_ids"`
 }
 
 func PayloadToEnvelope(command kafkaConfig.Command, entityID string, payload []byte) kafkaConfig.Envelope {
