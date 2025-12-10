@@ -21,8 +21,9 @@ func (s *Server) GetBot(ctx context.Context, req *botgrpc.GetBotRequest) (*botgr
 	}
 
 	return &botgrpc.Bot{
-		Id:        botModel.ID.String(),
-		BotPrompt: botModel.SystemPrompt,
-		BotName:   botModel.Name,
+		Id:                 botModel.ID.String(),
+		BotPrompt:          botModel.SystemPrompt,
+		BotName:            botModel.Name,
+		ModerationRequired: botModel.ModerationRequired,
 	}, nil
 }
