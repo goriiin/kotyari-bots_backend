@@ -48,7 +48,6 @@ type PostDTO struct {
 	Type        pgtype.Text   `db:"post_type"`
 	Title       string        `db:"post_title"`
 	Text        string        `db:"post_text"`
-	IsSeen      bool          `db:"is_seen"`
 	CreatedAt   time.Time     `db:"created_at"`
 	UpdatedAt   time.Time     `db:"updated_at"`
 }
@@ -71,7 +70,6 @@ func (d PostDTO) ToModel() model.Post {
 		Type:        postType,
 		Title:       d.Title,
 		Text:        d.Text,
-		IsSeen:      d.IsSeen,
 		CreatedAt:   d.CreatedAt,
 		UpdatedAt:   d.UpdatedAt,
 	}

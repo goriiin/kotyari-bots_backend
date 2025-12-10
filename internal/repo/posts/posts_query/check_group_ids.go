@@ -27,9 +27,5 @@ func (p *PostsQueryRepo) CheckGroupIds(ctx context.Context) ([]model.Post, error
 		return nil, errors.Wrapf(constants.ErrInternal, "failed to collect rows: %s", err)
 	}
 
-	if len(postCheckDTO) == 0 {
-		return nil, constants.ErrNotFound
-	}
-
 	return posts.PostCheckDTOToModelSlice(postCheckDTO), nil
 }
