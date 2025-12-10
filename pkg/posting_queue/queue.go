@@ -169,7 +169,7 @@ func (q *Queue) processQueue(ctx context.Context, publishFunc func(ctx context.C
 
 	// Find first approved post (either doesn't require moderation or is approved)
 	var postToPublish *QueuedPost
-	var postIndex int = -1
+	postIndex := -1
 
 	for i, post := range q.posts {
 		if post.Approved {

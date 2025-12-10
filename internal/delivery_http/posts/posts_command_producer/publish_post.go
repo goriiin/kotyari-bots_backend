@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
+	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -19,7 +19,7 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 	}
 
 	publishRequest := posts.KafkaPublishPostRequest{
-		PostID:  params.PostId,
+		PostID:   params.PostId,
 		Approved: req.Approved,
 	}
 
@@ -57,7 +57,6 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 
 	return &gen.PublishPostResponse{
 		Success: true,
-		Message: "Post approved for publishing",
+		Message: gen.NewOptString("Post approved for publishing"),
 	}, nil
 }
-
