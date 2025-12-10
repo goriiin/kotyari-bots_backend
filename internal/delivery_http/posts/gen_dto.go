@@ -104,7 +104,7 @@ func HttpInputToModel(input genCommand.PostInput) (*model.Post, string) {
 }
 
 func PostsCheckModelToHttp(post model.Post) genQuery.PostsCheckObject {
-	isReady := post.Text == "" || post.Title == ""
+	isReady := !(post.Text == "" || post.Title == "")
 
 	return genQuery.PostsCheckObject{
 		ID:      post.ID,

@@ -54,8 +54,14 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid
 			}
 
 			profileWg.Wait()
+
+			fmt.Println("PROFILE_POSTS: ", profilesPosts)
+
 			bestPostCandidate, err := p.judge.SelectBest(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt,
 				posts.PostsToCandidates(profilesPosts))
+
+			fmt.Println("TITLE: ", bestPostCandidate.Title, "TEXT: ", bestPostCandidate.Text)
+
 			if err != nil {
 				fmt.Println("error getting best post ", err)
 				return

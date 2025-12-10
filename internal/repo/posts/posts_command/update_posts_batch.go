@@ -16,17 +16,16 @@ func (p *PostsCommandRepo) UpdatePostsBatch(ctx context.Context, posts []model.P
         SET post_title = $1,
             post_text = $2,
             updated_at = NOW()
-        WHERE id = $3 AND group_id = $4
+        WHERE id = $3
     `
 
 	batch := &pgx.Batch{}
 
 	for _, post := range posts {
 		batch.Queue(query,
-			post.Text,
 			post.Title,
+			post.Text,
 			post.ID,
-			post.GroupID,
 		)
 	}
 
