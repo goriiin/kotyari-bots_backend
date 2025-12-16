@@ -237,10 +237,10 @@ ssl-install:
 	@echo ">>> Ожидание запуска Nginx..."
 	@sleep 5
 	@echo ">>> [2/4] Генерация сертификатов..."
-	docker compose -f $(NGINX_COMPOSE) run --rm certbot certonly --webroot --webroot-path /var/www/certbot \
-		-d $(DOMAIN) -d www.$(DOMAIN) \
-		--email $(EMAIL) \
-		--agree-tos --no-eff-email --force-renewal
+	docker compose -f $(NGINX_COMPOSE) run --rm --entrypoint certbot certbot certonly --webroot --webroot-path /var/www/certbot \
+    		-d $(DOMAIN) -d www.$(DOMAIN) \
+    		--email $(EMAIL) \
+    		--agree-tos --no-eff-email --force-renewal
 	@echo ">>> [3/4] Применяем HTTPS конфигурацию..."
 	cp nginx.conf.https nginx.conf
 	@echo ">>> [4/4] Перезагрузка Nginx..."
