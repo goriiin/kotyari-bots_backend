@@ -10,12 +10,15 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	postsRepoLib "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/evals"
 	"github.com/goriiin/kotyari-bots_backend/pkg/grok"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 	"github.com/goriiin/kotyari-bots_backend/pkg/rewriter"
 )
+
+const serviceName = "posts-consumer"
 
 type consumerRunner interface {
 	HandleCommands() error
@@ -33,6 +36,8 @@ type PostsCommandConsumer struct {
 }
 
 func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMConfig) (*PostsCommandConsumer, error) {
+	log := logger.NewLogger(serviceName, &config.ConfigBase)
+
 	pool, err := postgres.GetPool(context.Background(), config.Database)
 	if err != nil {
 		return nil, err
@@ -73,7 +78,7 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 	j := evals.NewJudge(cfg, grokClient)
 
 	return &PostsCommandConsumer{
-		consumerRunner: posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc, rw, j),
+		consumerRunner: posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc, rw, j, log),
 		consumer:       cons,
 		config:         config,
 	}, nil

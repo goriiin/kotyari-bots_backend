@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
 func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateBotRes, error) {
@@ -31,12 +32,20 @@ func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateB
 		ProfileIDs:         profiles,
 	})
 	if err != nil {
-		return nil, err
+		h.log.Error(err, true, "failed to create bot")
+		return &gen.CreateBotInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	bot, profs, err := h.u.GetWithProfiles(ctx, created.ID)
 	if err != nil {
-		return nil, err
+		h.log.Error(err, true, "failed to get created bot with profiles")
+		return &gen.CreateBotInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   err.Error(),
+		}, nil
 	}
 	return modelToDTO(&bot, profs), nil
 }

@@ -10,6 +10,7 @@ import (
 func (h *HTTPHandler) ListMyProfiles(ctx context.Context) (gen.ListMyProfilesRes, error) {
 	profiles, err := h.u.List(ctx)
 	if err != nil {
+		h.log.Error(err, true, "failed to list profiles")
 		return &gen.ListMyProfilesInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: err.Error()}, nil
 	}
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
@@ -15,9 +16,13 @@ type usecase interface {
 
 type GRPCHandler struct {
 	profiles.UnimplementedProfilesServiceServer
-	u usecase
+	u   usecase
+	log *logger.Logger
 }
 
-func NewGRPCHandler(u usecase) *GRPCHandler {
-	return &GRPCHandler{u: u}
+func NewGRPCHandler(u usecase, log *logger.Logger) *GRPCHandler {
+	return &GRPCHandler{
+		u:   u,
+		log: log,
+	}
 }

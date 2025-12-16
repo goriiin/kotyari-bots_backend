@@ -3,7 +3,6 @@ package bots
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -18,6 +17,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles_validator"
 	delivery "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/bots"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/bots"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
@@ -26,14 +26,18 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+const serviceName = "bots-service"
+
 type App struct {
 	config *AppConfig
 	server *http.Server
+	log    *logger.Logger
 }
 
 func NewApp(config *AppConfig) *App {
 	return &App{
 		config: config,
+		log:    logger.NewLogger(serviceName, &config.ConfigBase),
 	}
 }
 
@@ -54,7 +58,7 @@ func (b *App) Run() error {
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
-			log.Println("failed to close grpc connection")
+			b.log.Error(err, false, "failed to close grpc connection")
 		}
 	}(conn)
 	profilesClient := profiles.NewProfilesServiceClient(conn)
@@ -63,7 +67,9 @@ func (b *App) Run() error {
 	profileValidator := profiles_validator.NewGrpcValidator(profilesClient)
 	profileGateway := profiles_getter.NewProfileGateway(profilesClient)
 	botsUsecase := usecase.NewService(botsRepo, profileValidator, profileGateway)
-	botsHandler := delivery.NewHandler(botsUsecase)
+
+	// Внедряем логгер
+	botsHandler := delivery.NewHandler(botsUsecase, b.log)
 
 	svr, err := gen.NewServer(botsHandler)
 	if err != nil {
@@ -77,9 +83,9 @@ func (b *App) Run() error {
 	}
 
 	go func() {
-		log.Printf("Bots service listening on %s\n", httpAddr)
+		b.log.Info(fmt.Sprintf("Bots service listening on %s", httpAddr))
 		if err := b.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Println("http server exited with error")
+			b.log.Fatal(err, true, "http server exited with error")
 		}
 	}()
 
@@ -90,13 +96,16 @@ func (b *App) Run() error {
 		return fmt.Errorf("failed to listen for grpc: %w", err)
 	}
 	grpcServer := grpc.NewServer()
-	botGrpcServer := bots.NewServer(botsUsecase)
+
+	// Внедряем логгер
+	botGrpcServer := bots.NewServer(botsUsecase, b.log)
+
 	botgrpc.RegisterBotServiceServer(grpcServer, botGrpcServer)
 
 	go func() {
-		log.Printf("Bots gRPC service listening on %s\n", grpcAddr)
+		b.log.Info(fmt.Sprintf("Bots gRPC service listening on %s", grpcAddr))
 		if err = grpcServer.Serve(listener); err != nil {
-			log.Println("gRPC server exited with error")
+			b.log.Fatal(err, true, "gRPC server exited with error")
 		}
 	}()
 
@@ -104,20 +113,20 @@ func (b *App) Run() error {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
 
-	log.Println("Shutting down bots services...")
+	b.log.Info("Shutting down bots services...")
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
 
-	log.Println("Stopping gRPC server...")
+	b.log.Info("Stopping gRPC server...")
 	grpcServer.GracefulStop()
-	log.Println("gRPC server stopped.")
+	b.log.Info("gRPC server stopped.")
 
-	log.Println("Stopping HTTP server...")
+	b.log.Info("Stopping HTTP server...")
 	if err = b.server.Shutdown(shutdownCtx); err != nil {
-		log.Println("HTTP server shutdown error")
+		b.log.Error(err, false, "HTTP server shutdown error")
 		return err
 	}
-	log.Println("HTTP server stopped.")
+	b.log.Info("HTTP server stopped.")
 
 	return nil
 }

@@ -13,7 +13,7 @@ func (h *GRPCHandler) ProfilesExist(ctx context.Context, req *profiles.ProfilesE
 	for _, idStr := range req.ProfileIds {
 		id, err := uuid.Parse(idStr)
 		if err != nil {
-			continue // пропускаем невалидные UUID
+			continue
 		}
 		profileUUIDs = append(profileUUIDs, id)
 	}
@@ -24,6 +24,7 @@ func (h *GRPCHandler) ProfilesExist(ctx context.Context, req *profiles.ProfilesE
 
 	existenceMap, err := h.u.Exist(ctx, profileUUIDs)
 	if err != nil {
+		h.log.Error(err, true, "failed to check profiles existence")
 		return nil, ierrors.DomainToGRPCError(err)
 	}
 

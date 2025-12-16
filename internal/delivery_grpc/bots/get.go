@@ -12,11 +12,13 @@ import (
 func (s *Server) GetBot(ctx context.Context, req *botgrpc.GetBotRequest) (*botgrpc.Bot, error) {
 	id, err := uuid.Parse(req.GetId())
 	if err != nil {
+		s.log.Warn("invalid uuid provided", err)
 		return nil, ierrors.DomainToGRPCError(constants.ErrInvalid)
 	}
 
 	botModel, err := s.usecase.Get(ctx, id)
 	if err != nil {
+		s.log.Error(err, true, "failed to get bot via grpc")
 		return nil, ierrors.DomainToGRPCError(err)
 	}
 

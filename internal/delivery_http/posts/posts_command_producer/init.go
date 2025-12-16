@@ -7,6 +7,7 @@ import (
 	profilesgen "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	botsgen "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"google.golang.org/grpc"
 )
 
@@ -31,11 +32,13 @@ type botsAndProfilesFetcher interface {
 type PostsCommandHandler struct {
 	fetcher  botsAndProfilesFetcher
 	producer producer
+	log      *logger.Logger
 }
 
-func NewPostsHandler(fetcher botsAndProfilesFetcher, producer producer) *PostsCommandHandler {
+func NewPostsHandler(fetcher botsAndProfilesFetcher, producer producer, log *logger.Logger) *PostsCommandHandler {
 	return &PostsCommandHandler{
 		fetcher:  fetcher,
 		producer: producer,
+		log:      log,
 	}
 }

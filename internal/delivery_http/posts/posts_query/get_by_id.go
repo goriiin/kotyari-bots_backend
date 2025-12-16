@@ -9,10 +9,9 @@ import (
 )
 
 func (p *PostsQueryHandler) GetPostById(ctx context.Context, params gen.GetPostByIdParams) (gen.GetPostByIdRes, error) {
-	// TODO: По идее тут должна быть бизнес логика выбора какой пост фетчить (с категориями или без) в зависимости от платформы,
-	// Пока возвращается пост без категорий
 	post, err := p.repo.GetByID(ctx, params.PostId)
 	if err != nil {
+		p.log.Error(err, true, "failed to get post by id")
 		return &gen.GetPostByIdInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 

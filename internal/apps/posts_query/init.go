@@ -6,9 +6,12 @@ import (
 	"github.com/go-faster/errors"
 	postsQueryHandler "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_query"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_query"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	postsQueryRepo "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_query"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
+
+const serviceName = "posts-query"
 
 type postsGetter interface {
 	GetPostById(ctx context.Context, params gen.GetPostByIdParams) (gen.GetPostByIdRes, error)
@@ -19,21 +22,24 @@ type postsGetter interface {
 type PostsQueryApp struct {
 	handler postsGetter
 	config  *PostsQueryConfig
+	log     *logger.Logger
 }
 
 func NewPostsQueryApp(config *PostsQueryConfig) (*PostsQueryApp, error) {
-	pool, err := postgres.GetPool(context.Background(), config.Database)
+	log := logger.NewLogger(serviceName, &config.ConfigBase)
 
+	pool, err := postgres.GetPool(context.Background(), config.Database)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to connect to postgres")
 	}
 
 	repo := postsQueryRepo.NewPostsQueryRepo(pool)
 
-	handler := postsQueryHandler.NewPostsQueryHandler(repo)
+	handler := postsQueryHandler.NewPostsQueryHandler(repo, log)
 
 	return &PostsQueryApp{
 		handler: handler,
 		config:  config,
+		log:     log,
 	}, nil
 }

@@ -2,7 +2,6 @@ package posts_command_consumer
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
@@ -18,7 +17,7 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 	for message := range p.consumer.Start(ctx) {
 		var env kafkaConfig.Envelope
 		if err := jsoniter.Unmarshal(message.Msg.Value, &env); err != nil {
-			fmt.Printf("%s: %v\n", constants.ErrUnmarshal, err)
+			p.log.Error(err, true, constants.ErrUnmarshal.Error())
 			continue
 		}
 
@@ -35,7 +34,7 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 		}
 
 		if err != nil {
-			fmt.Printf("failed to handle command '%s': %v\n", env.Command, err)
+			p.log.Error(err, true, "failed to handle command", string(env.Command))
 		}
 	}
 
@@ -84,7 +83,6 @@ func (p *PostsCommandConsumer) handleDeleteCommand(ctx context.Context, message 
 func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
 	err := p.CreatePost(ctx, payload)
 	if err != nil {
-		// TODO: Handle RAG timeout error specifically if needed, otherwise send generic error.
 		return sendErrReply(ctx, message, err)
 	}
 

@@ -21,6 +21,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 
 	rawReq, err := jsoniter.Marshal(updatePostRequest)
 	if err != nil {
+		p.log.Error(err, true, "failed to marshal update request")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -29,7 +30,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 
 	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdUpdate, params.PostId.String(), rawReq), 5*time.Second)
 	if err != nil {
-		// TODO: TIMEOUT OR PUBLISH ERROR - 500
+		p.log.Error(err, true, "failed to request update post via kafka")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -39,6 +40,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 	var resp posts.KafkaResponse
 	err = jsoniter.Unmarshal(rawResp, &resp)
 	if err != nil {
+		p.log.Error(err, true, "failed to unmarshal kafka response")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -47,6 +49,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 
 	switch {
 	case strings.Contains(resp.Error, constants.InternalMsg):
+		p.log.Error(nil, false, "received internal error from kafka reply: "+resp.Error)
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   constants.InternalMsg,

@@ -3,7 +3,6 @@ package profiles
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -15,6 +14,7 @@ import (
 	deliverygrpc "github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles"
 	deliveryhttp "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/profiles"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/profiles"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/profiles"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/profiles"
 	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
@@ -23,14 +23,20 @@ import (
 	"google.golang.org/grpc"
 )
 
+const serviceName = "profiles-service"
+
 type ProfilesApp struct {
 	config     *ProfilesAppConfig
 	httpServer *http.Server
 	grpcServer *grpc.Server
+	log        *logger.Logger
 }
 
 func NewApp(config *ProfilesAppConfig) *ProfilesApp {
-	return &ProfilesApp{config: config}
+	return &ProfilesApp{
+		config: config,
+		log:    logger.NewLogger(serviceName, &config.ConfigBase),
+	}
 }
 
 func (p *ProfilesApp) Run() error {
@@ -46,8 +52,8 @@ func (p *ProfilesApp) Run() error {
 	profilesRepo := repo.NewRepository(pool)
 	profilesUsecase := usecase.NewService(profilesRepo)
 
-	grpcHandler := deliverygrpc.NewGRPCHandler(profilesUsecase)
-	httpHandler := deliveryhttp.NewHTTPHandler(profilesUsecase)
+	grpcHandler := deliverygrpc.NewGRPCHandler(profilesUsecase, p.log)
+	httpHandler := deliveryhttp.NewHTTPHandler(profilesUsecase, p.log)
 
 	g, gCtx := errgroup.WithContext(ctx)
 
@@ -64,9 +70,9 @@ func (p *ProfilesApp) Run() error {
 
 	select {
 	case <-sig:
-		log.Println("Received shutdown signal")
+		p.log.Info("Received shutdown signal")
 	case <-gCtx.Done():
-		log.Println("Context cancelled, shutting down...")
+		p.log.Info("Context cancelled, shutting down...")
 	}
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -74,14 +80,14 @@ func (p *ProfilesApp) Run() error {
 
 	if p.httpServer != nil {
 		if err := p.httpServer.Shutdown(shutdownCtx); err != nil {
-			log.Printf("HTTP server shutdown error: %v", err)
+			p.log.Error(err, false, "HTTP server shutdown error")
 		}
 	}
 	if p.grpcServer != nil {
 		p.grpcServer.GracefulStop()
 	}
 
-	log.Println("Profiles service stopped gracefully.")
+	p.log.Info("Profiles service stopped gracefully.")
 	return g.Wait()
 }
 
@@ -95,7 +101,7 @@ func (p *ProfilesApp) startGRPCServer(ctx context.Context, handler profiles.Prof
 	p.grpcServer = grpc.NewServer()
 	profiles.RegisterProfilesServiceServer(p.grpcServer, handler)
 
-	log.Printf("Profiles gRPC service listening on %s", grpcAddr)
+	p.log.Info(fmt.Sprintf("Profiles gRPC service listening on %s", grpcAddr))
 	return p.grpcServer.Serve(lis)
 }
 
@@ -111,7 +117,7 @@ func (p *ProfilesApp) startHTTPServer(ctx context.Context, handler gen.Handler) 
 		Handler: cors.New().Handler(svr),
 	}
 
-	log.Printf("Profiles HTTP service listening on %s", httpAddr)
+	p.log.Info(fmt.Sprintf("Profiles HTTP service listening on %s", httpAddr))
 	if err := p.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("http server exited with error: %w", err)
 	}

@@ -12,7 +12,7 @@ func (h *GRPCHandler) GetProfiles(ctx context.Context, req *profiles.GetProfiles
 	for _, idStr := range req.ProfileIds {
 		id, err := uuid.Parse(idStr)
 		if err != nil {
-			continue // Игнорируем невалидные UUID
+			continue
 		}
 		profileUUIDs = append(profileUUIDs, id)
 	}
@@ -23,6 +23,7 @@ func (h *GRPCHandler) GetProfiles(ctx context.Context, req *profiles.GetProfiles
 
 	profileModels, err := h.u.GetByIDs(ctx, profileUUIDs)
 	if err != nil {
+		h.log.Error(err, true, "failed to get profiles via grpc")
 		return nil, err
 	}
 

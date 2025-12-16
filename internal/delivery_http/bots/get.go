@@ -18,12 +18,17 @@ func (h *Handler) GetBotById(ctx context.Context, params gen.GetBotByIdParams) (
 			}, nil
 		}
 		if errors.Is(err, constants.ErrServiceUnavailable) {
+			h.log.Error(err, true, "service unavailable during get bot")
 			return &gen.GetBotByIdInternalServerError{
 				ErrorCode: constants.ServiceUnavailableMsg,
 				Message:   err.Error(),
 			}, nil
 		}
-		return nil, err
+		h.log.Error(err, true, "failed to get bot")
+		return &gen.GetBotByIdInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   err.Error(),
+		}, nil
 	}
 
 	return modelToDTO(&bot, profiles), nil

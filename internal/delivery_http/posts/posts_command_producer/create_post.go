@@ -2,7 +2,6 @@ package posts_command_producer
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -16,7 +15,7 @@ import (
 func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput) (gen.CreatePostRes, error) {
 	bot, err := p.fetcher.GetBot(ctx, req.BotId.String())
 	if err != nil {
-		fmt.Println("bots")
+		p.log.Error(err, true, "failed to get bot info")
 		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: ierrors.GRPCToDomainError(err).Error()}, nil
 	}
 
@@ -25,41 +24,11 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		idsString = append(idsString, id.String())
 	}
 
-	fmt.Printf("ids string: %+v\n", idsString)
 	profilesBatch, err := p.fetcher.GetProfiles(ctx, idsString)
 	if err != nil {
-		fmt.Println("profiles")
+		p.log.Error(err, true, "failed to get profiles info")
 		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: ierrors.GRPCToDomainError(err).Error()}, nil
 	}
-
-	fmt.Printf("profiles batch: %+v\n", idsString)
-
-	// mockedBot := struct {
-	//	Id        uuid.UUID
-	//	BotPrompt string
-	//	BotName   string
-	// }{
-	//	req.BotId,
-	//	"Промт бота",
-	//	"Крутой бот",
-	// }
-	//
-	// mockedProfiles := []struct {
-	//	Id            uuid.UUID
-	//	ProfilePrompt string
-	//	ProfileName   string
-	// }{
-	//	{
-	//		uuid.New(),
-	//		"Крутой промт профиля",
-	//		"Профиль 1",
-	//	},
-	//	{
-	//		uuid.New(),
-	//		"Супер-пупер промт",
-	//		"Профиль 2",
-	//	},
-	// }
 
 	postProfiles := make([]posts.CreatePostProfiles, 0, len(idsString))
 	for _, profile := range profilesBatch.Profiles {
@@ -72,10 +41,9 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	}
 
 	groupID := uuid.New()
-	botID, _ := uuid.Parse(bot.Id)
 	createPostRequest := posts.KafkaCreatePostRequest{
 		GroupID:    groupID,
-		BotID:      botID,
+		BotID:      req.BotId,
 		BotName:    bot.BotName,
 		BotPrompt:  bot.BotPrompt,
 		UserPrompt: req.TaskText,
@@ -84,10 +52,9 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		PostType:   model.PostType(req.PostType.Value),
 	}
 
-	fmt.Printf("%+v\n", createPostRequest)
-
 	rawReq, err := jsoniter.Marshal(createPostRequest)
 	if err != nil {
+		p.log.Error(err, true, "failed to marshal create post request")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -96,6 +63,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 
 	err = p.producer.Publish(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.GroupID.String(), rawReq))
 	if err != nil {
+		p.log.Error(err, true, "failed to publish create command")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),

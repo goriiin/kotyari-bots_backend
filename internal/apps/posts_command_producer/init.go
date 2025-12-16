@@ -14,6 +14,8 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 )
 
+const serviceName = "posts-producer"
+
 type postsCommandHandler interface {
 	CreatePost(ctx context.Context, req *gen.PostInput) (gen.CreatePostRes, error)
 	UpdatePostById(ctx context.Context, req *gen.PostUpdate, params gen.UpdatePostByIdParams) (gen.UpdatePostByIdRes, error)
@@ -23,22 +25,23 @@ type postsCommandHandler interface {
 type requester interface {
 	Request(ctx context.Context, env kafka.Envelope, timeout time.Duration) ([]byte, error)
 	Close() error
+	Publish(ctx context.Context, env kafka.Envelope) error
 }
 
 type PostsCommandProducerApp struct {
 	handler  postsCommandHandler
 	producer requester
 	config   *PostsCommandProducerConfig
+	log      *logger.Logger
 }
 
 func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsCommandProducerApp, error) {
+	log := logger.NewLogger(serviceName, &config.ConfigBase)
+
 	grpc, err := posts_producer_client.NewPostsProdGRPCClient(&config.GRPCServerCfg)
 	if err != nil {
 		return nil, err
 	}
-
-	// TODO: ???
-	log := logger.NewLogger("xdd", &config.ConfigBase)
 
 	reader := consumer.NewKafkaConsumer(log, &config.KafkaCons)
 
@@ -50,11 +53,12 @@ func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsComma
 		return nil, err
 	}
 
-	handler := posts_command_producer.NewPostsHandler(grpc, p)
+	handler := posts_command_producer.NewPostsHandler(grpc, p, log)
 
 	return &PostsCommandProducerApp{
 		handler:  handler,
 		producer: p,
 		config:   config,
+		log:      log,
 	}, nil
 }

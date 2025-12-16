@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	postssgen "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"google.golang.org/grpc"
 )
@@ -39,6 +40,7 @@ type PostsCommandConsumer struct {
 	getter   postsGetter
 	rewriter rewriter
 	judge    judge
+	log      *logger.Logger
 }
 
 func NewPostsCommandConsumer(
@@ -47,6 +49,7 @@ func NewPostsCommandConsumer(
 	getter postsGetter,
 	rewriter rewriter,
 	judge judge,
+	log *logger.Logger,
 ) *PostsCommandConsumer {
 	return &PostsCommandConsumer{
 		consumer: consumer,
@@ -54,5 +57,6 @@ func NewPostsCommandConsumer(
 		getter:   getter,
 		rewriter: rewriter,
 		judge:    judge,
+		log:      log,
 	}
 }
