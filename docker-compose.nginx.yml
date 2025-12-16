@@ -9,9 +9,9 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
+      - ../kotyari-bots_frontend/.output/public:/var/www/frontend:ro
     networks:
       - public-gateway-network
-    # Перезагружает Nginx каждые 6 часов, чтобы подхватить обновленные сертификаты
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     restart: unless-stopped
 
