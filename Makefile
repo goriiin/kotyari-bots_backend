@@ -216,9 +216,8 @@ NGINX_COMPOSE := docker-compose.nginx.yml
 
 .PHONY: gateway-up gateway-down gateway-logs cert-issue cert-renew ssl-install
 
-# 1. Запуск шлюза (по умолчанию берет текущий nginx.conf)
 gateway-up: setup-network
-	docker compose -f $(NGINX_COMPOSE) up -d --remove-orphans
+	docker compose -f $(NGINX_COMPOSE) up -d
 
 gateway-down:
 	docker compose -f $(NGINX_COMPOSE) down
