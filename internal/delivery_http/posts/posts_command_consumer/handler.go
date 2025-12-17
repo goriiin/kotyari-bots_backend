@@ -46,6 +46,25 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 	return nil
 }
 
+func (p *PostsCommandConsumer) handleSeenCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
+	err := p.SeenPosts(ctx, payload)
+	if err != nil {
+		return sendErrReply(ctx, message, err)
+	}
+
+	resp := posts.KafkaResponse{}
+	rawResp, err := jsoniter.Marshal(resp)
+	if err != nil {
+		return errors.Wrap(err, constants.MarshalMsg)
+	}
+
+	if err := message.Reply(ctx, rawResp, true); err != nil {
+		return errors.Wrap(err, failedToSendReplyMsg)
+	}
+
+	return nil
+}
+
 func (p *PostsCommandConsumer) handleUpdateCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
 	post, err := p.UpdatePost(ctx, payload)
 	if err != nil {
@@ -132,7 +151,7 @@ func (p *PostsCommandConsumer) handlePublishCommand(ctx context.Context, message
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
-	if err := message.Reply(ctx, resp); err != nil {
+	if err := message.Reply(ctx, resp, true); err != nil {
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 

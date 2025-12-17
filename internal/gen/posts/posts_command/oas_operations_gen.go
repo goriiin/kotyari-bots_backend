@@ -8,6 +8,7 @@ type OperationName = string
 const (
 	CreatePostOperation     OperationName = "CreatePost"
 	DeletePostByIdOperation OperationName = "DeletePostById"
+	PublishPostOperation    OperationName = "PublishPost"
 	SeenPostsOperation      OperationName = "SeenPosts"
 	UpdatePostByIdOperation OperationName = "UpdatePostById"
 )

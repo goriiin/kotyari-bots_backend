@@ -80,35 +80,56 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 				switch elem[0] {
-				case 'c': // Prefix: "check/"
+				case 'c': // Prefix: "check"
 					origElem := elem
-					if l := len("check/"); len(elem) >= l && elem[0:l] == "check/" {
+					if l := len("check"); len(elem) >= l && elem[0:l] == "check" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
-					// Param: "groupId"
-					// Leaf parameter, slashes are prohibited
-					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
-					}
-					args[0] = elem
-					elem = ""
-
 					if len(elem) == 0 {
-						// Leaf node.
 						switch r.Method {
 						case "GET":
-							s.handleCheckGroupIdRequest([1]string{
-								args[0],
-							}, elemIsEscaped, w, r)
+							s.handleCheckGroupIdsRequest([0]string{}, elemIsEscaped, w, r)
 						default:
 							s.notAllowed(w, r, "GET")
 						}
 
 						return
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						// Param: "groupId"
+						// Leaf parameter, slashes are prohibited
+						idx := strings.IndexByte(elem, '/')
+						if idx >= 0 {
+							break
+						}
+						args[0] = elem
+						elem = ""
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "GET":
+								s.handleCheckGroupIdRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "GET")
+							}
+
+							return
+						}
+
 					}
 
 					elem = origElem
@@ -253,37 +274,62 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 				switch elem[0] {
-				case 'c': // Prefix: "check/"
+				case 'c': // Prefix: "check"
 					origElem := elem
-					if l := len("check/"); len(elem) >= l && elem[0:l] == "check/" {
+					if l := len("check"); len(elem) >= l && elem[0:l] == "check" {
 						elem = elem[l:]
 					} else {
 						break
 					}
 
-					// Param: "groupId"
-					// Leaf parameter, slashes are prohibited
-					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
-					}
-					args[0] = elem
-					elem = ""
-
 					if len(elem) == 0 {
-						// Leaf node.
 						switch method {
 						case "GET":
-							r.name = CheckGroupIdOperation
-							r.summary = "Проверить статус готовности постов"
-							r.operationID = "checkGroupId"
-							r.pathPattern = "/api/v1/posts/check/{groupId}"
+							r.name = CheckGroupIdsOperation
+							r.summary = "Проверить статус готовности всех постов"
+							r.operationID = "checkGroupIds"
+							r.pathPattern = "/api/v1/posts/check"
 							r.args = args
-							r.count = 1
+							r.count = 0
 							return r, true
 						default:
 							return
 						}
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/"
+
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						// Param: "groupId"
+						// Leaf parameter, slashes are prohibited
+						idx := strings.IndexByte(elem, '/')
+						if idx >= 0 {
+							break
+						}
+						args[0] = elem
+						elem = ""
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "GET":
+								r.name = CheckGroupIdOperation
+								r.summary = "Проверить статус готовности отпределенного"
+								r.operationID = "checkGroupId"
+								r.pathPattern = "/api/v1/posts/check/{groupId}"
+								r.args = args
+								r.count = 1
+								return r, true
+							default:
+								return
+							}
+						}
+
 					}
 
 					elem = origElem
