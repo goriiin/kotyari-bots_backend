@@ -72,7 +72,7 @@ api: install-ogen
 	@echo "Генерация кода успешно завершена."
 
 install-ogen:
-	go install github.com/ogen-go/ogen/cmd/ogen@latest
+	go install github.com/ogen-go/ogen/cmd/ogen@v1.16.0
 
 define generate-service
 	@echo "--- Генерирую код для сервиса: $(1) ---"
