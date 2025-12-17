@@ -6,7 +6,8 @@ package posts_query
 type OperationName = string
 
 const (
-	CheckGroupIdOperation OperationName = "CheckGroupId"
-	GetPostByIdOperation  OperationName = "GetPostById"
-	ListPostsOperation    OperationName = "ListPosts"
+	CheckGroupIdOperation  OperationName = "CheckGroupId"
+	CheckGroupIdsOperation OperationName = "CheckGroupIds"
+	GetPostByIdOperation   OperationName = "GetPostById"
+	ListPostsOperation     OperationName = "ListPosts"
 )

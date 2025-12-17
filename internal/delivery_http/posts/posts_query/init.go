@@ -12,6 +12,7 @@ type postsQueryRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (model.Post, error)
 	ListPosts(ctx context.Context) ([]model.Post, error)
 	GetByGroupId(ctx context.Context, groupID uuid.UUID) ([]model.Post, error)
+	CheckGroupIds(ctx context.Context) ([]model.Post, error)
 }
 
 type PostsQueryHandler struct {

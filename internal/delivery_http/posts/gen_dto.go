@@ -102,3 +102,31 @@ func HttpInputToModel(input genCommand.PostInput) (*model.Post, string) {
 		Type:     postType,
 	}, input.TaskText
 }
+
+func PostsCheckModelToHttp(post model.Post) genQuery.PostsCheckObject {
+	isReady := !(post.Text == "" || post.Title == "")
+
+	return genQuery.PostsCheckObject{
+		ID:      post.ID,
+		GroupID: post.GroupID,
+		IsReady: isReady,
+	}
+}
+
+func PostsCheckModelsToHttpSlice(posts []model.Post) *genQuery.PostsCheckList {
+	checkObjects := make([]genQuery.PostsCheckObject, 0, len(posts))
+
+	for _, post := range posts {
+
+		// TODO: Плакать хочется
+		if post.IsSeen {
+			continue
+		}
+
+		checkObjects = append(checkObjects, PostsCheckModelToHttp(post))
+	}
+
+	return &genQuery.PostsCheckList{
+		Data: checkObjects,
+	}
+}

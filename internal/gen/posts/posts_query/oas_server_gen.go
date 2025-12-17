@@ -10,10 +10,16 @@ import (
 type Handler interface {
 	// CheckGroupId implements checkGroupId operation.
 	//
-	// Проверить статус готовности постов.
+	// Проверить статус готовности отпределенного.
 	//
 	// GET /api/v1/posts/check/{groupId}
 	CheckGroupId(ctx context.Context, params CheckGroupIdParams) (CheckGroupIdRes, error)
+	// CheckGroupIds implements checkGroupIds operation.
+	//
+	// Проверить статус готовности всех постов.
+	//
+	// GET /api/v1/posts/check
+	CheckGroupIds(ctx context.Context) (CheckGroupIdsRes, error)
 	// GetPostById implements getPostById operation.
 	//
 	// Получить пост по ID.

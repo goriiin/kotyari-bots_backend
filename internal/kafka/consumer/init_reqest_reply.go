@@ -3,12 +3,15 @@ package consumer
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/go-faster/errors"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
 	"github.com/segmentio/kafka-go"
 )
+
+const maxBackoff = 10 * time.Second
 
 type replier interface {
 	Publish(ctx context.Context, message kafka.Message) error
@@ -51,91 +54,109 @@ func NewKafkaRequestReplyConsumer(config *kafkaConfig.KafkaConfig, replier repli
 
 func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfig.CommittableMessage {
 	out := make(chan kafkaConfig.CommittableMessage)
+
 	go func() {
 		defer close(out)
-		defer func(reader *kafka.Reader) {
-			err := reader.Close()
-			if err != nil {
-				// TODO: logs
-				fmt.Println(err)
+		defer func() {
+			if err := c.reader.Close(); err != nil {
+				fmt.Println("Error closing reader:", err)
 			}
-		}(c.reader)
+		}()
 
 		for {
 			m, err := c.reader.FetchMessage(ctx)
 			if err != nil {
-				fmt.Println("reading error", err)
 				if errors.Is(err, context.Canceled) {
 					return
 				}
-				// log.Printf("fetch err: %v", err)
-				return
+				fmt.Println("reading error:", err)
+				time.Sleep(1 * time.Second)
+				continue
 			}
 
-			fmt.Printf("ALO ALO %+v\n", m)
+			retryAttempt := 0
+			messageProcessed := false
 
-			corrID := kafkaConfig.GetHeader(m, "correlation_id")
+			for !messageProcessed {
+				done := make(chan error, 1)
+				corrID := kafkaConfig.GetHeader(m, "correlation_id")
 
-			fmt.Println("corrID: ", corrID)
-			done := make(chan error, 1)
+				cm := kafkaConfig.CommittableMessage{
+					Msg: m,
 
-			cm := kafkaConfig.CommittableMessage{
-				Msg: m,
-				Ack: func(commitCtx context.Context) error {
-					done <- nil
-					return nil
-				},
-				Nack: func(_ context.Context, _ error) error {
-					done <- fmt.Errorf("nack")
-					return nil
-				},
-				// TODO: Скорее все помимо reply будет еще replyWithError, чтобы не двигать оффсет
-				Reply: func(ctx context.Context, body []byte) error {
-					done <- nil // оффсет двигается
-					headers := []kafka.Header{
-						{Key: "correlation_id", Value: []byte(corrID)},
-					}
+					Ack: func(commitCtx context.Context) error {
+						done <- nil
+						return nil
+					},
 
-					return c.replier.Publish(ctx, kafka.Message{
-						Key:     []byte(corrID),
-						Value:   body,
-						Headers: headers,
-					})
-				},
+					Nack: func(_ context.Context, err error) error {
+						done <- err
+						return nil
+					},
 
-				//ReplyWithError: func(ctx context.Context, body []byte) error {
-				//
-				// },
-			}
+					Reply: func(replyCtx context.Context, body []byte, moveOffset bool) error {
+						headers := []kafka.Header{{Key: "correlation_id", Value: []byte(corrID)}}
+						err := c.replier.Publish(replyCtx, kafka.Message{
+							Key:     []byte(corrID),
+							Value:   body,
+							Headers: headers,
+						})
+						if err != nil {
+							done <- fmt.Errorf("failed to reply: %w", err)
+							return err
+						}
 
-			select {
-			case out <- cm:
-			case <-ctx.Done():
-				return
-			}
+						if moveOffset {
+							done <- nil
+						}
 
-			select {
-			case decideErr := <-done:
-				if decideErr == nil {
-					if err := c.reader.CommitMessages(ctx, m); err != nil {
-						// log.Printf("commit err: %v", err)
-						return
-					}
-				} else {
-					fmt.Println("TODO")
-
-					// Nack path: DO NOT commit. The same message will be re-delivered
-					// after a restart or rebalance. If you prefer "retry topics", push to retry/DLQ here,
-					// then commit to advance (see variant below).
+						return nil
+					},
 				}
-			case <-ctx.Done():
-				return
+
+				select {
+				case out <- cm:
+				case <-ctx.Done():
+					return
+				}
+
+				select {
+				case decideErr := <-done:
+					if decideErr == nil {
+						if err := c.reader.CommitMessages(ctx, m); err != nil {
+							fmt.Println("commit error:", err)
+						}
+						messageProcessed = true
+					} else {
+						retryAttempt++
+						backoff := c.calculateBackoff(retryAttempt)
+
+						fmt.Printf("Message processing failed (attempt %d). Retrying in %v. Error: %v\n", retryAttempt, backoff, decideErr)
+
+						select {
+						case <-time.After(backoff):
+						case <-ctx.Done():
+							return
+						}
+					}
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
 	}()
+
 	return out
 }
 
 func (c *KafkaRequestReplyConsumer) Close() error {
 	return errors.Join(c.reader.Close(), c.replier.Close())
+}
+
+func (c *KafkaRequestReplyConsumer) calculateBackoff(attempt int) time.Duration {
+	backoff := c.baseBackoff * time.Duration(math.Pow(2, float64(attempt-1)))
+	if backoff > maxBackoff {
+		return maxBackoff
+	}
+	return backoff
 }

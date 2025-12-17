@@ -14,6 +14,7 @@ type postsGetter interface {
 	GetPostById(ctx context.Context, params gen.GetPostByIdParams) (gen.GetPostByIdRes, error)
 	ListPosts(ctx context.Context) (gen.ListPostsRes, error)
 	CheckGroupId(ctx context.Context, params gen.CheckGroupIdParams) (gen.CheckGroupIdRes, error)
+	CheckGroupIds(ctx context.Context) (gen.CheckGroupIdsRes, error)
 }
 
 type PostsQueryApp struct {

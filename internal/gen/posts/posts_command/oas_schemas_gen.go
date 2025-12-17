@@ -163,6 +163,7 @@ func (o NilPostInputPostType) Or(d PostInputPostType) PostInputPostType {
 type NoContent struct{}
 
 func (*NoContent) deletePostByIdRes() {}
+func (*NoContent) seenPostsRes()      {}
 
 // NewOptErrorDetails returns new OptErrorDetails with value set to v.
 func NewOptErrorDetails(v ErrorDetails) OptErrorDetails {
@@ -803,6 +804,30 @@ func (s *PostUpdate) SetTitle(val string) {
 func (s *PostUpdate) SetText(val string) {
 	s.Text = val
 }
+
+// Ref: #/PostsSeenRequest
+type PostsSeenRequest struct {
+	// Массив постов, которые увидел пользователь.
+	Seen []uuid.UUID `json:"seen"`
+}
+
+// GetSeen returns the value of Seen.
+func (s *PostsSeenRequest) GetSeen() []uuid.UUID {
+	return s.Seen
+}
+
+// SetSeen sets the value of Seen.
+func (s *PostsSeenRequest) SetSeen(val []uuid.UUID) {
+	s.Seen = val
+}
+
+type SeenPostsInternalServerError Error
+
+func (*SeenPostsInternalServerError) seenPostsRes() {}
+
+type SeenPostsNotFound Error
+
+func (*SeenPostsNotFound) seenPostsRes() {}
 
 type UpdatePostByIdBadRequest Error
 

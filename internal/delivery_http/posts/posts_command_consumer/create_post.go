@@ -9,16 +9,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	jsoniter "github.com/json-iterator/go"
 )
 
-func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) error {
-	var req posts.KafkaCreatePostRequest
-	err := jsoniter.Unmarshal(payload, &req)
-	if err != nil {
-		return errors.Wrap(err, "failed to unmarshal")
-	}
-
+func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid.UUID]model.Post, req posts.KafkaCreatePostRequest) error {
 	postsChan := make(chan model.Post, len(req.Profiles))
 	var wg sync.WaitGroup
 	for _, profile := range req.Profiles {
@@ -50,20 +43,9 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 						return
 					}
 
-					post := model.Post{
-						ID:          uuid.New(),
-						OtvetiID:    0, // Пока так
-						BotID:       req.BotID,
-						BotName:     req.BotName,
-						ProfileID:   profile.ProfileID,
-						ProfileName: profile.ProfileName,
-						GroupID:     req.GroupID,
-						Platform:    req.Platform,
-						Type:        "opinion", // Пока так
-						UserPrompt:  req.UserPrompt,
-						Title:       generatedPostContent.PostTitle,
-						Text:        generatedPostContent.PostText,
-					}
+					post := postsMap[profile.ProfileID]
+					post.Title = generatedPostContent.PostTitle
+					post.Text = generatedPostContent.PostText
 
 					mutex.Lock()
 					profilesPosts = append(profilesPosts, post)
@@ -72,27 +54,19 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 			}
 
 			profileWg.Wait()
+
 			bestPostCandidate, err := p.judge.SelectBest(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt,
 				posts.PostsToCandidates(profilesPosts))
+
 			if err != nil {
 				fmt.Println("error getting best post ", err)
-				return // Можно будет потом создать хоть какой-то пост
+				return
 			}
 
-			bestPost := model.Post{
-				ID:          uuid.New(),
-				OtvetiID:    0, // Пока так
-				BotID:       req.BotID,
-				BotName:     req.BotName,
-				ProfileID:   profile.ProfileID,
-				ProfileName: profile.ProfileName,
-				GroupID:     req.GroupID,
-				Platform:    req.Platform,
-				Type:        "opinion", // Пока так
-				UserPrompt:  req.UserPrompt,
-				Title:       bestPostCandidate.Title,
-				Text:        bestPostCandidate.Text,
-			}
+			bestPost := postsMap[profile.ProfileID]
+
+			bestPost.Text = bestPostCandidate.Text
+			bestPost.Title = bestPostCandidate.Title
 
 			postsChan <- bestPost
 		}()
@@ -108,9 +82,9 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, payload []byte) e
 		finalPosts = append(finalPosts, post)
 	}
 
-	err = p.repo.CreatePostsBatch(ctx, finalPosts)
+	err := p.repo.UpdatePostsBatch(ctx, finalPosts)
 	if err != nil {
-		return errors.Wrap(err, "failed to create posts")
+		return errors.Wrap(err, "failed to update posts")
 	}
 
 	return nil

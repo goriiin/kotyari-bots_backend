@@ -75,7 +75,7 @@ paths:
 
   /api/v1/posts/check/{groupId}:
     get:
-      summary: "Проверить статус готовности постов"
+      summary: "Проверить статус готовности отпределенного"
       operationId: "checkGroupId"
       tags: ["Posts"]
       parameters:
@@ -87,6 +87,25 @@ paths:
             application/json:
               schema:
                 $ref: '../common/schemas.yaml#/PostList'
+        '401':
+          $ref: '../common/responses.yaml#/Unauthorized'
+        '404':
+          $ref: '../common/responses.yaml#/NotFound'
+        '500':
+          $ref: '../common/responses.yaml#/InternalServerError'
+
+  /api/v1/posts/check:
+    get:
+      summary: "Проверить статус готовности всех постов"
+      operationId: "checkGroupIds"
+      tags: [ "Posts" ]
+      responses:
+        '200':
+          description: "Проверка всех постов на готовность"
+          content:
+            application/json:
+              schema:
+                $ref: '../common/schemas.yaml#/PostsCheckList'
         '401':
           $ref: '../common/responses.yaml#/Unauthorized'
         '404':

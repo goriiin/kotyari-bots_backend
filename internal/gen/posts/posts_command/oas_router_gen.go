@@ -76,6 +76,32 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case 's': // Prefix: "seen"
+					origElem := elem
+					if l := len("seen"); len(elem) >= l && elem[0:l] == "seen" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "POST":
+							s.handleSeenPostsRequest([0]string{}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "POST")
+						}
+
+						return
+					}
+
+					elem = origElem
+				}
 				// Param: "postId"
 				// Leaf parameter, slashes are prohibited
 				idx := strings.IndexByte(elem, '/')
@@ -216,6 +242,36 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case 's': // Prefix: "seen"
+					origElem := elem
+					if l := len("seen"); len(elem) >= l && elem[0:l] == "seen" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch method {
+						case "POST":
+							r.name = SeenPostsOperation
+							r.summary = "Обновить статус постов, которые пользователь уже видел"
+							r.operationID = "seenPosts"
+							r.pathPattern = "/api/v1/posts/seen"
+							r.args = args
+							r.count = 0
+							return r, true
+						default:
+							return
+						}
+					}
+
+					elem = origElem
+				}
 				// Param: "postId"
 				// Leaf parameter, slashes are prohibited
 				idx := strings.IndexByte(elem, '/')

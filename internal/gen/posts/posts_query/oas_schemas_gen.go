@@ -49,6 +49,18 @@ type CheckGroupIdUnauthorized Error
 
 func (*CheckGroupIdUnauthorized) checkGroupIdRes() {}
 
+type CheckGroupIdsInternalServerError Error
+
+func (*CheckGroupIdsInternalServerError) checkGroupIdsRes() {}
+
+type CheckGroupIdsNotFound Error
+
+func (*CheckGroupIdsNotFound) checkGroupIdsRes() {}
+
+type CheckGroupIdsUnauthorized Error
+
+func (*CheckGroupIdsUnauthorized) checkGroupIdsRes() {}
+
 // Стандартизированная структура ошибки.
 // Ref: #/Error
 type Error struct {
@@ -504,4 +516,61 @@ func (s *PostPostType) UnmarshalText(data []byte) error {
 	default:
 		return errors.Errorf("invalid value: %q", data)
 	}
+}
+
+// Ref: #/PostsCheckList
+type PostsCheckList struct {
+	Data []PostsCheckObject `json:"data"`
+}
+
+// GetData returns the value of Data.
+func (s *PostsCheckList) GetData() []PostsCheckObject {
+	return s.Data
+}
+
+// SetData sets the value of Data.
+func (s *PostsCheckList) SetData(val []PostsCheckObject) {
+	s.Data = val
+}
+
+func (*PostsCheckList) checkGroupIdsRes() {}
+
+// Ref: #/PostsCheckObject
+type PostsCheckObject struct {
+	// ID поста.
+	ID uuid.UUID `json:"id"`
+	// GroupID поста.
+	GroupID uuid.UUID `json:"groupID"`
+	// Готов ли пост с данным groupID.
+	IsReady bool `json:"isReady"`
+}
+
+// GetID returns the value of ID.
+func (s *PostsCheckObject) GetID() uuid.UUID {
+	return s.ID
+}
+
+// GetGroupID returns the value of GroupID.
+func (s *PostsCheckObject) GetGroupID() uuid.UUID {
+	return s.GroupID
+}
+
+// GetIsReady returns the value of IsReady.
+func (s *PostsCheckObject) GetIsReady() bool {
+	return s.IsReady
+}
+
+// SetID sets the value of ID.
+func (s *PostsCheckObject) SetID(val uuid.UUID) {
+	s.ID = val
+}
+
+// SetGroupID sets the value of GroupID.
+func (s *PostsCheckObject) SetGroupID(val uuid.UUID) {
+	s.GroupID = val
+}
+
+// SetIsReady sets the value of IsReady.
+func (s *PostsCheckObject) SetIsReady(val bool) {
+	s.IsReady = val
 }

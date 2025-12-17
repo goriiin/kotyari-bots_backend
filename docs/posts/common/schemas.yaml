@@ -188,6 +188,35 @@ PostList:
       items:
         $ref: './schemas.yaml#/Post'
 
+PostsCheckList:
+  type: object
+  properties:
+    data:
+      type: array
+      items:
+        $ref: './schemas.yaml#/PostsCheckObject'
+  required:
+    - data
+
+PostsCheckObject:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: "ID поста"
+    groupID:
+      type: string
+      format: uuid
+      description: "GroupID поста"
+    isReady:
+      type: boolean
+      description: "Готов ли пост с данным groupID"
+  required:
+    - id
+    - groupID
+    - isReady
+
 PostCreateResponse:
   type: object
   properties:
@@ -197,6 +226,19 @@ PostCreateResponse:
       description: "GroupID постов, отданных для создания"
   required:
     - groupID
+
+PostsSeenRequest:
+  type: object
+  properties:
+    seen:
+      type: array
+      items:
+        type: string
+        format: uuid
+      minItems: 1
+      description: "Массив постов, которые увидел пользователь"
+  required:
+    - seen
 
 Error:
   type: object
