@@ -149,7 +149,7 @@ $(ENTITIES):
 		$(PROTO_DIR)/$@/proto/*.proto
 
 install-ogen:
-	go install github.com/ogen-go/ogen/cmd/ogen@latest
+	go install github.com/ogen-go/ogen/cmd/ogen@v1.16.0
 
 api: install-ogen
 	@echo "Начинаю генерацию кода для сервисов: $(SERVICES)"
