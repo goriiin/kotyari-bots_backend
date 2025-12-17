@@ -2,6 +2,7 @@ package bots
 
 import (
 	"context"
+	"log"
 
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 )
@@ -16,6 +17,8 @@ func (h *Handler) ListBots(ctx context.Context) (gen.ListBotsRes, error) {
 	for i, b := range bots {
 		genBots[i] = *modelToDTO(&b.Bot, b.Profiles)
 	}
+
+	log.Println("bots list:", len(bots), genBots)
 
 	return &gen.BotList{
 		Data:       genBots,
