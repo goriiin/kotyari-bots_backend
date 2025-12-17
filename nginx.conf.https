@@ -6,16 +6,24 @@ http {
     include       mime.types;
     default_type  application/octet-stream;
 
-    # 1. Резолвер
+    # 1. Резолвер для динамического upstream
     resolver 127.0.0.11 valid=10s;
 
-    # 2. Карта маршрутизации
+    # 2. Карта маршрутизации для бэкенда постов
     map $request_method $posts_target_host {
         GET     "posts_query_go:8089";
         HEAD    "posts_query_go:8089";
         default "posts_command_prod_go:8088";
     }
 
+    # 3. Upstream для Nuxt SSR приложения
+    upstream nuxt_app {
+        # Предполагается, что Nuxt-сервер запущен локально на порту 3000
+        server 127.0.0.1:3000;
+        keepalive 64;
+    }
+
+    # Сервер для редиректа с HTTP на HTTPS
     server {
         listen 80;
         server_name writehub.space www.writehub.space;
@@ -29,47 +37,39 @@ http {
         }
     }
 
+    # Основной сервер с SSL
     server {
-        listen 443 ssl;
+        listen 443 ssl http2;
         server_name writehub.space www.writehub.space;
 
+        # SSL сертификаты
         ssl_certificate /etc/letsencrypt/live/writehub.space/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/writehub.space/privkey.pem;
 
+        # Настройки SSL
         ssl_session_cache shared:SSL:10m;
         ssl_session_timeout 10m;
         ssl_protocols TLSv1.2 TLSv1.3;
         ssl_prefer_server_ciphers off;
 
-        # === ГЛОБАЛЬНОЕ ОТКЛЮЧЕНИЕ КЭША ===
-        # Эти заголовки унаследуются всеми location, где нет своих add_header
-        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
-        add_header Pragma "no-cache" always;
-        add_header Expires "0" always;
-        expires -1;
-        etag off;
-
-        # === FRONTEND ===
-        root /var/www/frontend;
-        index index.html;
-
+        # === FRONTEND (Nuxt SSR) ===
+        # Проксируем все запросы, не попавшие в другие location, на Nuxt-сервер
         location / {
-            try_files $uri $uri/ /index.html;
-            # Для index.html SPA критически важно отсутствие кэша
-            add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
-        }
-
-        # Статика (JS, CSS, IMG) - ТЕПЕРЬ БЕЗ КЭША
-        location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|svg|ttf|eot)$ {
-            access_log off;
-            # Принудительно считаем устаревшим сразу
-            expires -1;
-            # Явно переписываем заголовки для этого блока
-            add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
-            add_header Pragma "no-cache" always;
+            proxy_pass http://nuxt_app;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_read_timeout 1m;
+            proxy_connect_timeout 1m;
+            proxy_cache_bypass $http_upgrade; # Важно для WebSocket (HMR в dev режиме)
         }
 
         # === API BACKEND ===
+        # Эти блоки остаются без изменений
 
         location /api/v1/bots {
             set $upstream_bots "http://bots_go:8001";
@@ -78,9 +78,6 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-
-            # API тоже не кэшируем (наследуется от server, но можно убедиться явно,
-            # если бэкенд не шлет свои заголовки Cache-Control)
         }
 
         location /api/v1/profiles {
