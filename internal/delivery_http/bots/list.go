@@ -8,11 +8,14 @@ import (
 )
 
 func (h *Handler) ListBots(ctx context.Context) (gen.ListBotsRes, error) {
+	log.Println("ListBots")
 	bots, err := h.u.List(ctx)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
+	log.Println("ListBots", bots)
 	genBots := make([]gen.Bot, len(bots))
 	for i, b := range bots {
 		genBots[i] = *modelToDTO(&b.Bot, b.Profiles)
