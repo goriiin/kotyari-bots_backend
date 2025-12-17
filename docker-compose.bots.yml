@@ -20,20 +20,20 @@ services:
       retries: 5
     restart: unless-stopped
 
-  bots_migrate:
-    build:
-      context: .
-      dockerfile: ./cmd/bots/Dockerfile
-      target: migrator
-    container_name: bots_migrate
-    image: bots_migrate_image
-    env_file: .env
-    networks:
-      - bots-internal-network
-    depends_on:
-      bots_db:
-        condition: service_healthy
-    restart: on-failure
+#  bots_migrate:
+#    build:
+#      context: .
+#      dockerfile: ./cmd/bots/Dockerfile
+#      target: migrator
+#    container_name: bots_migrate
+#    image: bots_migrate_image
+#    env_file: .env
+#    networks:
+#      - bots-internal-network
+#    depends_on:
+#      bots_db:
+#        condition: service_healthy
+#    restart: on-failure
 
   bots_go:
     build:
@@ -52,8 +52,10 @@ services:
       - bots-internal-network
       - public-gateway-network
     depends_on:
-      bots_migrate:
-        condition: service_completed_successfully
+      bots_db:
+        condition: service_healthy
+#      bots_migrate:
+#        condition: service_completed_successfully
     restart: unless-stopped
 
 networks:
