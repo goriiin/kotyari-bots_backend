@@ -68,6 +68,7 @@ func (d PostDTO) ToModel() model.Post {
 		ProfileName: d.ProfileName,
 		Platform:    model.PlatformType(d.Platform),
 		Type:        postType,
+		UserPrompt:  d.UserPrompt,
 		Title:       d.Title,
 		Text:        d.Text,
 		CreatedAt:   d.CreatedAt,

@@ -49,7 +49,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 	case strings.Contains(resp.Error, constants.InternalMsg):
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   constants.InternalMsg,
+			Message:   resp.Error,
 		}, nil
 
 	case strings.Contains(resp.Error, constants.NotFoundMsg):
