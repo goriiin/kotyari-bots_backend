@@ -28,7 +28,7 @@ posts_producer_reply:
   kind: consumer
 
 posts_consumer_grpc:
-  posts_addr: "host.docker.internal:50051" # Создать общий network между docker-compose.yml
+  posts_addr: "analytics:50051" # Создать общий network между docker-compose.yml
   dial_timeout: 10
 
 posts_consumer_request:
