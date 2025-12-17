@@ -23,6 +23,11 @@ func New() *cors.Cors {
 			"http://212.233.75.64",
 			"http://212.233.75.64:80",
 			"http://212.233.75.64:3000",
+
+			"http://writehub.space",
+			"http://writehub.space:80",
+			"https://writehub.space",
+			"https://writehub.space:443",
 		},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

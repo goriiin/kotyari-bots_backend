@@ -79,7 +79,7 @@ services:
     restart: unless-stopped
     networks:
       - posts-internal-network
-#      - public-gateway-network
+      - public-gateway-network
     depends_on:
       posts_db:
         condition: service_healthy
