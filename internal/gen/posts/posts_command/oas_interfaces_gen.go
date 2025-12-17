@@ -9,6 +9,10 @@ type DeletePostByIdRes interface {
 	deletePostByIdRes()
 }
 
+type PublishPostRes interface {
+	publishPostRes()
+}
+
 type SeenPostsRes interface {
 	seenPostsRes()
 }

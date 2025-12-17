@@ -31,6 +31,15 @@ func (UnimplementedHandler) DeletePostById(ctx context.Context, params DeletePos
 	return r, ht.ErrNotImplemented
 }
 
+// PublishPost implements publishPost operation.
+//
+// Опубликовать пост (для модерации).
+//
+// POST /api/v1/posts/{postId}/publish
+func (UnimplementedHandler) PublishPost(ctx context.Context, req *PublishPostRequest, params PublishPostParams) (r PublishPostRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // SeenPosts implements seenPosts operation.
 //
 // Обновить статус постов, которые пользователь уже
