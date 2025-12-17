@@ -337,6 +337,52 @@ func (o OptNilUUIDArray) Or(d []uuid.UUID) []uuid.UUID {
 	return d
 }
 
+// NewOptString returns new OptString with value set to v.
+func NewOptString(v string) OptString {
+	return OptString{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptString is optional string.
+type OptString struct {
+	Value string
+	Set   bool
+}
+
+// IsSet returns true if OptString was set.
+func (o OptString) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptString) Reset() {
+	var v string
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptString) SetTo(v string) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptString) Get() (v string, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptString) Or(d string) string {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // Пост.
 // Ref: #/Post
 type Post struct {
@@ -358,6 +404,8 @@ type Post struct {
 	Platform PostPlatform `json:"platform"`
 	// Тип поста.
 	PostType OptNilPostPostType `json:"postType"`
+	// Задание на генерацию от пользователя.
+	Task string `json:"task"`
 	// Название поста.
 	Title string `json:"title"`
 	// Текстовое содержимое поста.
@@ -411,6 +459,11 @@ func (s *Post) GetPlatform() PostPlatform {
 // GetPostType returns the value of PostType.
 func (s *Post) GetPostType() OptNilPostPostType {
 	return s.PostType
+}
+
+// GetTask returns the value of Task.
+func (s *Post) GetTask() string {
+	return s.Task
 }
 
 // GetTitle returns the value of Title.
@@ -481,6 +534,11 @@ func (s *Post) SetPlatform(val PostPlatform) {
 // SetPostType sets the value of PostType.
 func (s *Post) SetPostType(val OptNilPostPostType) {
 	s.PostType = val
+}
+
+// SetTask sets the value of Task.
+func (s *Post) SetTask(val string) {
+	s.Task = val
 }
 
 // SetTitle sets the value of Title.
@@ -820,6 +878,70 @@ func (s *PostsSeenRequest) GetSeen() []uuid.UUID {
 func (s *PostsSeenRequest) SetSeen(val []uuid.UUID) {
 	s.Seen = val
 }
+
+type PublishPostBadRequest Error
+
+func (*PublishPostBadRequest) publishPostRes() {}
+
+type PublishPostInternalServerError Error
+
+func (*PublishPostInternalServerError) publishPostRes() {}
+
+type PublishPostNotFound Error
+
+func (*PublishPostNotFound) publishPostRes() {}
+
+// Данные для публикации поста.
+// Ref: #/PublishPostRequest
+type PublishPostRequest struct {
+	// Одобрен ли пост для публикации.
+	Approved bool `json:"approved"`
+}
+
+// GetApproved returns the value of Approved.
+func (s *PublishPostRequest) GetApproved() bool {
+	return s.Approved
+}
+
+// SetApproved sets the value of Approved.
+func (s *PublishPostRequest) SetApproved(val bool) {
+	s.Approved = val
+}
+
+// Результат публикации поста.
+// Ref: #/PublishPostResponse
+type PublishPostResponse struct {
+	// Успешно ли опубликован пост.
+	Success bool `json:"success"`
+	// Сообщение о результате.
+	Message OptString `json:"message"`
+}
+
+// GetSuccess returns the value of Success.
+func (s *PublishPostResponse) GetSuccess() bool {
+	return s.Success
+}
+
+// GetMessage returns the value of Message.
+func (s *PublishPostResponse) GetMessage() OptString {
+	return s.Message
+}
+
+// SetSuccess sets the value of Success.
+func (s *PublishPostResponse) SetSuccess(val bool) {
+	s.Success = val
+}
+
+// SetMessage sets the value of Message.
+func (s *PublishPostResponse) SetMessage(val OptString) {
+	s.Message = val
+}
+
+func (*PublishPostResponse) publishPostRes() {}
+
+type PublishPostUnauthorized Error
+
+func (*PublishPostUnauthorized) publishPostRes() {}
 
 type SeenPostsInternalServerError Error
 

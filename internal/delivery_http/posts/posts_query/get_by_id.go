@@ -15,7 +15,6 @@ func (p *PostsQueryHandler) GetPostById(ctx context.Context, params gen.GetPostB
 	// Пока возвращается пост без категорий
 	post, err := p.repo.GetByID(ctx, params.PostId)
 	if err != nil {
-
 		if strings.Contains(err.Error(), constants.NotFoundMsg) {
 			return &gen.GetPostByIdNotFound{ErrorCode: http.StatusNotFound, Message: "post not found"}, nil
 		}

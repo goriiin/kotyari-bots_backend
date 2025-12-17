@@ -81,6 +81,72 @@ func decodeDeletePostByIdParams(args [1]string, argsEscaped bool, r *http.Reques
 	return params, nil
 }
 
+// PublishPostParams is parameters of publishPost operation.
+type PublishPostParams struct {
+	// Уникальный идентификатор поста.
+	PostId uuid.UUID
+}
+
+func unpackPublishPostParams(packed middleware.Parameters) (params PublishPostParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "postId",
+			In:   "path",
+		}
+		params.PostId = packed[key].(uuid.UUID)
+	}
+	return params
+}
+
+func decodePublishPostParams(args [1]string, argsEscaped bool, r *http.Request) (params PublishPostParams, _ error) {
+	// Decode path: postId.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "postId",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToUUID(val)
+				if err != nil {
+					return err
+				}
+
+				params.PostId = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "postId",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // UpdatePostByIdParams is parameters of updatePostById operation.
 type UpdatePostByIdParams struct {
 	// Уникальный идентификатор поста.

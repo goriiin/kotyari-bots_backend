@@ -20,6 +20,12 @@ type Handler interface {
 	//
 	// DELETE /api/v1/posts/{postId}
 	DeletePostById(ctx context.Context, params DeletePostByIdParams) (DeletePostByIdRes, error)
+	// PublishPost implements publishPost operation.
+	//
+	// Опубликовать пост (для модерации).
+	//
+	// POST /api/v1/posts/{postId}/publish
+	PublishPost(ctx context.Context, req *PublishPostRequest, params PublishPostParams) (PublishPostRes, error)
 	// SeenPosts implements seenPosts operation.
 	//
 	// Обновить статус постов, которые пользователь уже

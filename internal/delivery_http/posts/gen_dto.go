@@ -24,6 +24,7 @@ func QueryModelToHttp(post model.Post) *genQuery.Post {
 		ProfileName: post.ProfileName,
 		Platform:    genQuery.PostPlatform(post.Platform),
 		PostType:    postType,
+		Task:        post.UserPrompt,
 		Title:       post.Title,
 		Text:        post.Text,
 		Categories:  nil,
@@ -61,6 +62,7 @@ func ModelToHttp(post model.Post) *genCommand.Post {
 		ProfileName: post.ProfileName,
 		Platform:    genCommand.PostPlatform(post.Platform),
 		PostType:    postType,
+		Task:        post.UserPrompt,
 		Title:       post.Title,
 		Text:        post.Text,
 		Categories:  nil,
@@ -104,12 +106,10 @@ func HttpInputToModel(input genCommand.PostInput) (*model.Post, string) {
 }
 
 func PostsCheckModelToHttp(post model.Post) genQuery.PostsCheckObject {
-	isReady := !(post.Text == "" || post.Title == "")
-
 	return genQuery.PostsCheckObject{
 		ID:      post.ID,
 		GroupID: post.GroupID,
-		IsReady: isReady,
+		IsReady: post.Text != "" && post.Title != "",
 	}
 }
 
@@ -117,7 +117,6 @@ func PostsCheckModelsToHttpSlice(posts []model.Post) *genQuery.PostsCheckList {
 	checkObjects := make([]genQuery.PostsCheckObject, 0, len(posts))
 
 	for _, post := range posts {
-
 		// TODO: Плакать хочется
 		if post.IsSeen {
 			continue

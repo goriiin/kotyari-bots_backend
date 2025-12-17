@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	CmdCreate kafkaConfig.Command = "create"
-	CmdUpdate kafkaConfig.Command = "update"
-	CmdDelete kafkaConfig.Command = "delete"
-	CmdSeen   kafkaConfig.Command = "seen"
+	CmdCreate  kafkaConfig.Command = "create"
+	CmdUpdate  kafkaConfig.Command = "update"
+	CmdDelete  kafkaConfig.Command = "delete"
+	CmdPublish kafkaConfig.Command = "publish"
+	CmdSeen    kafkaConfig.Command = "seen"
 )
 
 // KafkaResponse TODO: model.Post -> []model.Post?
@@ -33,6 +34,8 @@ type KafkaCreatePostRequest struct {
 	Profiles   []CreatePostProfiles `json:"profiles"`
 	Platform   model.PlatformType   `json:"platform_type"`
 	PostType   model.PostType       `json:"post_type"`
+	// ModerationRequired indicates whether posts from this bot require moderation before publishing
+	ModerationRequired bool `json:"moderation_required"`
 }
 
 type CreatePostProfiles struct {
@@ -51,6 +54,11 @@ type KafkaSeenPostsRequest struct {
 	PostIDs []uuid.UUID `json:"post_ids"`
 }
 
+type KafkaPublishPostRequest struct {
+	PostID   uuid.UUID `json:"post_id"`
+	Approved bool      `json:"approved"`
+}
+
 func PayloadToEnvelope(command kafkaConfig.Command, entityID string, payload []byte) kafkaConfig.Envelope {
 	return kafkaConfig.Envelope{
 		Command:  command,
@@ -66,17 +74,21 @@ func (r KafkaResponse) PostCommandToGen() *gen.Post {
 	}
 
 	return &gen.Post{
-		ID:         r.Post.ID,
-		OtvetiId:   r.Post.OtvetiID,
-		BotId:      r.Post.BotID,
-		ProfileId:  r.Post.ProfileID,
-		Platform:   gen.PostPlatform(r.Post.Platform),
-		PostType:   postType,
-		Title:      r.Post.Title,
-		Text:       r.Post.Text,
-		Categories: nil, // TODO: ??
-		CreatedAt:  r.Post.CreatedAt,
-		UpdatedAt:  r.Post.UpdatedAt,
+		ID:          r.Post.ID,
+		OtvetiId:    r.Post.OtvetiID,
+		BotId:       r.Post.BotID,
+		BotName:     r.Post.BotName,
+		ProfileId:   r.Post.ProfileID,
+		ProfileName: r.Post.ProfileName,
+		GroupId:     r.Post.GroupID,
+		Platform:    gen.PostPlatform(r.Post.Platform),
+		PostType:    postType,
+		Task:        r.Post.UserPrompt,
+		Title:       r.Post.Title,
+		Text:        r.Post.Text,
+		Categories:  nil, // TODO: ??
+		CreatedAt:   r.Post.CreatedAt,
+		UpdatedAt:   r.Post.UpdatedAt,
 	}
 }
 

@@ -62,6 +62,7 @@ services:
     networks:
       - posts-internal-network
       - public-gateway-network
+      - common-network
     depends_on:
       kafka:
         condition: service_healthy
@@ -127,6 +128,8 @@ networks:
   posts-internal-network:
     driver: bridge
   public-gateway-network:
+    external: true
+  common-network:
     external: true
 
 volumes:
