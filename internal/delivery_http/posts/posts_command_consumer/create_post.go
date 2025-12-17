@@ -60,10 +60,14 @@ func (p *PostsCommandConsumer) processProfile(ctx context.Context, req posts.Kaf
 		return nil
 	}
 
-	bestPost := p.createPostFromCandidate(req, profile, bestPostCandidate)
-	p.publishToOtvet(ctx, req, bestPostCandidate, bestPost)
+	bestPost := postsMap[profile.ProfileID]
+	bestPost.Title = bestPostCandidate.Title
+	bestPost.Text = bestPostCandidate.Text
 
-	return bestPost
+	//bestPost := p.createPostFromCandidate(req, profile, bestPostCandidate)
+	p.publishToOtvet(ctx, req, bestPostCandidate, &bestPost)
+
+	return &bestPost
 }
 
 // generatePostsForProfile generates multiple post candidates for a profile
@@ -105,26 +109,6 @@ func (p *PostsCommandConsumer) generatePostsForProfile(ctx context.Context, req 
 	profileWg.Wait()
 	return profilesPosts
 }
-
-
-// createPostFromCandidate creates a Post model from a candidate
-func (p *PostsCommandConsumer) createPostFromCandidate(req posts.KafkaCreatePostRequest, profile posts.CreatePostProfiles, candidate model.Candidate) *model.Post {
-	return &model.Post{
-		ID:          uuid.New(),
-		OtvetiID:    0,
-		BotID:       req.BotID,
-		BotName:     req.BotName,
-		ProfileID:   profile.ProfileID,
-		ProfileName: profile.ProfileName,
-		GroupID:     req.GroupID,
-		Platform:    req.Platform,
-		Type:        req.PostType,
-		UserPrompt:  req.UserPrompt,
-		Title:       candidate.Title,
-		Text:        candidate.Text,
-	}
-}
-
 
 // publishToOtvet publishes post to otvet.mail.ru if platform is otveti
 func (p *PostsCommandConsumer) publishToOtvet(ctx context.Context, req posts.KafkaCreatePostRequest, candidate model.Candidate, post *model.Post) {
@@ -169,7 +153,6 @@ func (p *PostsCommandConsumer) publishToOtvet(ctx context.Context, req posts.Kaf
 		post.OtvetiID = uint64(otvetResp.Result.ID)
 	}
 }
-
 
 // getSpacesForPost predicts spaces for a post or returns default spaces
 func (p *PostsCommandConsumer) getSpacesForPost(ctx context.Context, candidate model.Candidate) []otvet.Space {
