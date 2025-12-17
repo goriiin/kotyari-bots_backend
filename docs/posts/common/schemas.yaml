@@ -57,6 +57,9 @@ Post:
         - "knowledge"
         - "history"
       description: "Тип поста"
+    task:
+      type: string
+      description: "Задание на генерацию от пользователя"
     title:
       type: string
       description: "Название поста"
@@ -85,6 +88,7 @@ Post:
     - profileId
     - profileName
     - platform
+    - task
     - title
     - text
     - createdAt

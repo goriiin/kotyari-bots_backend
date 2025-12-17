@@ -12,7 +12,7 @@ const (
 	CmdUpdate  kafkaConfig.Command = "update"
 	CmdDelete  kafkaConfig.Command = "delete"
 	CmdPublish kafkaConfig.Command = "publish"
-	CmdSeen   kafkaConfig.Command = "seen"
+	CmdSeen    kafkaConfig.Command = "seen"
 )
 
 // KafkaResponse TODO: model.Post -> []model.Post?
@@ -74,17 +74,21 @@ func (r KafkaResponse) PostCommandToGen() *gen.Post {
 	}
 
 	return &gen.Post{
-		ID:         r.Post.ID,
-		OtvetiId:   r.Post.OtvetiID,
-		BotId:      r.Post.BotID,
-		ProfileId:  r.Post.ProfileID,
-		Platform:   gen.PostPlatform(r.Post.Platform),
-		PostType:   postType,
-		Title:      r.Post.Title,
-		Text:       r.Post.Text,
-		Categories: nil, // TODO: ??
-		CreatedAt:  r.Post.CreatedAt,
-		UpdatedAt:  r.Post.UpdatedAt,
+		ID:          r.Post.ID,
+		OtvetiId:    r.Post.OtvetiID,
+		BotId:       r.Post.BotID,
+		BotName:     r.Post.BotName,
+		ProfileId:   r.Post.ProfileID,
+		ProfileName: r.Post.ProfileName,
+		GroupId:     r.Post.GroupID,
+		Platform:    gen.PostPlatform(r.Post.Platform),
+		PostType:    postType,
+		Task:        r.Post.UserPrompt,
+		Title:       r.Post.Title,
+		Text:        r.Post.Text,
+		Categories:  nil, // TODO: ??
+		CreatedAt:   r.Post.CreatedAt,
+		UpdatedAt:   r.Post.UpdatedAt,
 	}
 }
 

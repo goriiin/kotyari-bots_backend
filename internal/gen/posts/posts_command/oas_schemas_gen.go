@@ -404,6 +404,8 @@ type Post struct {
 	Platform PostPlatform `json:"platform"`
 	// Тип поста.
 	PostType OptNilPostPostType `json:"postType"`
+	// Задание на генерацию от пользователя.
+	Task string `json:"task"`
 	// Название поста.
 	Title string `json:"title"`
 	// Текстовое содержимое поста.
@@ -457,6 +459,11 @@ func (s *Post) GetPlatform() PostPlatform {
 // GetPostType returns the value of PostType.
 func (s *Post) GetPostType() OptNilPostPostType {
 	return s.PostType
+}
+
+// GetTask returns the value of Task.
+func (s *Post) GetTask() string {
+	return s.Task
 }
 
 // GetTitle returns the value of Title.
@@ -527,6 +534,11 @@ func (s *Post) SetPlatform(val PostPlatform) {
 // SetPostType sets the value of PostType.
 func (s *Post) SetPostType(val OptNilPostPostType) {
 	s.PostType = val
+}
+
+// SetTask sets the value of Task.
+func (s *Post) SetTask(val string) {
+	s.Task = val
 }
 
 // SetTitle sets the value of Title.
