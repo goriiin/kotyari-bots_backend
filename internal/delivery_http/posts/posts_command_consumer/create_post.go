@@ -64,7 +64,7 @@ func (p *PostsCommandConsumer) processProfile(ctx context.Context, req posts.Kaf
 	bestPost.Title = bestPostCandidate.Title
 	bestPost.Text = bestPostCandidate.Text
 
-	//bestPost := p.createPostFromCandidate(req, profile, bestPostCandidate)
+	// bestPost := p.createPostFromCandidate(req, profile, bestPostCandidate)
 	p.publishToOtvet(ctx, req, bestPostCandidate, &bestPost)
 
 	return &bestPost
