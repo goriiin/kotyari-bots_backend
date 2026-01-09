@@ -18,7 +18,8 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 	for message := range p.consumer.Start(ctx) {
 		var env kafkaConfig.Envelope
 		if err := jsoniter.Unmarshal(message.Msg.Value, &env); err != nil {
-			fmt.Printf("%s: %v\n", constants.ErrUnmarshal, err)
+			p.log.Error(err, false, constants.ErrUnmarshal.Error())
+			_ = message.Ack(ctx)
 			continue
 		}
 
@@ -39,7 +40,7 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 		}
 
 		if err != nil {
-			fmt.Printf("failed to handle command '%s': %v\n", env.Command, err)
+			p.log.Error(err, false, fmt.Sprintf("failed to handle command '%s'", env.Command))
 		}
 	}
 
@@ -115,17 +116,19 @@ func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message 
 		return errors.Wrap(err, "failed to ACK posts creation")
 	}
 
-	err = p.CreatePost(ctx, postsMapping, req)
-	if err != nil {
-		// TODO: LOG
-		fmt.Printf("failed to create post: %s", err.Error())
-
-		return message.Nack(ctx, err)
-	}
-
 	if err = message.Ack(ctx); err != nil {
-		return errors.Wrap(err, "failed to ACK posts creation")
+		return errors.Wrap(err, "failed to commit offset")
 	}
+
+	// Запускаем генерацию в фоне
+	go func() {
+		bgCtx := context.Background()
+		if err := p.CreatePost(bgCtx, postsMapping, req); err != nil {
+			p.log.Error(err, false, fmt.Sprintf("Async post generation failed for GroupID %s", req.GroupID))
+		} else {
+			p.log.Info(fmt.Sprintf("Async post generation finished for GroupID %s", req.GroupID))
+		}
+	}()
 
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	postssgen "github.com/goriiin/kotyari-bots_backend/api/protos/posts/gen"
 	kafkaConfig "github.com/goriiin/kotyari-bots_backend/internal/kafka"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/otvet"
 	"github.com/goriiin/kotyari-bots_backend/pkg/posting_queue"
@@ -59,6 +60,7 @@ type PostsCommandConsumer struct {
 	judge       judge
 	otvetClient otvetClient
 	queue       postingQueue
+	log         *logger.Logger
 }
 
 func NewPostsCommandConsumer(
@@ -69,6 +71,7 @@ func NewPostsCommandConsumer(
 	judge judge,
 	otvetClient otvetClient,
 	queue postingQueue,
+	log *logger.Logger,
 ) *PostsCommandConsumer {
 	return &PostsCommandConsumer{
 		consumer:    consumer,
@@ -78,5 +81,6 @@ func NewPostsCommandConsumer(
 		judge:       judge,
 		otvetClient: otvetClient,
 		queue:       queue,
+		log:         log,
 	}
 }
