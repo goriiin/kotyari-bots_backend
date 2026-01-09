@@ -180,6 +180,11 @@ lint:
 format:
 	@gci write . --skip-generated --skip-vendor < /dev/null
 
+format-check:
+	@gci diff . --skip-generated --skip-vendor < /dev/null
+
+check: lint format-check
+
 # --- INTRANET (Parsers) ---
 
 INTRANET_DIR := ./intranet
