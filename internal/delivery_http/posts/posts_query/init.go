@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
@@ -17,10 +18,12 @@ type postsQueryRepository interface {
 
 type PostsQueryHandler struct {
 	repo postsQueryRepository
+	log  *logger.Logger
 }
 
-func NewPostsQueryHandler(repo postsQueryRepository) *PostsQueryHandler {
+func NewPostsQueryHandler(repo postsQueryRepository, log *logger.Logger) *PostsQueryHandler {
 	return &PostsQueryHandler{
 		repo: repo,
+		log:  log,
 	}
 }

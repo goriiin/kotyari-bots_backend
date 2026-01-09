@@ -14,6 +14,7 @@ func (h *HTTPHandler) GetProfileById(ctx context.Context, params gen.GetProfileB
 		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.GetProfileByIdNotFound{ErrorCode: constants.ErrNotFoundMsg, Message: "profile not found"}, nil
 		}
+		h.log.Error(err, true, "GetProfileById: get")
 		return &gen.GetProfileByIdInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: err.Error()}, nil
 	}
 	return modelToHttpDTO(&p), nil

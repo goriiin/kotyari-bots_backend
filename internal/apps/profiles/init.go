@@ -15,6 +15,7 @@ import (
 	deliverygrpc "github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles"
 	deliveryhttp "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/profiles"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/profiles"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/profiles"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/profiles"
 	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
@@ -37,6 +38,8 @@ func (p *ProfilesApp) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	l := logger.NewLogger("profiles-app", &p.config.ConfigBase)
+
 	pool, err := postgres.GetPool(ctx, p.config.Database)
 	if err != nil {
 		return fmt.Errorf("postgres.GetPool: %w", err)
@@ -46,8 +49,8 @@ func (p *ProfilesApp) Run() error {
 	profilesRepo := repo.NewRepository(pool)
 	profilesUsecase := usecase.NewService(profilesRepo)
 
-	grpcHandler := deliverygrpc.NewGRPCHandler(profilesUsecase)
-	httpHandler := deliveryhttp.NewHTTPHandler(profilesUsecase)
+	grpcHandler := deliverygrpc.NewGRPCHandler(profilesUsecase, l)
+	httpHandler := deliveryhttp.NewHTTPHandler(profilesUsecase, l)
 
 	g, gCtx := errgroup.WithContext(ctx)
 

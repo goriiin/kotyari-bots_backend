@@ -18,6 +18,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles_validator"
 	delivery "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/bots"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	repo "github.com/goriiin/kotyari-bots_backend/internal/repo/bots"
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
@@ -41,6 +42,8 @@ func (b *App) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	l := logger.NewLogger("bots-app", &b.config.ConfigBase)
+
 	pool, err := postgres.GetPool(ctx, b.config.Database)
 	if err != nil {
 		return fmt.Errorf("postgres.GetPool: %w", err)
@@ -63,7 +66,7 @@ func (b *App) Run() error {
 	profileValidator := profiles_validator.NewGrpcValidator(profilesClient)
 	profileGateway := profiles_getter.NewProfileGateway(profilesClient)
 	botsUsecase := usecase.NewService(botsRepo, profileValidator, profileGateway)
-	botsHandler := delivery.NewHandler(botsUsecase)
+	botsHandler := delivery.NewHandler(botsUsecase, l)
 
 	svr, err := gen.NewServer(botsHandler)
 	if err != nil {
@@ -90,7 +93,7 @@ func (b *App) Run() error {
 		return fmt.Errorf("failed to listen for grpc: %w", err)
 	}
 	grpcServer := grpc.NewServer()
-	botGrpcServer := bots.NewServer(botsUsecase)
+	botGrpcServer := bots.NewServer(botsUsecase, l)
 	botgrpc.RegisterBotServiceServer(grpcServer, botGrpcServer)
 
 	go func() {

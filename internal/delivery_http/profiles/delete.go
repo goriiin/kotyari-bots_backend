@@ -14,6 +14,7 @@ func (h *HTTPHandler) DeleteProfileById(ctx context.Context, params gen.DeletePr
 		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.DeleteProfileByIdNotFound{ErrorCode: constants.ErrNotFoundMsg, Message: "profile not found"}, nil
 		}
+		h.log.Error(err, true, "DeleteProfileById: delete")
 		return &gen.DeleteProfileByIdInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: err.Error()}, nil
 	}
 	return &gen.NoContent{}, nil

@@ -10,6 +10,7 @@ import (
 func (h *Handler) SummaryBots(ctx context.Context) (bots.SummaryBotsRes, error) {
 	summary, err := h.u.GetSummary(ctx)
 	if err != nil {
+		h.log.Error(err, true, "SummaryBots: get summary")
 		return &bots.Error{
 			ErrorCode: constants.InternalMsg,
 			Message:   err.Error(),

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
@@ -17,7 +18,7 @@ import (
 func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput) (gen.CreatePostRes, error) {
 	bot, err := p.fetcher.GetBot(ctx, req.BotId.String())
 	if err != nil {
-		fmt.Println("bots")
+		p.log.Error(err, true, "CreatePost: get bot")
 		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: ierrors.GRPCToDomainError(err).Error()}, nil
 	}
 
@@ -26,14 +27,11 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		idsString = append(idsString, id.String())
 	}
 
-	fmt.Printf("ids string: %+v\n", idsString)
 	profilesBatch, err := p.fetcher.GetProfiles(ctx, idsString)
 	if err != nil {
-		fmt.Println("profiles")
+		p.log.Error(err, true, "CreatePost: get profiles")
 		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: ierrors.GRPCToDomainError(err).Error()}, nil
 	}
-
-	fmt.Printf("profiles batch: %+v\n", idsString)
 
 	postProfiles := make([]posts.CreatePostProfiles, 0, len(idsString))
 	for _, profile := range profilesBatch.Profiles {
@@ -48,23 +46,21 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	groupID := uuid.New()
 	botID, _ := uuid.Parse(bot.Id)
 	createPostRequest := posts.KafkaCreatePostRequest{
-		PostID:     uuid.New(),
-		GroupID:    groupID,
-		BotID:      botID,
-		BotName:    bot.BotName,
-		BotPrompt:  bot.BotPrompt,
-		UserPrompt: req.TaskText,
-		Profiles:   postProfiles,
-		Platform:   model.PlatformType(req.Platform),
-		PostType:   model.PostType(req.PostType.Value),
-		// pass moderation flag from bot
+		PostID:             uuid.New(),
+		GroupID:            groupID,
+		BotID:              botID,
+		BotName:            bot.BotName,
+		BotPrompt:          bot.BotPrompt,
+		UserPrompt:         req.TaskText,
+		Profiles:           postProfiles,
+		Platform:           model.PlatformType(req.Platform),
+		PostType:           model.PostType(req.PostType.Value),
 		ModerationRequired: bot.ModerationRequired,
 	}
 
-	fmt.Printf("%+v\n", createPostRequest)
-
 	rawReq, err := jsoniter.Marshal(createPostRequest)
 	if err != nil {
+		p.log.Error(err, true, "CreatePost: marshal")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -73,6 +69,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 
 	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdCreate, createPostRequest.GroupID.String(), rawReq), 30*time.Second)
 	if err != nil {
+		p.log.Error(err, true, "CreatePost: request")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -82,6 +79,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	var resp posts.KafkaResponse
 	err = jsoniter.Unmarshal(rawResp, &resp)
 	if err != nil {
+		p.log.Error(err, true, "CreatePost: unmarshal response")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -89,6 +87,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	}
 
 	if resp.Error != "" {
+		p.log.Warn("CreatePost: response error", errors.New(resp.Error))
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   fmt.Sprintf("Failed to create post, %s", resp.Error),

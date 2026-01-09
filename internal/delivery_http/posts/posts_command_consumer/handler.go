@@ -40,7 +40,7 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 		}
 
 		if err != nil {
-			p.log.Error(err, false, fmt.Sprintf("failed to handle command '%s'", env.Command))
+			p.log.Error(err, false, fmt.Sprintf("HandleCommands: failed to handle command '%s'", env.Command))
 		}
 	}
 
@@ -50,16 +50,19 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 func (p *PostsCommandConsumer) handleSeenCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
 	err := p.SeenPosts(ctx, payload)
 	if err != nil {
+		p.log.Error(err, true, "handleSeenCommand: seen posts")
 		return sendErrReply(ctx, message, err)
 	}
 
 	resp := posts.KafkaResponse{}
 	rawResp, err := jsoniter.Marshal(resp)
 	if err != nil {
+		p.log.Error(err, true, "handleSeenCommand: marshal")
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
 	if err := message.Reply(ctx, rawResp, true); err != nil {
+		p.log.Error(err, true, "handleSeenCommand: reply")
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 
@@ -69,6 +72,7 @@ func (p *PostsCommandConsumer) handleSeenCommand(ctx context.Context, message ka
 func (p *PostsCommandConsumer) handleUpdateCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
 	post, err := p.UpdatePost(ctx, payload)
 	if err != nil {
+		p.log.Error(err, true, "handleUpdateCommand: update post")
 		return sendErrReply(ctx, message, err)
 	}
 
@@ -78,10 +82,12 @@ func (p *PostsCommandConsumer) handleUpdateCommand(ctx context.Context, message 
 
 	rawResp, err := jsoniter.Marshal(resp)
 	if err != nil {
+		p.log.Error(err, true, "handleUpdateCommand: marshal")
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
 	if err := message.Reply(ctx, rawResp, true); err != nil {
+		p.log.Error(err, true, "handleUpdateCommand: reply")
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 
@@ -90,15 +96,18 @@ func (p *PostsCommandConsumer) handleUpdateCommand(ctx context.Context, message 
 
 func (p *PostsCommandConsumer) handleDeleteCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
 	if err := p.DeletePost(ctx, payload); err != nil {
+		p.log.Error(err, true, "handleDeleteCommand: delete post")
 		return sendErrReply(ctx, message, err)
 	}
 
 	resp, err := jsoniter.Marshal(posts.KafkaResponse{})
 	if err != nil {
+		p.log.Error(err, true, "handleDeleteCommand: marshal")
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
 	if err := message.Reply(ctx, resp, true); err != nil {
+		p.log.Error(err, true, "handleDeleteCommand: reply")
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 
@@ -108,15 +117,18 @@ func (p *PostsCommandConsumer) handleDeleteCommand(ctx context.Context, message 
 func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message kafkaConfig.CommittableMessage, payload []byte) error {
 	postsMapping, req, err := p.CreateInitialPosts(ctx, payload)
 	if err != nil {
+		p.log.Error(err, true, "handleCreateCommand: create initial posts")
 		return sendErrReply(ctx, message, err)
 	}
 
 	err = sendOkReply(ctx, message)
 	if err != nil {
+		p.log.Error(err, true, "handleCreateCommand: send ok reply")
 		return errors.Wrap(err, "failed to ACK posts creation")
 	}
 
 	if err = message.Ack(ctx); err != nil {
+		p.log.Error(err, true, "handleCreateCommand: ack")
 		return errors.Wrap(err, "failed to commit offset")
 	}
 
@@ -124,9 +136,9 @@ func (p *PostsCommandConsumer) handleCreateCommand(ctx context.Context, message 
 	go func() {
 		bgCtx := context.Background()
 		if err := p.CreatePost(bgCtx, postsMapping, req); err != nil {
-			p.log.Error(err, false, fmt.Sprintf("Async post generation failed for GroupID %s", req.GroupID))
+			p.log.Error(err, false, fmt.Sprintf("handleCreateCommand: Async post generation failed for GroupID %s", req.GroupID))
 		} else {
-			p.log.Info(fmt.Sprintf("Async post generation finished for GroupID %s", req.GroupID))
+			p.log.Info(fmt.Sprintf("handleCreateCommand: Async post generation finished for GroupID %s", req.GroupID))
 		}
 	}()
 
@@ -137,24 +149,30 @@ func (p *PostsCommandConsumer) handlePublishCommand(ctx context.Context, message
 	var req posts.KafkaPublishPostRequest
 	err := jsoniter.Unmarshal(payload, &req)
 	if err != nil {
+		p.log.Error(err, true, "handlePublishCommand: unmarshal")
 		return sendErrReply(ctx, message, errors.Wrap(err, "failed to unmarshal"))
 	}
 
 	if p.queue == nil {
-		return sendErrReply(ctx, message, errors.New("queue not available"))
+		err := errors.New("queue not available")
+		p.log.Error(err, true, "handlePublishCommand: check queue")
+		return sendErrReply(ctx, message, err)
 	}
 
 	err = p.queue.ApprovePost(req.PostID)
 	if err != nil {
+		p.log.Error(err, true, "handlePublishCommand: approve post")
 		return sendErrReply(ctx, message, errors.Wrap(err, "failed to approve post"))
 	}
 
 	resp, err := jsoniter.Marshal(posts.KafkaResponse{})
 	if err != nil {
+		p.log.Error(err, true, "handlePublishCommand: marshal")
 		return errors.Wrap(err, constants.MarshalMsg)
 	}
 
 	if err := message.Reply(ctx, resp, true); err != nil {
+		p.log.Error(err, true, "handlePublishCommand: reply")
 		return errors.Wrap(err, failedToSendReplyMsg)
 	}
 

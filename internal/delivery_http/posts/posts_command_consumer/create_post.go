@@ -3,7 +3,6 @@ package posts_command_consumer
 import (
 	"context"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/go-faster/errors"
@@ -40,6 +39,7 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid
 
 	err := p.repo.UpdatePostsBatch(ctx, finalPosts)
 	if err != nil {
+		p.log.Error(err, true, "CreatePost: update posts batch")
 		return errors.Wrap(err, "failed to create posts")
 	}
 
@@ -56,7 +56,7 @@ func (p *PostsCommandConsumer) processProfile(ctx context.Context, req posts.Kaf
 	bestPostCandidate, err := p.judge.SelectBest(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt,
 		posts.PostsToCandidates(profilesPosts))
 	if err != nil {
-		fmt.Println("error getting best post ", err)
+		p.log.Error(err, true, "processProfile: select best")
 		return nil
 	}
 
@@ -74,7 +74,7 @@ func (p *PostsCommandConsumer) processProfile(ctx context.Context, req posts.Kaf
 func (p *PostsCommandConsumer) generatePostsForProfile(ctx context.Context, req posts.KafkaCreatePostRequest, profile posts.CreatePostProfiles, postsMap map[uuid.UUID]model.Post) []model.Post {
 	rewritten, err := p.rewriter.Rewrite(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt)
 	if err != nil {
-		fmt.Println("error rewriting prompts", err)
+		p.log.Error(err, true, "generatePostsForProfile: rewrite")
 		return nil
 	}
 
@@ -92,7 +92,7 @@ func (p *PostsCommandConsumer) generatePostsForProfile(ctx context.Context, req 
 
 			generatedPostContent, err := p.getter.GetPost(ctx, rewrittenPrompt, profile.ProfilePrompt, req.BotPrompt)
 			if err != nil {
-				fmt.Println("error getting post", err)
+				p.log.Error(err, true, "generatePostsForProfile: get post")
 				return
 			}
 
@@ -137,17 +137,17 @@ func (p *PostsCommandConsumer) publishToOtvet(ctx context.Context, req posts.Kaf
 	// Respect bot-level moderation flag: if moderation required, do not publish directly
 	if req.ModerationRequired {
 		// Create post in DB but skip publish since moderation is required
-		fmt.Printf("bot requires moderation, skipping direct publish for post %s\n", post.ID.String())
+		p.log.Info(fmt.Sprintf("publishToOtvet: bot requires moderation, skipping direct publish for post %s", post.ID.String()))
 		return
 	}
 
 	otvetResp, err := p.otvetClient.CreatePostSimple(ctx, candidate.Title, candidate.Text, topicType, spaces)
 	if err != nil {
-		fmt.Printf("error publishing post to otvet: %v\n", err)
+		p.log.Error(err, true, "publishToOtvet: create post simple")
 		return
 	}
 
-	log.Printf("INFO: published post to otvet: %v\n", otvetResp)
+	p.log.Info(fmt.Sprintf("publishToOtvet: published post to otvet: %v", otvetResp))
 
 	if otvetResp != nil && otvetResp.Result != nil {
 		post.OtvetiID = uint64(otvetResp.Result.ID)
@@ -161,7 +161,7 @@ func (p *PostsCommandConsumer) getSpacesForPost(ctx context.Context, candidate m
 
 	predictResp, err := p.otvetClient.PredictTagsSpaces(ctx, combinedText)
 	if err != nil {
-		fmt.Printf("error predicting spaces: %v, using default spaces\n", err)
+		p.log.Error(err, true, "getSpacesForPost: predict tags spaces")
 		return spaces
 	}
 

@@ -6,6 +6,7 @@ import (
 	"github.com/go-faster/errors"
 	postsQueryHandler "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_query"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_query"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	postsQueryRepo "github.com/goriiin/kotyari-bots_backend/internal/repo/posts/posts_query"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
 )
@@ -23,6 +24,8 @@ type PostsQueryApp struct {
 }
 
 func NewPostsQueryApp(config *PostsQueryConfig) (*PostsQueryApp, error) {
+	log := logger.NewLogger("posts-query", &config.ConfigBase)
+
 	pool, err := postgres.GetPool(context.Background(), config.Database)
 
 	if err != nil {
@@ -31,7 +34,7 @@ func NewPostsQueryApp(config *PostsQueryConfig) (*PostsQueryApp, error) {
 
 	repo := postsQueryRepo.NewPostsQueryRepo(pool)
 
-	handler := postsQueryHandler.NewPostsQueryHandler(repo)
+	handler := postsQueryHandler.NewPostsQueryHandler(repo, log)
 
 	return &PostsQueryApp{
 		handler: handler,

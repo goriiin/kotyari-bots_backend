@@ -10,6 +10,7 @@ import (
 func (h *Handler) SearchBots(ctx context.Context, params bots.SearchBotsParams) (bots.SearchBotsRes, error) {
 	foundBots, err := h.u.Search(ctx, params.Q)
 	if err != nil {
+		h.log.Error(err, true, "SearchBots: search")
 		return &bots.SearchBotsInternalServerError{
 			ErrorCode: constants.InternalMsg,
 			Message:   err.Error(),

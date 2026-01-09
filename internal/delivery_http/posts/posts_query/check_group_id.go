@@ -21,6 +21,7 @@ func (p *PostsQueryHandler) CheckGroupId(ctx context.Context, params gen.CheckGr
 			}, nil
 
 		case strings.Contains(err.Error(), constants.InternalMsg):
+			p.log.Error(err, true, "CheckGroupId: get by group id")
 			return &gen.CheckGroupIdInternalServerError{
 				ErrorCode: http.StatusInternalServerError,
 				Message:   err.Error(),

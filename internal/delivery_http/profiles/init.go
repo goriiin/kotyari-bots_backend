@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/goriiin/kotyari-bots_backend/internal/logger"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 )
 
@@ -17,9 +18,13 @@ type usecase interface {
 }
 
 type HTTPHandler struct {
-	u usecase
+	u   usecase
+	log *logger.Logger
 }
 
-func NewHTTPHandler(u usecase) *HTTPHandler {
-	return &HTTPHandler{u: u}
+func NewHTTPHandler(u usecase, log *logger.Logger) *HTTPHandler {
+	return &HTTPHandler{
+		u:   u,
+		log: log,
+	}
 }
