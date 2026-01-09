@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	"github.com/goriiin/kotyari-bots_backend/internal/pkg/user"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 )
 
 func (r BotsRepository) Create(ctx context.Context, b model.Bot) error {
