@@ -15,6 +15,7 @@ func (h *HTTPHandler) CreateMyProfile(ctx context.Context, req *gen.ProfileInput
 		if errors.Is(err, constants.ErrValidation) {
 			return &gen.CreateMyProfileBadRequest{ErrorCode: constants.ErrValidationMsg, Message: err.Error()}, nil
 		}
+		h.log.Error(err, true, "CreateMyProfile: create")
 		return &gen.CreateMyProfileInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: err.Error()}, nil
 	}
 	return modelToHttpDTO(&created), nil

@@ -16,6 +16,7 @@ func (h Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBot
 				Message:   "bot or profile not found",
 			}, nil
 		}
+		h.log.Error(err, true, "AddProfileToBot: add profile")
 		return &gen.AddProfileToBotInternalServerError{
 			ErrorCode: constants.InternalMsg,
 			Message:   err.Error(),
@@ -32,6 +33,7 @@ func (h Handler) RemoveProfileFromBot(ctx context.Context, params gen.RemoveProf
 				Message:   "bot not found",
 			}, nil
 		}
+		h.log.Error(err, true, "RemoveProfileFromBot: remove profile")
 		return &gen.RemoveProfileFromBotInternalServerError{
 			ErrorCode: constants.InternalMsg,
 			Message:   err.Error(),
@@ -49,6 +51,7 @@ func (h Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesPa
 				Message:   "bot not found",
 			}, nil
 		}
+		h.log.Error(err, true, "GetBotProfiles: get with profiles")
 		return &gen.GetBotProfilesInternalServerError{
 			ErrorCode: constants.InternalMsg,
 			Message:   err.Error(),

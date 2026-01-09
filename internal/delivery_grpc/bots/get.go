@@ -12,11 +12,13 @@ import (
 func (s *Server) GetBot(ctx context.Context, req *botgrpc.GetBotRequest) (*botgrpc.Bot, error) {
 	id, err := uuid.Parse(req.GetId())
 	if err != nil {
+		s.log.Error(err, true, "GetBot: parse id")
 		return nil, ierrors.DomainToGRPCError(constants.ErrInvalid)
 	}
 
 	botModel, err := s.usecase.Get(ctx, id)
 	if err != nil {
+		s.log.Error(err, true, "GetBot: get bot")
 		return nil, ierrors.DomainToGRPCError(err)
 	}
 

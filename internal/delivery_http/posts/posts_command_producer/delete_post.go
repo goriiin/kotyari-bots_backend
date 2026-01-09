@@ -17,6 +17,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 
 	rawReq, err := jsoniter.Marshal(req)
 	if err != nil {
+		p.log.Error(err, true, "DeletePostById: marshal")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -26,7 +27,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 	env := posts.PayloadToEnvelope(posts.CmdDelete, params.PostId.String(), rawReq)
 	rawResp, err := p.producer.Request(ctx, env, 5*time.Second)
 	if err != nil {
-		// TODO: TIMEOUT / PUBLISH ERR
+		p.log.Error(err, true, "DeletePostById: request")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -36,6 +37,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 	var resp posts.KafkaResponse
 	err = jsoniter.Unmarshal(rawResp, &resp)
 	if err != nil {
+		p.log.Error(err, true, "DeletePostById: unmarshal response")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),

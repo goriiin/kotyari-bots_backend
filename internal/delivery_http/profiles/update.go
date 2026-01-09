@@ -17,6 +17,7 @@ func (h *HTTPHandler) UpdateProfileById(ctx context.Context, req *gen.ProfileInp
 		if errors.Is(err, constants.ErrValidation) {
 			return &gen.UpdateProfileByIdBadRequest{ErrorCode: constants.ErrValidationMsg, Message: err.Error()}, nil
 		}
+		h.log.Error(err, true, "UpdateProfileById: update")
 		return &gen.UpdateProfileByIdInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: err.Error()}, nil
 	}
 	return modelToHttpDTO(&updated), nil

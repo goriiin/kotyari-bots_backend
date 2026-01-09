@@ -11,6 +11,7 @@ import (
 func (h *Handler) UpdateBotById(ctx context.Context, req *gen.BotInput, params gen.UpdateBotByIdParams) (gen.UpdateBotByIdRes, error) {
 	_, err := h.u.Update(ctx, dtoToModel(req, params.BotId))
 	if err != nil {
+		h.log.Error(err, true, "UpdateBotById: update")
 		return nil, err
 	}
 
@@ -22,6 +23,7 @@ func (h *Handler) UpdateBotById(ctx context.Context, req *gen.BotInput, params g
 				Message:   err.Error(),
 			}, nil
 		}
+		h.log.Error(err, true, "UpdateBotById: get with profiles")
 		return nil, err
 	}
 

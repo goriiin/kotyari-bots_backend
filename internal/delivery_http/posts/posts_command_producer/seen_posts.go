@@ -20,6 +20,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 
 	rawReq, err := jsoniter.Marshal(seenPostsRequest)
 	if err != nil {
+		p.log.Error(err, true, "SeenPosts: marshal")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -28,6 +29,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 
 	rawResp, err := p.producer.Request(ctx, posts.PayloadToEnvelope(posts.CmdSeen, uuid.New().String(), rawReq), 10*time.Second)
 	if err != nil {
+		p.log.Error(err, true, "SeenPosts: request")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),
@@ -37,6 +39,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 	var resp posts.KafkaResponse
 	err = jsoniter.Unmarshal(rawResp, &resp)
 	if err != nil {
+		p.log.Error(err, true, "SeenPosts: unmarshal response")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
 			Message:   err.Error(),

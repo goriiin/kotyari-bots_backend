@@ -11,6 +11,7 @@ import (
 func (p *PostsQueryHandler) ListPosts(ctx context.Context) (gen.ListPostsRes, error) {
 	postsModels, err := p.repo.ListPosts(ctx)
 	if err != nil {
+		p.log.Error(err, true, "ListPosts: list posts")
 		return &gen.ListPostsInternalServerError{ErrorCode: http.StatusInternalServerError, Message: err.Error()}, nil
 	}
 

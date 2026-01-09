@@ -39,8 +39,7 @@ func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsComma
 		return nil, err
 	}
 
-	// TODO: ???
-	log := logger.NewLogger("xdd", &config.ConfigBase)
+	log := logger.NewLogger("posts-command-producer", &config.ConfigBase)
 
 	reader := consumer.NewKafkaConsumer(log, &config.KafkaCons)
 
@@ -52,7 +51,7 @@ func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsComma
 		return nil, err
 	}
 
-	handler := posts_command_producer.NewPostsHandler(grpc, p)
+	handler := posts_command_producer.NewPostsHandler(grpc, p, log)
 
 	return &PostsCommandProducerApp{
 		handler:  handler,
