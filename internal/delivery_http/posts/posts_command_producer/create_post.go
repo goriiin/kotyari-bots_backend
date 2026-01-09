@@ -35,33 +35,6 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 
 	fmt.Printf("profiles batch: %+v\n", idsString)
 
-	// mockedBot := struct {
-	//	Id        uuid.UUID
-	//	BotPrompt string
-	//	BotName   string
-	// }{
-	//	req.BotId,
-	//	"Промт бота",
-	//	"Крутой бот",
-	// }
-	//
-	// mockedProfiles := []struct {
-	//	Id            uuid.UUID
-	//	ProfilePrompt string
-	//	ProfileName   string
-	// }{
-	//	{
-	//		uuid.New(),
-	//		"Крутой промт профиля",
-	//		"Профиль 1",
-	//	},
-	//	{
-	//		uuid.New(),
-	//		"Супер-пупер промт",
-	//		"Профиль 2",
-	//	},
-	// }
-
 	postProfiles := make([]posts.CreatePostProfiles, 0, len(idsString))
 	for _, profile := range profilesBatch.Profiles {
 		profileID, _ := uuid.Parse(profile.Id)
@@ -75,6 +48,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	groupID := uuid.New()
 	botID, _ := uuid.Parse(bot.Id)
 	createPostRequest := posts.KafkaCreatePostRequest{
+		PostID:     uuid.New(),
 		GroupID:    groupID,
 		BotID:      botID,
 		BotName:    bot.BotName,
@@ -83,6 +57,8 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		Profiles:   postProfiles,
 		Platform:   model.PlatformType(req.Platform),
 		PostType:   model.PostType(req.PostType.Value),
+		// pass moderation flag from bot
+		ModerationRequired: bot.ModerationRequired,
 	}
 
 	fmt.Printf("%+v\n", createPostRequest)

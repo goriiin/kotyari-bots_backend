@@ -3,71 +3,28 @@ package posts_command_consumer
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
-	"time"
 
 	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/otvet"
+	"github.com/goriiin/kotyari-bots_backend/pkg/posting_queue"
 )
 
 func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid.UUID]model.Post, req posts.KafkaCreatePostRequest) error {
 	postsChan := make(chan model.Post, len(req.Profiles))
 	var wg sync.WaitGroup
-
 	for _, profile := range req.Profiles {
 		wg.Add(1)
-		go func(prof posts.CreatePostProfiles) {
+		go func(profile posts.CreatePostProfiles) {
 			defer wg.Done()
-
-			profileCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
-			defer cancel()
-
-			var mutex sync.Mutex
-			profileWg := sync.WaitGroup{}
-			profilesPosts := make([]model.Post, 0, 5)
-
-			rewritten, err := p.rewriter.Rewrite(profileCtx, req.UserPrompt, prof.ProfilePrompt, req.BotPrompt)
-			if err != nil {
-				fmt.Println("error rewriting prompts:", err)
-				return
+			post := p.processProfile(ctx, req, profile, postsMap)
+			if post != nil {
+				postsChan <- *post
 			}
-
-			for _, rw := range rewritten {
-				profileWg.Add(1)
-				go func(rewrittenText string) {
-					defer profileWg.Done()
-
-					generatedPostContent, err := p.getter.GetPost(profileCtx, rewrittenText, prof.ProfilePrompt, req.BotPrompt)
-					if err != nil {
-						fmt.Println("error getting post:", err)
-						return
-					}
-
-					post := postsMap[prof.ProfileID]
-					post.Title = generatedPostContent.PostTitle
-					post.Text = generatedPostContent.PostText
-
-					mutex.Lock()
-					profilesPosts = append(profilesPosts, post)
-					mutex.Unlock()
-				}(rw)
-			}
-
-			profileWg.Wait()
-
-			bestPostCandidate, err := p.judge.SelectBest(profileCtx, req.UserPrompt, prof.ProfilePrompt, req.BotPrompt, posts.PostsToCandidates(profilesPosts))
-			if err != nil {
-				fmt.Println("error getting best post:", err)
-				return
-			}
-
-			bestPost := postsMap[prof.ProfileID]
-			bestPost.Text = bestPostCandidate.Text
-			bestPost.Title = bestPostCandidate.Title
-
-			postsChan <- bestPost
 		}(profile)
 	}
 
@@ -83,8 +40,174 @@ func (p *PostsCommandConsumer) CreatePost(ctx context.Context, postsMap map[uuid
 
 	err := p.repo.UpdatePostsBatch(ctx, finalPosts)
 	if err != nil {
-		return errors.Wrap(err, "failed to update posts")
+		return errors.Wrap(err, "failed to create posts")
 	}
 
 	return nil
+}
+
+// processProfile processes a single profile and returns the best post
+func (p *PostsCommandConsumer) processProfile(ctx context.Context, req posts.KafkaCreatePostRequest, profile posts.CreatePostProfiles, postsMap map[uuid.UUID]model.Post) *model.Post {
+	profilesPosts := p.generatePostsForProfile(ctx, req, profile, postsMap)
+	if len(profilesPosts) == 0 {
+		return nil
+	}
+
+	bestPostCandidate, err := p.judge.SelectBest(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt,
+		posts.PostsToCandidates(profilesPosts))
+	if err != nil {
+		fmt.Println("error getting best post ", err)
+		return nil
+	}
+
+	bestPost := postsMap[profile.ProfileID]
+	bestPost.Title = bestPostCandidate.Title
+	bestPost.Text = bestPostCandidate.Text
+
+	// bestPost := p.createPostFromCandidate(req, profile, bestPostCandidate)
+	p.publishToOtvet(ctx, req, bestPostCandidate, &bestPost)
+
+	return &bestPost
+}
+
+// generatePostsForProfile generates multiple post candidates for a profile
+func (p *PostsCommandConsumer) generatePostsForProfile(ctx context.Context, req posts.KafkaCreatePostRequest, profile posts.CreatePostProfiles, postsMap map[uuid.UUID]model.Post) []model.Post {
+	rewritten, err := p.rewriter.Rewrite(ctx, req.UserPrompt, profile.ProfilePrompt, req.BotPrompt)
+	if err != nil {
+		fmt.Println("error rewriting prompts", err)
+		return nil
+	}
+
+	var (
+		mutex     sync.Mutex
+		profileWg sync.WaitGroup
+	)
+
+	profilesPosts := make([]model.Post, 0, len(rewritten))
+
+	for _, rw := range rewritten {
+		profileWg.Add(1)
+		go func(rewrittenPrompt string) {
+			defer profileWg.Done()
+
+			generatedPostContent, err := p.getter.GetPost(ctx, rewrittenPrompt, profile.ProfilePrompt, req.BotPrompt)
+			if err != nil {
+				fmt.Println("error getting post", err)
+				return
+			}
+
+			post := postsMap[profile.ProfileID]
+			post.Title = generatedPostContent.PostTitle
+			post.Text = generatedPostContent.PostText
+
+			mutex.Lock()
+			profilesPosts = append(profilesPosts, post)
+			mutex.Unlock()
+		}(rw)
+	}
+
+	profileWg.Wait()
+	return profilesPosts
+}
+
+// publishToOtvet publishes post to otvet.mail.ru if platform is otveti
+func (p *PostsCommandConsumer) publishToOtvet(ctx context.Context, req posts.KafkaCreatePostRequest, candidate model.Candidate, post *model.Post) {
+	if req.Platform != model.OtvetiPlatform || p.otvetClient == nil {
+		return
+	}
+
+	topicType := getTopicTypeFromPostType(req.PostType)
+	spaces := p.getSpacesForPost(ctx, candidate)
+
+	// If queue is available, add to queue instead of publishing directly
+	if p.queue != nil {
+		postRequest := posting_queue.PostRequest{
+			Platform:  req.Platform,
+			PostType:  req.PostType,
+			TopicType: topicType,
+			Spaces:    spaces,
+			// per-request moderation flag from bot
+			ModerationRequired: req.ModerationRequired,
+		}
+		p.queue.Enqueue(post, candidate, postRequest)
+		return
+	}
+
+	// Fallback to direct publishing if queue is not available
+	// Respect bot-level moderation flag: if moderation required, do not publish directly
+	if req.ModerationRequired {
+		// Create post in DB but skip publish since moderation is required
+		fmt.Printf("bot requires moderation, skipping direct publish for post %s\n", post.ID.String())
+		return
+	}
+
+	otvetResp, err := p.otvetClient.CreatePostSimple(ctx, candidate.Title, candidate.Text, topicType, spaces)
+	if err != nil {
+		fmt.Printf("error publishing post to otvet: %v\n", err)
+		return
+	}
+
+	log.Printf("INFO: published post to otvet: %v\n", otvetResp)
+
+	if otvetResp != nil && otvetResp.Result != nil {
+		post.OtvetiID = uint64(otvetResp.Result.ID)
+	}
+}
+
+// getSpacesForPost predicts spaces for a post or returns default spaces
+func (p *PostsCommandConsumer) getSpacesForPost(ctx context.Context, candidate model.Candidate) []otvet.Space {
+	combinedText := candidate.Title + " " + candidate.Text
+	spaces := getDefaultSpaces()
+
+	predictResp, err := p.otvetClient.PredictTagsSpaces(ctx, combinedText)
+	if err != nil {
+		fmt.Printf("error predicting spaces: %v, using default spaces\n", err)
+		return spaces
+	}
+
+	if predictResp == nil || len(*predictResp) == 0 {
+		return spaces
+	}
+
+	// Convert predicted spaces to Space format
+	predictedSpaces := make([]otvet.Space, 0, len((*predictResp)[0].Spaces))
+	for _, spaceID := range (*predictResp)[0].Spaces {
+		predictedSpaces = append(predictedSpaces, otvet.Space{
+			ID:      spaceID,
+			IsPrime: true,
+		})
+	}
+
+	if len(predictedSpaces) > 0 {
+		return predictedSpaces
+	}
+
+	return spaces
+}
+
+// getTopicTypeFromPostType converts PostType to otvet topic_type
+// topic_type: 2 = question (opinion), other values may be used for other types
+func getTopicTypeFromPostType(postType model.PostType) int {
+	switch postType {
+	case model.OpinionPostType:
+		return 2 // question
+	case model.KnowledgePostType:
+		return 2 // question (can be adjusted if needed)
+	case model.HistoryPostType:
+		return 2 // question (can be adjusted if needed)
+	default:
+		return 2 // default to question
+	}
+}
+
+// getDefaultSpaces returns default spaces for otvet posts
+// TODO: move to config or get from request
+func getDefaultSpaces() []otvet.Space {
+	// Default space - can be configured later
+	return []otvet.Space{
+		{
+			ID:      501, // Example space ID from the response
+			IsPrime: true,
+		},
+	}
 }

@@ -52,6 +52,8 @@ services:
       - bots-internal-network
       - public-gateway-network
     depends_on:
+      bots_db:
+        condition: service_healthy
       bots_migrate:
         condition: service_completed_successfully
     restart: unless-stopped

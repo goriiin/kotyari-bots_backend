@@ -6,23 +6,35 @@ http {
     include       mime.types;
     default_type  application/octet-stream;
 
-    # ... твои upstream (bots, profiles, posts ...) ...
-    upstream bots_service { server bots_go:8001; }
-    upstream profiles_service { server profiles_go:8003; }
-    upstream posts_command_service { server posts_command_prod_go:8088; }
-    upstream posts_query_service { server posts_query_go:8089; }
+    # 1. Резолвер для динамического upstream
+    resolver 127.0.0.11 valid=10s;
 
-    map $request_method $posts_upstream {
-        GET     posts_query_service;
-        HEAD    posts_query_service;
-        default posts_command_service;
+    # 2. Карта маршрутизации для бэкенда постов
+    map $request_method $posts_target_host {
+        GET     "posts_query_go:8089";
+        HEAD    "posts_query_go:8089";
+        default "posts_command_prod_go:8088";
     }
 
+    # 3. Upstream для Nuxt SSR приложения
+    upstream nuxt_app {
+        # host.docker.internal теперь указывает на ваш хост-сервер (где запущен Nuxt)
+        server host.docker.internal:3000;
+        keepalive 64;
+    }
+
+    # Сервер для редиректа с HTTP на HTTPS
     server {
         listen 80;
         server_name writehub.space www.writehub.space;
-        location /.well-known/acme-challenge/ { root /var/www/certbot; }
-        location / { return 301 https://$host$request_uri; }
+
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+
+        location / {
+            return 301 https://$host$request_uri;
+        }
     }
 
     server {
@@ -32,30 +44,25 @@ http {
         ssl_certificate /etc/letsencrypt/live/writehub.space/fullchain.pem;
         ssl_certificate_key /etc/letsencrypt/live/writehub.space/privkey.pem;
 
-        # SSL настройки (как были)...
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_prefer_server_ciphers off;
 
-        # === FRONTEND CONFIGURATION ===
-        root /var/www/frontend;
-        index index.html;
-
-        # Главная точка входа
         location / {
-            # Для SPA (Single Page Application).
-            # Если файл не найден, отдать index.html (Nuxt подхватит роутинг)
-            try_files $uri $uri/ /index.html;
+            proxy_pass http://nuxt_app;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
 
-        # Кеширование статики (_nuxt, изображения, шрифты)
-        location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|svg|ttf|eot)$ {
-            expires 6M;
-            access_log off;
-            add_header Cache-Control "public";
-        }
-        # ==============================
-
-        # API (Backend) - без изменений
         location /api/v1/bots {
-            proxy_pass http://bots_service;
+            set $upstream_bots "http://bots_go:8001";
+            proxy_pass $upstream_bots;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -63,7 +70,8 @@ http {
         }
 
         location /api/v1/profiles {
-            proxy_pass http://profiles_service;
+            set $upstream_profiles "http://profiles_go:8003";
+            proxy_pass $upstream_profiles;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -71,7 +79,8 @@ http {
         }
 
         location /api/v1/posts {
-            proxy_pass http://$posts_upstream;
+            set $upstream_posts "http://$posts_target_host";
+            proxy_pass $upstream_posts;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -79,3 +88,4 @@ http {
         }
     }
 }
+
