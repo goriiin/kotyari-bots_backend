@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/goriiin/kotyari-bots_backend/internal/adapters/auth"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/posts_producer_client"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts/posts_command_producer"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
@@ -12,6 +13,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/consumer"
 	"github.com/goriiin/kotyari-bots_backend/internal/kafka/producer"
 	"github.com/goriiin/kotyari-bots_backend/internal/logger"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 )
 
 type postsCommandHandler interface {
@@ -28,9 +30,22 @@ type requester interface {
 }
 
 type PostsCommandProducerApp struct {
-	handler  postsCommandHandler
-	producer requester
-	config   *PostsCommandProducerConfig
+	handler    postsCommandHandler
+	producer   requester
+	config     *PostsCommandProducerConfig
+	authClient *auth.Client
+}
+
+type securityHandler struct {
+	authClient *auth.Client
+}
+
+func (s *securityHandler) HandleSessionAuth(ctx context.Context, operationName string, t gen.SessionAuth) (context.Context, error) {
+	userID, err := s.authClient.VerifySession(ctx, t.APIKey)
+	if err != nil {
+		return nil, err
+	}
+	return user.WithID(ctx, userID), nil
 }
 
 func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsCommandProducerApp, error) {
@@ -41,8 +56,12 @@ func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsComma
 
 	log := logger.NewLogger("posts-command-producer", &config.ConfigBase)
 
-	reader := consumer.NewKafkaConsumer(log, &config.KafkaCons)
+	authClient, err := auth.NewClient(config.Auth, log)
+	if err != nil {
+		return nil, err
+	}
 
+	reader := consumer.NewKafkaConsumer(log, &config.KafkaCons)
 	repliesDispatcher := consumer.NewReplyManager(reader)
 
 	p, err := producer.NewKafkaRequestReplyProducer(&config.KafkaProd, &config.KafkaCons, repliesDispatcher)
@@ -54,8 +73,9 @@ func NewPostsCommandProducerApp(config *PostsCommandProducerConfig) (*PostsComma
 	handler := posts_command_producer.NewPostsHandler(grpc, p, log)
 
 	return &PostsCommandProducerApp{
-		handler:  handler,
-		producer: p,
-		config:   config,
+		handler:    handler,
+		producer:   p,
+		config:     config,
+		authClient: authClient,
 	}, nil
 }

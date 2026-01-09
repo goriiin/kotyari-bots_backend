@@ -12,10 +12,16 @@ import (
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	jsoniter "github.com/json-iterator/go"
 )
 
 func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput) (gen.CreatePostRes, error) {
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	bot, err := p.fetcher.GetBot(ctx, req.BotId.String())
 	if err != nil {
 		p.log.Error(err, true, "CreatePost: get bot")
@@ -47,6 +53,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	botID, _ := uuid.Parse(bot.Id)
 	createPostRequest := posts.KafkaCreatePostRequest{
 		PostID:             uuid.New(),
+		UserID:             userID,
 		GroupID:            groupID,
 		BotID:              botID,
 		BotName:            bot.BotName,
