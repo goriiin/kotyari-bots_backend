@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS idx_posts_user_id;
+ALTER TABLE posts DROP COLUMN IF EXISTS user_id;

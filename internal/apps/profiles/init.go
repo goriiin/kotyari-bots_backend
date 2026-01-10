@@ -12,6 +12,7 @@ import (
 	"time"
 
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
+	"github.com/goriiin/kotyari-bots_backend/internal/adapters/auth"
 	deliverygrpc "github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles"
 	deliveryhttp "github.com/goriiin/kotyari-bots_backend/internal/delivery_http/profiles"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/profiles"
@@ -20,6 +21,7 @@ import (
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/profiles"
 	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 )
@@ -34,6 +36,18 @@ func NewApp(config *ProfilesAppConfig) *ProfilesApp {
 	return &ProfilesApp{config: config}
 }
 
+type securityHandler struct {
+	authClient *auth.Client
+}
+
+func (s *securityHandler) HandleSessionAuth(ctx context.Context, operationName string, t gen.SessionAuth) (context.Context, error) {
+	userID, err := s.authClient.VerifySession(ctx, t.APIKey)
+	if err != nil {
+		return nil, err
+	}
+	return user.WithID(ctx, userID), nil
+}
+
 func (p *ProfilesApp) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -45,6 +59,11 @@ func (p *ProfilesApp) Run() error {
 		return fmt.Errorf("postgres.GetPool: %w", err)
 	}
 	defer pool.Close()
+
+	authClient, err := auth.NewClient(p.config.Auth, l)
+	if err != nil {
+		return fmt.Errorf("auth.NewClient: %w", err)
+	}
 
 	profilesRepo := repo.NewRepository(pool)
 	profilesUsecase := usecase.NewService(profilesRepo)
@@ -59,7 +78,7 @@ func (p *ProfilesApp) Run() error {
 	})
 
 	g.Go(func() error {
-		return p.startHTTPServer(gCtx, httpHandler)
+		return p.startHTTPServer(gCtx, httpHandler, authClient)
 	})
 
 	sig := make(chan os.Signal, 1)
@@ -102,8 +121,9 @@ func (p *ProfilesApp) startGRPCServer(ctx context.Context, handler profiles.Prof
 	return p.grpcServer.Serve(lis)
 }
 
-func (p *ProfilesApp) startHTTPServer(ctx context.Context, handler gen.Handler) error {
-	svr, err := gen.NewServer(handler)
+func (p *ProfilesApp) startHTTPServer(ctx context.Context, handler gen.Handler, authClient *auth.Client) error {
+	secHandler := &securityHandler{authClient: authClient}
+	svr, err := gen.NewServer(handler, secHandler)
 	if err != nil {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}

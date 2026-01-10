@@ -7,20 +7,22 @@ import (
 	"time"
 
 	"github.com/go-faster/errors"
+	"github.com/goriiin/kotyari-bots_backend/internal/adapters/auth"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
 )
 
 func (p *PostsCommandProducerApp) Run() error {
-	if err := p.startHTTPServer(p.handler); err != nil {
+	if err := p.startHTTPServer(p.handler, p.authClient); err != nil {
 		log.Printf("Error happened starting server %v", err)
 		return err
 	}
 	return nil
 }
 
-func (p *PostsCommandProducerApp) startHTTPServer(handler gen.Handler) error {
-	svr, err := gen.NewServer(handler)
+func (p *PostsCommandProducerApp) startHTTPServer(handler gen.Handler, authClient *auth.Client) error {
+	secHandler := &securityHandler{authClient: authClient}
+	svr, err := gen.NewServer(handler, secHandler)
 	if err != nil {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}

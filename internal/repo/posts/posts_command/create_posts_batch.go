@@ -11,9 +11,10 @@ import (
 )
 
 func (p *PostsCommandRepo) CreatePostsBatch(ctx context.Context, posts []model.Post) (err error) {
+	// Note: 'posts' here comes from Kafka Consumer which should have populated UserID in the model
 	const query = `
-		INSERT INTO posts (id, otveti_id, bot_id, bot_name, profile_id, profile_name, group_id, user_prompt, platform_type, post_type, post_title, post_text)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+		INSERT INTO posts (id, user_id, otveti_id, bot_id, bot_name, profile_id, profile_name, group_id, user_prompt, platform_type, post_type, post_title, post_text)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
 	`
 
 	batch := &pgx.Batch{}
@@ -21,6 +22,7 @@ func (p *PostsCommandRepo) CreatePostsBatch(ctx context.Context, posts []model.P
 	for _, post := range posts {
 		batch.Queue(query,
 			post.ID,
+			post.UserID, // Need to add UserID to model.Post
 			post.OtvetiID,
 			post.BotID,
 			post.BotName,

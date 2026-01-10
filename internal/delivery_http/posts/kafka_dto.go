@@ -15,7 +15,6 @@ const (
 	CmdSeen    kafkaConfig.Command = "seen"
 )
 
-// KafkaResponse TODO: model.Post -> []model.Post?
 type KafkaResponse struct {
 	Error string     `json:"error,omitempty"`
 	Post  model.Post `json:"post,omitempty"`
@@ -23,19 +22,21 @@ type KafkaResponse struct {
 
 type KafkaDeletePostRequest struct {
 	PostID uuid.UUID `json:"post_id"`
+	UserID uuid.UUID `json:"user_id"`
 }
+
 type KafkaCreatePostRequest struct {
-	PostID     uuid.UUID            `json:"post_id"`
-	BotID      uuid.UUID            `json:"bot_id"`
-	BotName    string               `json:"bot_name"`
-	GroupID    uuid.UUID            `json:"group_id"`
-	UserPrompt string               `json:"user_prompt"`
-	BotPrompt  string               `json:"bot_prompt"`
-	Profiles   []CreatePostProfiles `json:"profiles"`
-	Platform   model.PlatformType   `json:"platform_type"`
-	PostType   model.PostType       `json:"post_type"`
-	// ModerationRequired indicates whether posts from this bot require moderation before publishing
-	ModerationRequired bool `json:"moderation_required"`
+	PostID             uuid.UUID            `json:"post_id"`
+	UserID             uuid.UUID            `json:"user_id"`
+	BotID              uuid.UUID            `json:"bot_id"`
+	BotName            string               `json:"bot_name"`
+	GroupID            uuid.UUID            `json:"group_id"`
+	UserPrompt         string               `json:"user_prompt"`
+	BotPrompt          string               `json:"bot_prompt"`
+	Profiles           []CreatePostProfiles `json:"profiles"`
+	Platform           model.PlatformType   `json:"platform_type"`
+	PostType           model.PostType       `json:"post_type"`
+	ModerationRequired bool                 `json:"moderation_required"`
 }
 
 type CreatePostProfiles struct {
@@ -46,16 +47,19 @@ type CreatePostProfiles struct {
 
 type KafkaUpdatePostRequest struct {
 	PostID uuid.UUID `json:"post_id"`
+	UserID uuid.UUID `json:"user_id"`
 	Title  string    `json:"title"`
 	Text   string    `json:"text"`
 }
 
 type KafkaSeenPostsRequest struct {
 	PostIDs []uuid.UUID `json:"post_ids"`
+	UserID  uuid.UUID   `json:"user_id"`
 }
 
 type KafkaPublishPostRequest struct {
 	PostID   uuid.UUID `json:"post_id"`
+	UserID   uuid.UUID `json:"user_id"`
 	Approved bool      `json:"approved"`
 }
 
@@ -86,7 +90,7 @@ func (r KafkaResponse) PostCommandToGen() *gen.Post {
 		Task:        r.Post.UserPrompt,
 		Title:       r.Post.Title,
 		Text:        r.Post.Text,
-		Categories:  nil, // TODO: ??
+		Categories:  nil,
 		CreatedAt:   r.Post.CreatedAt,
 		UpdatedAt:   r.Post.UpdatedAt,
 	}

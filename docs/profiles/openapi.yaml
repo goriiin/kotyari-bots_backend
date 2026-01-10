@@ -9,17 +9,18 @@ tags:
   - name: "Profiles"
     description: "Операции, связанные с профилями пользователей."
 
-components:
-#  securitySchemes:
-#    cookieAuth:
-#      type: apiKey
-#      in: cookie
-#      name: session_id
-#    csrfAuth:
-#      type: apiKey
-#      in: header
-#      name: X-CSRF-Token
+security:
+  - SessionAuth: []
 
+# --------------------------------------------------------------
+# Компоненты API
+# --------------------------------------------------------------
+components:
+  securitySchemes:
+    SessionAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
   schemas:
     Profile:
       type: object

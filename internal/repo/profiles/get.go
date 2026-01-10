@@ -10,7 +10,11 @@ import (
 )
 
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (model.Profile, error) {
-	rows, err := r.db.Query(ctx, `SELECT id, name, email, system_prompt, created_at, updated_at FROM profiles WHERE id=$1`, id)
+	rows, err := r.db.Query(ctx,
+		`SELECT id, name, email, system_prompt, created_at, updated_at 
+			FROM profiles 
+			WHERE id=$1`,
+		id)
 	if err != nil {
 		return model.Profile{}, err
 	}

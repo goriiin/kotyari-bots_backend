@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS idx_bots_user_id;
+ALTER TABLE bots DROP COLUMN IF EXISTS user_id;

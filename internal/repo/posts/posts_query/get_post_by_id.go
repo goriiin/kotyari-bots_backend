@@ -8,18 +8,24 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/internal/repo/posts"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"github.com/jackc/pgx/v5"
 )
 
 func (p *PostsQueryRepo) GetByID(ctx context.Context, id uuid.UUID) (model.Post, error) {
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return model.Post{}, err
+	}
+
 	const query = `
 		SELECT id, otveti_id, group_id, user_prompt, bot_id, bot_name, profile_id, profile_name, 
 		       platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
 		FROM posts
-		WHERE id = $1
+		WHERE id = $1 AND user_id = $2
 	`
 
-	rows, err := p.db.Query(ctx, query, id)
+	rows, err := p.db.Query(ctx, query, id, userID)
 	if err != nil {
 		return model.Post{}, errors.Wrapf(constants.ErrInternal, "failed to query row: %s", err.Error())
 	}

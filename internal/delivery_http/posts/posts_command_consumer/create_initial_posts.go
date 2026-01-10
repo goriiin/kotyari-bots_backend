@@ -25,14 +25,15 @@ func (p *PostsCommandConsumer) CreateInitialPosts(ctx context.Context, payload [
 	for _, profile := range req.Profiles {
 		post := model.Post{
 			ID:          uuid.New(),
-			OtvetiID:    0, // Пока так
+			UserID:      req.UserID, // Map UserID from Kafka Request
+			OtvetiID:    0,
 			BotID:       req.BotID,
 			BotName:     req.BotName,
 			ProfileID:   profile.ProfileID,
 			ProfileName: profile.ProfileName,
 			GroupID:     req.GroupID,
 			Platform:    req.Platform,
-			Type:        "opinion", // Пока так
+			Type:        req.PostType,
 			UserPrompt:  req.UserPrompt,
 			Title:       "",
 			Text:        "",

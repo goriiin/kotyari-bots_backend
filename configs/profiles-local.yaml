@@ -5,3 +5,7 @@ profiles_api:
 
 profiles_database:
   sslmode: "disable"
+
+auth_grpc:
+  host: "auth_rs"
+  port: 3001

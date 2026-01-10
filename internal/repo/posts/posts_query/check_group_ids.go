@@ -7,16 +7,23 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/internal/repo/posts"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"github.com/jackc/pgx/v5"
 )
 
 func (p *PostsQueryRepo) CheckGroupIds(ctx context.Context) ([]model.Post, error) {
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	const query = `
 		SELECT id, group_id, post_title, post_text, is_seen
 		FROM posts
+		WHERE user_id = $1
 	`
 
-	rows, err := p.db.Query(ctx, query)
+	rows, err := p.db.Query(ctx, query, userID)
 	if err != nil {
 		return nil, errors.Wrapf(constants.ErrInternal, "failed to query rows: %s", err.Error())
 	}

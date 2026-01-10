@@ -11,20 +11,18 @@ tags:
   - name: "Bot-Profile Associations"
     description: "Управление связями между ботами и профилями."
 
+security:
+  - SessionAuth: []
+
 # --------------------------------------------------------------
 # Компоненты API
 # --------------------------------------------------------------
 components:
-  # -------------------- Безопасность --------------------
-#  securitySchemes:
-#    cookieAuth:
-#      type: apiKey
-#      in: cookie
-#      name: session_id
-#    csrfAuth:
-#      type: apiKey
-#      in: header
-#      name: X-CSRF-Token
+  securitySchemes:
+    SessionAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
 
   # -------------------- Схемы данных --------------------
   schemas:
