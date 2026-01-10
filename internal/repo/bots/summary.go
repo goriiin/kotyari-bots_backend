@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 )
 
 func (r *BotsRepository) GetSummary(ctx context.Context) (model.BotsSummary, error) {

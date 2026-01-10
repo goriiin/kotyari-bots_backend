@@ -11,3 +11,7 @@ local_profiles_api:
   port: 8003
 
 local_profiles_svc_addr: "profiles_go:8002"
+
+auth_grpc:
+  host: "auth_rs"
+  port: 3001

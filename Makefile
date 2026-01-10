@@ -3,6 +3,7 @@ DOMAIN := writehub.space
 EMAIL := admin@writehub.space
 NGINX_COMPOSE := docker-compose.nginx.yml
 FRONTEND_DIR := ../kotyari-bots_frontend
+AUTH_COMPOSE := ./cmd/auth-rs/docker-compose.yml
 
 # Автоматический поиск сервисов для Ogen
 SERVICES := $(shell find ./docs -mindepth 2 -maxdepth 3 -type f -name 'openapi.yaml' -print \
@@ -51,6 +52,7 @@ up: copy-env setup-network
 	@$(MAKE) bots-up & \
 	 $(MAKE) profiles-up & \
 	 $(MAKE) posts-up & \
+#	 $(MAKE) auth-up & \
 	wait
 	@echo "Backend services are up."
 
@@ -59,6 +61,7 @@ down:
 	@$(MAKE) bots-down & \
 	 $(MAKE) profiles-down & \
 	 $(MAKE) posts-down & \
+	 $(MAKE) auth-down & \
 	wait
 	@echo "Backend services stopped."
 
@@ -79,6 +82,16 @@ posts-up: setup-network
 
 posts-down:
 	docker compose -f docker-compose.posts.yml down
+
+auth-up: setup-network
+	set -a && . ./.env && set +a && \
+	docker compose -f $(AUTH_COMPOSE) up --build
+
+auth-down:
+	docker compose -f $(AUTH_COMPOSE) down
+
+auth-logs:
+	docker compose -f $(AUTH_COMPOSE) -p auth-rs logs -f
 
 # --- FRONTEND ---
 
