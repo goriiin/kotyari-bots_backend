@@ -5,7 +5,6 @@ import (
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
 	"github.com/goriiin/kotyari-bots_backend/pkg/user"
-
 	"github.com/jackc/pgx/v5"
 )
 

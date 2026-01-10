@@ -136,7 +136,7 @@ func (b *App) Run() error {
 	defer shutdownCancel()
 
 	grpcServer.GracefulStop()
-	if err = b.server.Shutdown(shutdownCtx); err != nil {
+	if shutErr := b.server.Shutdown(shutdownCtx); shutErr != nil {
 		return err
 	}
 
