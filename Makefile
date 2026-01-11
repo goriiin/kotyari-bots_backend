@@ -52,7 +52,7 @@ up: copy-env setup-network
 	@$(MAKE) bots-up & \
 	 $(MAKE) profiles-up & \
 	 $(MAKE) posts-up & \
-#	 $(MAKE) auth-up & \
+	 $(MAKE) auth-up & \
 	wait
 	@echo "Backend services are up."
 
@@ -84,8 +84,8 @@ posts-down:
 	docker compose -f docker-compose.posts.yml down
 
 auth-up: setup-network
-	set -a && . ./.env && set +a && \
-	docker compose -f $(AUTH_COMPOSE) up --build
+	cp ./.env ./cmd/auth-rs/.env
+	docker compose -f $(AUTH_COMPOSE) up --build -d
 
 auth-down:
 	docker compose -f $(AUTH_COMPOSE) down

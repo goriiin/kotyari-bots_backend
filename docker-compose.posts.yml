@@ -27,7 +27,7 @@ services:
       dockerfile: ./cmd/posts_command_consumer/Dockerfile
       target: migrator
     container_name: posts_migrate
-    image: bots_migrate_image
+    image: posts_migrate_image
     env_file: .env
     networks:
       - posts-internal-network
@@ -62,7 +62,7 @@ services:
     networks:
       - posts-internal-network
       - public-gateway-network
-      - common-network
+#      - common-network
     depends_on:
       kafka:
         condition: service_healthy
@@ -129,8 +129,8 @@ networks:
     driver: bridge
   public-gateway-network:
     external: true
-  common-network:
-    external: true
+#  common-network:
+#    external: true
 
 volumes:
   posts_db_data:
