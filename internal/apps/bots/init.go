@@ -13,6 +13,7 @@ import (
 
 	profiles "github.com/goriiin/kotyari-bots_backend/api/protos/bot_profile/gen"
 	botgrpc "github.com/goriiin/kotyari-bots_backend/api/protos/bots/gen"
+	"github.com/goriiin/kotyari-bots_backend/internal/adapters/auth"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/bots"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles_getter"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_grpc/profiles_validator"
@@ -23,6 +24,7 @@ import (
 	usecase "github.com/goriiin/kotyari-bots_backend/internal/usecase/bots"
 	"github.com/goriiin/kotyari-bots_backend/pkg/cors"
 	"github.com/goriiin/kotyari-bots_backend/pkg/postgres"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -38,6 +40,20 @@ func NewApp(config *AppConfig) *App {
 	}
 }
 
+// securityHandler реализует интерфейс ogen SecurityHandler
+type securityHandler struct {
+	authClient *auth.Client
+}
+
+func (s *securityHandler) HandleSessionAuth(ctx context.Context, operationName string, t gen.SessionAuth) (context.Context, error) {
+	// t.APIKey содержит значение куки session_id
+	userID, err := s.authClient.VerifySession(ctx, t.APIKey)
+	if err != nil {
+		return nil, err
+	}
+	return user.WithID(ctx, userID), nil
+}
+
 func (b *App) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -50,17 +66,23 @@ func (b *App) Run() error {
 	}
 	defer pool.Close()
 
+	// Profiles Client
 	conn, err := grpc.NewClient(b.config.ProfilesSvcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return fmt.Errorf("grpc.NewClient: %w", err)
 	}
 	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
-		if err != nil {
+		if err := conn.Close(); err != nil {
 			log.Println("failed to close grpc connection")
 		}
 	}(conn)
 	profilesClient := profiles.NewProfilesServiceClient(conn)
+
+	// Auth Client
+	authClient, err := auth.NewClient(b.config.Auth, l)
+	if err != nil {
+		return fmt.Errorf("auth.NewClient: %w", err)
+	}
 
 	botsRepo := repo.NewBotsRepository(pool)
 	profileValidator := profiles_validator.NewGrpcValidator(profilesClient)
@@ -68,7 +90,9 @@ func (b *App) Run() error {
 	botsUsecase := usecase.NewService(botsRepo, profileValidator, profileGateway)
 	botsHandler := delivery.NewHandler(botsUsecase, l)
 
-	svr, err := gen.NewServer(botsHandler)
+	// Инициализация Ogen Server с Security Handler
+	secHandler := &securityHandler{authClient: authClient}
+	svr, err := gen.NewServer(botsHandler, secHandler)
 	if err != nil {
 		return fmt.Errorf("ogen.NewServer: %w", err)
 	}
@@ -111,16 +135,10 @@ func (b *App) Run() error {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownCancel()
 
-	log.Println("Stopping gRPC server...")
 	grpcServer.GracefulStop()
-	log.Println("gRPC server stopped.")
-
-	log.Println("Stopping HTTP server...")
-	if err = b.server.Shutdown(shutdownCtx); err != nil {
-		log.Println("HTTP server shutdown error")
+	if shutErr := b.server.Shutdown(shutdownCtx); shutErr != nil {
 		return err
 	}
-	log.Println("HTTP server stopped.")
 
 	return nil
 }

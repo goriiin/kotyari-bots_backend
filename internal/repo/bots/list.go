@@ -4,10 +4,16 @@ import (
 	"context"
 
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"github.com/jackc/pgx/v5"
 )
 
 func (r BotsRepository) List(ctx context.Context) ([]model.Bot, error) {
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	rows, err := r.db.Query(ctx, `
 		SELECT 
 		    id, 
@@ -19,9 +25,9 @@ func (r BotsRepository) List(ctx context.Context) ([]model.Bot, error) {
 		    created_at, 
 		    updated_at
 		FROM bots
-		WHERE is_deleted = false
+		WHERE is_deleted = false AND user_id = $1
 		ORDER BY created_at DESC
-	`)
+	`, userID)
 	if err != nil {
 		return nil, err
 	}

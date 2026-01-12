@@ -9,20 +9,18 @@ tags:
   - name: "Posts"
     description: "Операции для управления постами."
 
+security:
+  - SessionAuth: []
+
 # --------------------------------------------------------------
 # Компоненты API
 # --------------------------------------------------------------
 components:
-  # -------------------- Безопасность --------------------
-  #  securitySchemes:
-  #    cookieAuth:
-  #      type: apiKey
-  #      in: cookie
-  #      name: session_id
-  #    csrfAuth:
-  #      type: apiKey
-  #      in: header
-  #      name: X-CSRF-Token
+  securitySchemes:
+    SessionAuth:
+      type: apiKey
+      in: cookie
+      name: session_id
 # --------------------------------------------------------------
 # Глобальные требования безопасности
 # --------------------------------------------------------------

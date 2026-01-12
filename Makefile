@@ -3,6 +3,7 @@ DOMAIN := writehub.space
 EMAIL := admin@writehub.space
 NGINX_COMPOSE := docker-compose.nginx.yml
 FRONTEND_DIR := ../kotyari-bots_frontend
+AUTH_COMPOSE := ./cmd/auth-rs/docker-compose.yml
 
 # Автоматический поиск сервисов для Ogen
 SERVICES := $(shell find ./docs -mindepth 2 -maxdepth 3 -type f -name 'openapi.yaml' -print \
@@ -51,6 +52,7 @@ up: copy-env setup-network
 	@$(MAKE) bots-up & \
 	 $(MAKE) profiles-up & \
 	 $(MAKE) posts-up & \
+	 $(MAKE) auth-up & \
 	wait
 	@echo "Backend services are up."
 
@@ -59,6 +61,7 @@ down:
 	@$(MAKE) bots-down & \
 	 $(MAKE) profiles-down & \
 	 $(MAKE) posts-down & \
+	 $(MAKE) auth-down & \
 	wait
 	@echo "Backend services stopped."
 
@@ -79,6 +82,16 @@ posts-up: setup-network
 
 posts-down:
 	docker compose -f docker-compose.posts.yml down
+
+auth-up: setup-network
+	cp ./.env ./cmd/auth-rs/.env
+	docker compose -f $(AUTH_COMPOSE) up --build -d
+
+auth-down:
+	docker compose -f $(AUTH_COMPOSE) down
+
+auth-logs:
+	docker compose -f $(AUTH_COMPOSE) -p auth-rs logs -f
 
 # --- FRONTEND ---
 
@@ -135,18 +148,44 @@ GEN_DIR := gen
 PROTOC := protoc
 ENTITIES := $(shell find $(PROTO_DIR) -mindepth 1 -maxdepth 1 -type d -exec basename {} \;)
 
-proto-build: $(ENTITIES)
+AUTH_PROTO_SRC := ./cmd/auth-rs/proto
+AUTH_GEN_DIR := ./api/protos/auth/gen
+AUTH_PKG_OPT := Mauth.proto=github.com/goriiin/kotyari-bots_backend/api/protos/auth/gen
+
+proto-build: $(ENTITIES) auth-gen
 
 $(ENTITIES):
 	@echo "Генерация кода для сущности $@..."
-	@mkdir -p $(PROTO_DIR)/$@/$(GEN_DIR)
-	@$(PROTOC) \
-		--proto_path=$(PROTO_DIR)/$@/proto \
-		--go_out=$(PROTO_DIR)/$@/$(GEN_DIR) \
-		--go_opt=paths=source_relative \
-		--go-grpc_out=$(PROTO_DIR)/$@/$(GEN_DIR) \
-		--go-grpc_opt=paths=source_relative \
-		$(PROTO_DIR)/$@/proto/*.proto
+	@if [ -d "$(PROTO_DIR)/$@/proto" ]; then \
+		mkdir -p $(PROTO_DIR)/$@/$(GEN_DIR); \
+		$(PROTOC) \
+			--proto_path=$(PROTO_DIR)/$@/proto \
+			--go_out=$(PROTO_DIR)/$@/$(GEN_DIR) \
+			--go_opt=paths=source_relative \
+			--go-grpc_out=$(PROTO_DIR)/$@/$(GEN_DIR) \
+			--go-grpc_opt=paths=source_relative \
+			$(PROTO_DIR)/$@/proto/*.proto; \
+	else \
+		echo "Skipping $@: directory $(PROTO_DIR)/$@/proto does not exist"; \
+	fi
+
+# Отдельное правило для Auth
+auth-gen:
+	@echo "Генерация кода для сущности auth..."
+	@mkdir -p $(AUTH_GEN_DIR)
+	@if [ -f "$(AUTH_PROTO_SRC)/auth.proto" ]; then \
+		$(PROTOC) \
+			--proto_path=$(AUTH_PROTO_SRC) \
+			--go_out=$(AUTH_GEN_DIR) \
+			--go_opt=paths=source_relative \
+			--go-grpc_out=$(AUTH_GEN_DIR) \
+			--go-grpc_opt=paths=source_relative \
+			--go_opt=$(AUTH_PKG_OPT) \
+			--go-grpc_opt=$(AUTH_PKG_OPT) \
+			$(AUTH_PROTO_SRC)/auth.proto; \
+	else \
+		echo "Skipping Auth: $(AUTH_PROTO_SRC)/auth.proto not found"; \
+	fi
 
 install-ogen:
 	go install github.com/ogen-go/ogen/cmd/ogen@v1.16.0

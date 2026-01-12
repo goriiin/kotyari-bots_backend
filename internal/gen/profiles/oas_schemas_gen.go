@@ -349,6 +349,31 @@ func (s *ProfileList) SetData(val []Profile) {
 
 func (*ProfileList) listMyProfilesRes() {}
 
+type SessionAuth struct {
+	APIKey string
+	Roles  []string
+}
+
+// GetAPIKey returns the value of APIKey.
+func (s *SessionAuth) GetAPIKey() string {
+	return s.APIKey
+}
+
+// GetRoles returns the value of Roles.
+func (s *SessionAuth) GetRoles() []string {
+	return s.Roles
+}
+
+// SetAPIKey sets the value of APIKey.
+func (s *SessionAuth) SetAPIKey(val string) {
+	s.APIKey = val
+}
+
+// SetRoles sets the value of Roles.
+func (s *SessionAuth) SetRoles(val []string) {
+	s.Roles = val
+}
+
 type UpdateProfileByIdBadRequest Error
 
 func (*UpdateProfileByIdBadRequest) updateProfileByIdRes() {}
