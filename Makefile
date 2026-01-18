@@ -247,5 +247,4 @@ SEEDCOMPOSE ?= docker-compose.seed.yml
 
 .PHONY: seed
 seed: setup-network
-	docker compose -f docker-compose.bots.yml -f docker-compose.profiles.yml -f docker-compose.posts.yml up -d --build
-	docker compose -f docker-compose.bots.yml -f docker-compose.profiles.yml -f docker-compose.posts.yml -f $(SEEDCOMPOSE) run --rm seed
+	docker compose -f $(SEEDCOMPOSE) run --rm --build seed
