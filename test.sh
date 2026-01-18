@@ -3,7 +3,7 @@
 # ==========================================
 # КОНФИГУРАЦИЯ
 # ==========================================
-AUTH_HOST="http://localhost:3000"
+AUTH_HOST="http://localhost:8010"
 PROFILES_HOST="http://localhost:8003"
 BOTS_HOST="http://localhost:8001"
 POSTS_CMD_HOST="http://localhost:8088"

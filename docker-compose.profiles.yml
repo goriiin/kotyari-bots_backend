@@ -1,6 +1,6 @@
 services:
   profiles_db:
-    image: postgres:16-alpine
+    image: postgres:17.5
     container_name: profiles_db
     environment:
       POSTGRES_USER: ${LOCAL_PROFILES_DATABASE_USER}
