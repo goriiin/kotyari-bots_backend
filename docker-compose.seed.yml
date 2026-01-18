@@ -1,0 +1,18 @@
+# docker-compose.seed.yml
+services:
+  seed:
+    build:
+      context: .
+      dockerfile: cmd/seed/Dockerfile
+    image: kotyari-seed:latest
+    env_file:
+      - .env
+    environment:
+      USER_ID: ${USER_ID}
+      # Можно переопределить, если нужно:
+      # SEED_DB_HOST: host.docker.internal
+      # SEED_POSTS_DB_PORT: "5432"
+      # SEED_BOTS_DB_PORT: "5433"
+      # SEED_PROFILES_DB_PORT: "5434"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
