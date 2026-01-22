@@ -1,0 +1,3 @@
+ALTER TABLE posts
+    DROP COLUMN IF EXISTS is_published,
+    DROP COLUMN IF EXISTS url;

@@ -12,6 +12,7 @@ import (
 type usecase interface {
 	GetByIDs(ctx context.Context, ids []uuid.UUID) ([]model.Profile, error)
 	Exist(ctx context.Context, ids []uuid.UUID) (map[string]bool, error)
+	Create(ctx context.Context, profile model.Profile) (model.Profile, error)
 }
 
 type GRPCHandler struct {

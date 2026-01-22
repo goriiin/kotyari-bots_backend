@@ -35,6 +35,8 @@ type Post struct {
 	Title       string
 	Text        string
 	IsSeen      bool
+	IsPublished bool
+	URL         string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

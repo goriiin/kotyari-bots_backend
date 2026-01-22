@@ -15,6 +15,12 @@ func QueryModelToHttp(post model.Post) *genQuery.Post {
 		postType.Null = true
 	}
 
+	// ИСПРАВЛЕНИЕ: Используем OptNilString вместо OptString
+	var url genQuery.OptNilString
+	if post.URL != "" {
+		url = genQuery.NewOptNilString(post.URL)
+	}
+
 	return &genQuery.Post{
 		ID:          post.ID,
 		GroupId:     post.GroupID,
@@ -27,6 +33,8 @@ func QueryModelToHttp(post model.Post) *genQuery.Post {
 		Task:        post.UserPrompt,
 		Title:       post.Title,
 		Text:        post.Text,
+		IsPublished: genQuery.NewOptBool(post.IsPublished),
+		URL:         url,
 		Categories:  nil,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
@@ -53,6 +61,12 @@ func ModelToHttp(post model.Post) *genCommand.Post {
 		postType.Null = true
 	}
 
+	// ИСПРАВЛЕНИЕ: Используем OptNilString вместо OptString
+	var url genCommand.OptNilString
+	if post.URL != "" {
+		url = genCommand.NewOptNilString(post.URL)
+	}
+
 	return &genCommand.Post{
 		ID:          post.ID,
 		GroupId:     post.GroupID,
@@ -65,6 +79,8 @@ func ModelToHttp(post model.Post) *genCommand.Post {
 		Task:        post.UserPrompt,
 		Title:       post.Title,
 		Text:        post.Text,
+		IsPublished: genCommand.NewOptBool(post.IsPublished),
+		URL:         url,
 		Categories:  nil,
 		CreatedAt:   post.CreatedAt,
 		UpdatedAt:   post.UpdatedAt,
@@ -117,7 +133,6 @@ func PostsCheckModelsToHttpSlice(posts []model.Post) *genQuery.PostsCheckList {
 	checkObjects := make([]genQuery.PostsCheckObject, 0, len(posts))
 
 	for _, post := range posts {
-		// TODO: Плакать хочется
 		if post.IsSeen {
 			continue
 		}

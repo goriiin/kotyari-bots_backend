@@ -20,7 +20,7 @@ func (p *PostsQueryRepo) GetByID(ctx context.Context, id uuid.UUID) (model.Post,
 
 	const query = `
 		SELECT id, otveti_id, group_id, user_prompt, bot_id, bot_name, profile_id, profile_name, 
-		       platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
+		       platform_type::text, post_type::text, post_title, post_text, is_published, url, created_at, updated_at
 		FROM posts
 		WHERE id = $1 AND user_id = $2
 	`

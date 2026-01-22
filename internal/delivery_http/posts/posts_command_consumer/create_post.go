@@ -64,7 +64,6 @@ func (p *PostsCommandConsumer) processProfile(ctx context.Context, req posts.Kaf
 	bestPost.Title = bestPostCandidate.Title
 	bestPost.Text = bestPostCandidate.Text
 
-	// bestPost := p.createPostFromCandidate(req, profile, bestPostCandidate)
 	p.publishToOtvet(ctx, req, bestPostCandidate, &bestPost)
 
 	return &bestPost
@@ -119,38 +118,37 @@ func (p *PostsCommandConsumer) publishToOtvet(ctx context.Context, req posts.Kaf
 	topicType := getTopicTypeFromPostType(req.PostType)
 	spaces := p.getSpacesForPost(ctx, candidate)
 
-	// If queue is available, add to queue instead of publishing directly
 	if p.queue != nil {
 		postRequest := posting_queue.PostRequest{
-			Platform:  req.Platform,
-			PostType:  req.PostType,
-			TopicType: topicType,
-			Spaces:    spaces,
-			// per-request moderation flag from bot
+			Platform:           req.Platform,
+			PostType:           req.PostType,
+			TopicType:          topicType,
+			Spaces:             spaces,
 			ModerationRequired: req.ModerationRequired,
 		}
 		p.queue.Enqueue(post, candidate, postRequest)
+		p.log.Info(fmt.Sprintf("publishToOtvet: post %s enqueued", post.ID.String()))
 		return
 	}
 
-	// Fallback to direct publishing if queue is not available
-	// Respect bot-level moderation flag: if moderation required, do not publish directly
 	if req.ModerationRequired {
-		// Create post in DB but skip publish since moderation is required
 		p.log.Info(fmt.Sprintf("publishToOtvet: bot requires moderation, skipping direct publish for post %s", post.ID.String()))
 		return
 	}
 
+	p.log.Info(fmt.Sprintf("publishToOtvet: attempting direct publish for post %s", post.ID.String()))
 	otvetResp, err := p.otvetClient.CreatePostSimple(ctx, candidate.Title, candidate.Text, topicType, spaces)
 	if err != nil {
-		p.log.Error(err, true, "publishToOtvet: create post simple")
+		p.log.Error(err, true, "publishToOtvet: create post simple failed")
 		return
 	}
 
-	p.log.Info(fmt.Sprintf("publishToOtvet: published post to otvet: %v", otvetResp))
+	p.log.Info(fmt.Sprintf("publishToOtvet: success for post %s, response: %+v", post.ID.String(), otvetResp))
 
 	if otvetResp != nil && otvetResp.Result != nil {
 		post.OtvetiID = uint64(otvetResp.Result.ID)
+		post.IsPublished = true
+		post.URL = fmt.Sprintf("https://otvet.mail.ru/question/%d", otvetResp.Result.ID)
 	}
 }
 
@@ -169,7 +167,6 @@ func (p *PostsCommandConsumer) getSpacesForPost(ctx context.Context, candidate m
 		return spaces
 	}
 
-	// Convert predicted spaces to Space format
 	predictedSpaces := make([]otvet.Space, 0, len((*predictResp)[0].Spaces))
 	for _, spaceID := range (*predictResp)[0].Spaces {
 		predictedSpaces = append(predictedSpaces, otvet.Space{
@@ -185,28 +182,23 @@ func (p *PostsCommandConsumer) getSpacesForPost(ctx context.Context, candidate m
 	return spaces
 }
 
-// getTopicTypeFromPostType converts PostType to otvet topic_type
-// topic_type: 2 = question (opinion), other values may be used for other types
 func getTopicTypeFromPostType(postType model.PostType) int {
 	switch postType {
 	case model.OpinionPostType:
-		return 2 // question
+		return 2
 	case model.KnowledgePostType:
-		return 2 // question (can be adjusted if needed)
+		return 2
 	case model.HistoryPostType:
-		return 2 // question (can be adjusted if needed)
+		return 2
 	default:
-		return 2 // default to question
+		return 2
 	}
 }
 
-// getDefaultSpaces returns default spaces for otvet posts
-// TODO: move to config or get from request
 func getDefaultSpaces() []otvet.Space {
-	// Default space - can be configured later
 	return []otvet.Space{
 		{
-			ID:      501, // Example space ID from the response
+			ID:      501,
 			IsPrime: true,
 		},
 	}

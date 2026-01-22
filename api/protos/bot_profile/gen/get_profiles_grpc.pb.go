@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ProfilesService_GetProfiles_FullMethodName   = "/profiles.ProfilesService/GetProfiles"
 	ProfilesService_ProfilesExist_FullMethodName = "/profiles.ProfilesService/ProfilesExist"
+	ProfilesService_CreateProfile_FullMethodName = "/profiles.ProfilesService/CreateProfile"
 )
 
 // ProfilesServiceClient is the client API for ProfilesService service.
@@ -33,6 +34,8 @@ type ProfilesServiceClient interface {
 	// Возвращает карту, где ключ - ID профиля, а значение - true, если он существует.
 	// Отсутствующие в ответе ID следует считать несуществующими.
 	ProfilesExist(ctx context.Context, in *ProfilesExistRequest, opts ...grpc.CallOption) (*ProfilesExistResponse, error)
+	// Создает новый профиль.
+	CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error)
 }
 
 type profilesServiceClient struct {
@@ -63,6 +66,16 @@ func (c *profilesServiceClient) ProfilesExist(ctx context.Context, in *ProfilesE
 	return out, nil
 }
 
+func (c *profilesServiceClient) CreateProfile(ctx context.Context, in *CreateProfileRequest, opts ...grpc.CallOption) (*CreateProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateProfileResponse)
+	err := c.cc.Invoke(ctx, ProfilesService_CreateProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProfilesServiceServer is the server API for ProfilesService service.
 // All implementations must embed UnimplementedProfilesServiceServer
 // for forward compatibility.
@@ -73,6 +86,8 @@ type ProfilesServiceServer interface {
 	// Возвращает карту, где ключ - ID профиля, а значение - true, если он существует.
 	// Отсутствующие в ответе ID следует считать несуществующими.
 	ProfilesExist(context.Context, *ProfilesExistRequest) (*ProfilesExistResponse, error)
+	// Создает новый профиль.
+	CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error)
 	mustEmbedUnimplementedProfilesServiceServer()
 }
 
@@ -88,6 +103,9 @@ func (UnimplementedProfilesServiceServer) GetProfiles(context.Context, *GetProfi
 }
 func (UnimplementedProfilesServiceServer) ProfilesExist(context.Context, *ProfilesExistRequest) (*ProfilesExistResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ProfilesExist not implemented")
+}
+func (UnimplementedProfilesServiceServer) CreateProfile(context.Context, *CreateProfileRequest) (*CreateProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateProfile not implemented")
 }
 func (UnimplementedProfilesServiceServer) mustEmbedUnimplementedProfilesServiceServer() {}
 func (UnimplementedProfilesServiceServer) testEmbeddedByValue()                         {}
@@ -146,6 +164,24 @@ func _ProfilesService_ProfilesExist_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProfilesService_CreateProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProfilesServiceServer).CreateProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProfilesService_CreateProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProfilesServiceServer).CreateProfile(ctx, req.(*CreateProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProfilesService_ServiceDesc is the grpc.ServiceDesc for ProfilesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -160,6 +196,10 @@ var ProfilesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProfilesExist",
 			Handler:    _ProfilesService_ProfilesExist_Handler,
+		},
+		{
+			MethodName: "CreateProfile",
+			Handler:    _ProfilesService_CreateProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

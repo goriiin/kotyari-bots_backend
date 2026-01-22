@@ -71,6 +71,13 @@ Post:
       items:
         $ref: './schemas.yaml#/Category'
       description: "Возвращается, если у поста есть категории"
+    isPublished:
+      type: boolean
+      description: "Флаг успешной публикации поста на платформе"
+    url:
+      type: string
+      nullable: true
+      description: "Ссылка на опубликованный пост"
     createdAt:
       type: string
       format: date-time
@@ -102,6 +109,8 @@ Post:
     title: "Sample text title"
     text: "Sample post text"
     postType: "opinion"
+    isPublished: true
+    url: "https://otvet.mail.ru/question/1234567890"
     categories:
       - id: "b3eea15e-865c-462a-9b05-393b71954fc5"
         title: "C++"

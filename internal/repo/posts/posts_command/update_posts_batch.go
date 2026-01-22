@@ -15,8 +15,11 @@ func (p *PostsCommandRepo) UpdatePostsBatch(ctx context.Context, posts []model.P
         UPDATE posts
         SET post_title = $1,
             post_text = $2,
+            otveti_id = $3,
+            is_published = $4,
+            url = $5,
             updated_at = NOW()
-        WHERE id = $3
+        WHERE id = $6
     `
 
 	batch := &pgx.Batch{}
@@ -25,6 +28,9 @@ func (p *PostsCommandRepo) UpdatePostsBatch(ctx context.Context, posts []model.P
 		batch.Queue(query,
 			post.Title,
 			post.Text,
+			post.OtvetiID,
+			post.IsPublished,
+			post.URL,
 			post.ID,
 		)
 	}
@@ -39,7 +45,7 @@ func (p *PostsCommandRepo) UpdatePostsBatch(ctx context.Context, posts []model.P
 
 	for i := 0; i < batch.Len(); i++ {
 		if _, err = br.Exec(); err != nil {
-			return errors.Wrapf(constants.ErrInternal, "error happened while inserting posts: %s", err.Error())
+			return errors.Wrapf(constants.ErrInternal, "error happened while updating posts: %s", err.Error())
 		}
 	}
 

@@ -19,9 +19,9 @@ func (p *PostsQueryRepo) ListPosts(ctx context.Context) ([]model.Post, error) {
 
 	const query = `
 		SELECT id, otveti_id, group_id, user_prompt, bot_id, bot_name, profile_id, profile_name, 
-		       platform_type::text, post_type::text, post_title, post_text, created_at, updated_at
+		       platform_type::text, post_type::text, post_title, post_text, is_published, url, created_at, updated_at
 		FROM posts
-		WHERE user_id = $1
+		WHERE user_id = $1 and post_text != ''
 		ORDER BY created_at DESC
 	`
 
@@ -34,7 +34,6 @@ func (p *PostsQueryRepo) ListPosts(ctx context.Context) ([]model.Post, error) {
 	postsDTO, err := pgx.CollectRows(rows, pgx.RowToStructByName[posts.PostDTO])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			// Empty list is not an error usually, but strict mapping might behave differently
 			return []model.Post{}, nil
 		}
 		return nil, errors.Wrapf(constants.ErrInternal, "failed to collect rows: %s", err)

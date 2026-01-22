@@ -48,6 +48,8 @@ type PostDTO struct {
 	Type        pgtype.Text   `db:"post_type"`
 	Title       string        `db:"post_title"`
 	Text        string        `db:"post_text"`
+	IsPublished bool          `db:"is_published"`
+	URL         pgtype.Text   `db:"url"`
 	CreatedAt   time.Time     `db:"created_at"`
 	UpdatedAt   time.Time     `db:"updated_at"`
 }
@@ -71,6 +73,8 @@ func (d PostDTO) ToModel() model.Post {
 		UserPrompt:  d.UserPrompt,
 		Title:       d.Title,
 		Text:        d.Text,
+		IsPublished: d.IsPublished,
+		URL:         d.URL.String,
 		CreatedAt:   d.CreatedAt,
 		UpdatedAt:   d.UpdatedAt,
 	}

@@ -165,6 +165,52 @@ type NoContent struct{}
 func (*NoContent) deletePostByIdRes() {}
 func (*NoContent) seenPostsRes()      {}
 
+// NewOptBool returns new OptBool with value set to v.
+func NewOptBool(v bool) OptBool {
+	return OptBool{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptBool is optional bool.
+type OptBool struct {
+	Value bool
+	Set   bool
+}
+
+// IsSet returns true if OptBool was set.
+func (o OptBool) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptBool) Reset() {
+	var v bool
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptBool) SetTo(v bool) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptBool) Get() (v bool, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptBool) Or(d bool) bool {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptErrorDetails returns new OptErrorDetails with value set to v.
 func NewOptErrorDetails(v ErrorDetails) OptErrorDetails {
 	return OptErrorDetails{
@@ -268,6 +314,69 @@ func (o OptNilPostPostType) Get() (v PostPostType, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptNilPostPostType) Or(d PostPostType) PostPostType {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilString returns new OptNilString with value set to v.
+func NewOptNilString(v string) OptNilString {
+	return OptNilString{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilString is optional nullable string.
+type OptNilString struct {
+	Value string
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilString was set.
+func (o OptNilString) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilString) Reset() {
+	var v string
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilString) SetTo(v string) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilString) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilString) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v string
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilString) Get() (v string, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilString) Or(d string) string {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -412,8 +521,12 @@ type Post struct {
 	Text string `json:"text"`
 	// Возвращается, если у поста есть категории.
 	Categories []Category `json:"categories"`
-	CreatedAt  time.Time  `json:"createdAt"`
-	UpdatedAt  time.Time  `json:"updatedAt"`
+	// Флаг успешной публикации поста на платформе.
+	IsPublished OptBool `json:"isPublished"`
+	// Ссылка на опубликованный пост.
+	URL       OptNilString `json:"url"`
+	CreatedAt time.Time    `json:"createdAt"`
+	UpdatedAt time.Time    `json:"updatedAt"`
 }
 
 // GetID returns the value of ID.
@@ -479,6 +592,16 @@ func (s *Post) GetText() string {
 // GetCategories returns the value of Categories.
 func (s *Post) GetCategories() []Category {
 	return s.Categories
+}
+
+// GetIsPublished returns the value of IsPublished.
+func (s *Post) GetIsPublished() OptBool {
+	return s.IsPublished
+}
+
+// GetURL returns the value of URL.
+func (s *Post) GetURL() OptNilString {
+	return s.URL
 }
 
 // GetCreatedAt returns the value of CreatedAt.
@@ -554,6 +677,16 @@ func (s *Post) SetText(val string) {
 // SetCategories sets the value of Categories.
 func (s *Post) SetCategories(val []Category) {
 	s.Categories = val
+}
+
+// SetIsPublished sets the value of IsPublished.
+func (s *Post) SetIsPublished(val OptBool) {
+	s.IsPublished = val
+}
+
+// SetURL sets the value of URL.
+func (s *Post) SetURL(val OptNilString) {
+	s.URL = val
 }
 
 // SetCreatedAt sets the value of CreatedAt.
