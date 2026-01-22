@@ -51,8 +51,8 @@ proxy:
 
 posting_queue:
   moderation_required: false
-  posting_interval: 30m
-  processing_interval: 1m
+  posting_interval: 10s       # ИЗМЕНЕНО: 10 секунд для тестов
+  processing_interval: 5s     # ИЗМЕНЕНО: 5 секунд для тестов
 
 otvet:
   auth_token: "" # Set via LOCAL_OTVET_AUTH_TOKEN env var

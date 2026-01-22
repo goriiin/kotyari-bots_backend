@@ -86,12 +86,12 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 	// Initialize posting queue
 	postingInterval := config.PostingQueue.PostingInterval
 	if postingInterval == 0 {
-		postingInterval = 30 * time.Minute // default
+		postingInterval = 30 * time.Minute
 	}
 
 	processingInterval := config.PostingQueue.ProcessingInterval
 	if processingInterval == 0 {
-		processingInterval = 1 * time.Minute // default
+		processingInterval = 1 * time.Minute
 	}
 
 	queue := posting_queue.NewQueue(
@@ -100,41 +100,52 @@ func NewPostsCommandConsumer(config *PostsCommandConsumerConfig, llmConfig *LLMC
 		config.PostingQueue.ModerationRequired,
 	)
 
-	// Add account to queue (using auth token as account ID for now)
-	accountID := "default" // Can be extended to support multiple accounts
+	accountID := "default"
 	queue.AddAccount(accountID, config.Otvet.AuthToken, otvetClient)
 
-	// Start queue processing in background
+	publishFunc := func(ctx context.Context, account *posting_queue.Account, queuedPost *posting_queue.QueuedPost) error {
+		if account.Client == nil {
+			log.Error(nil, false, "Queue: account client is nil")
+			return errors.New("account client is nil")
+		}
+
+		log.Info(fmt.Sprintf("Queue: publishing post %s...", queuedPost.Post.ID))
+
+		otvetResp, err := account.Client.CreatePostSimple(
+			ctx,
+			queuedPost.Candidate.Title,
+			queuedPost.Candidate.Text,
+			queuedPost.Request.TopicType,
+			queuedPost.Request.Spaces,
+		)
+		if err != nil {
+			log.Error(err, true, fmt.Sprintf("Queue: failed to publish post %s", queuedPost.Post.ID))
+			return errors.Wrap(err, "failed to publish post from queue")
+		}
+
+		log.Info(fmt.Sprintf("Queue: successfully published post %s. Resp ID: %d", queuedPost.Post.ID, otvetResp.Result.ID))
+
+		if otvetResp != nil && otvetResp.Result != nil {
+			// Обновляем модель
+			queuedPost.Post.OtvetiID = uint64(otvetResp.Result.ID)
+			queuedPost.Post.IsPublished = true
+			queuedPost.Post.URL = fmt.Sprintf("https://otvet.mail.ru/question/%d", otvetResp.Result.ID)
+
+			// Сохраняем обновление в БД
+			if _, err := repo.UpdatePost(ctx, *queuedPost.Post); err != nil {
+				log.Error(err, true, "Queue: failed to update post status in DB after publish")
+			}
+		}
+
+		return nil
+	}
+
 	ctx := context.Background()
-	go queue.StartProcessing(ctx, publishPostFromQueue)
+	go queue.StartProcessing(ctx, publishFunc)
 
 	return &PostsCommandConsumer{
 		consumerRunner: posts_command_consumer.NewPostsCommandConsumer(cons, repo, grpc, rw, j, otvetClient, queue, log),
 		consumer:       cons,
 		config:         config,
 	}, nil
-}
-
-// publishPostFromQueue publishes a post from the queue
-func publishPostFromQueue(ctx context.Context, account *posting_queue.Account, queuedPost *posting_queue.QueuedPost) error {
-	if account.Client == nil {
-		return errors.New("account client is nil")
-	}
-
-	otvetResp, err := account.Client.CreatePostSimple(
-		ctx,
-		queuedPost.Candidate.Title,
-		queuedPost.Candidate.Text,
-		queuedPost.Request.TopicType,
-		queuedPost.Request.Spaces,
-	)
-	if err != nil {
-		return errors.Wrap(err, "failed to publish post from queue")
-	}
-
-	if otvetResp != nil && otvetResp.Result != nil {
-		queuedPost.Post.OtvetiID = uint64(otvetResp.Result.ID)
-	}
-
-	return nil
 }
