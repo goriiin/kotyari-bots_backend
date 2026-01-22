@@ -183,16 +183,16 @@ func (q *Queue) processQueue(ctx context.Context, publishFunc func(ctx context.C
 		return
 	}
 
-	// Publish post
-	// Игнорируем ошибку при выполнении для flow управления:
-	// Если публикация не удалась (например 429), мы всё равно удаляем пост из очереди,
-	// чтобы избежать бесконечного цикла (DoS). Логирование ошибки происходит внутри publishFunc.
+	// Publish post.
+	// Мы игнорируем ошибку здесь, чтобы гарантированно удалить пост из очереди
+	// и избежать вечного цикла повторных попыток (DoS) для одного сбойного поста.
+	// Логирование ошибки происходит внутри publishFunc.
 	_ = publishFunc(ctx, account, postToPublish)
 
-	// Update account last post time
+	// Update account last post time (even if failed, to respect rate limits/backoff)
 	account.LastPost = time.Now()
 
-	// Remove post from queue regardless of success/failure
+	// Remove post from queue regardless of success or failure
 	q.posts = append(q.posts[:postIndex], q.posts[postIndex+1:]...)
 }
 

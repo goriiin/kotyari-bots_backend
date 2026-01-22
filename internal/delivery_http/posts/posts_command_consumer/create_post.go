@@ -168,10 +168,10 @@ func (p *PostsCommandConsumer) getSpacesForPost(ctx context.Context, candidate m
 	}
 
 	predictedSpaces := make([]otvet.Space, 0, len((*predictResp)[0].Spaces))
-	for _, spaceID := range (*predictResp)[0].Spaces {
+	for i, spaceID := range (*predictResp)[0].Spaces {
 		predictedSpaces = append(predictedSpaces, otvet.Space{
 			ID:      spaceID,
-			IsPrime: true,
+			IsPrime: i == 0,
 		})
 	}
 
