@@ -8,12 +8,12 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
-func (p *PostsCommandRepo) DeletePost(ctx context.Context, id uuid.UUID) error {
+func (p *PostsCommandRepo) DeletePost(ctx context.Context, id, userID uuid.UUID) error {
 	const query = `
-		DELETE FROM posts WHERE id=$1
+		DELETE FROM posts WHERE id=$1 AND user_id=$2
 	`
 
-	ct, err := p.db.Exec(ctx, query, id)
+	ct, err := p.db.Exec(ctx, query, id, userID)
 	if err != nil {
 		return errors.Wrapf(constants.ErrInternal, "failed to delete post: %s", err.Error())
 	}

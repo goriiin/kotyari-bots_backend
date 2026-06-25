@@ -9,6 +9,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -20,8 +21,14 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 		}, nil
 	}
 
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	publishRequest := posts.KafkaPublishPostRequest{
 		PostID:   params.PostId,
+		UserID:   userID,
 		Approved: req.Approved,
 	}
 

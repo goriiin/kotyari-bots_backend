@@ -40,7 +40,11 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 
 	postProfiles := make([]posts.CreatePostProfiles, 0, len(idsString))
 	for _, profile := range profilesBatch.Profiles {
-		profileID, _ := uuid.Parse(profile.Id)
+		profileID, parseErr := uuid.Parse(profile.Id)
+		if parseErr != nil {
+			p.log.Error(parseErr, true, "CreatePost: parse profile id")
+			return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: constants.InternalMsg}, nil
+		}
 		postProfiles = append(postProfiles, posts.CreatePostProfiles{
 			ProfileID:     profileID,
 			ProfilePrompt: profile.Prompt,
@@ -49,7 +53,11 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	}
 
 	groupID := uuid.New()
-	botID, _ := uuid.Parse(bot.Id)
+	botID, parseErr := uuid.Parse(bot.Id)
+	if parseErr != nil {
+		p.log.Error(parseErr, true, "CreatePost: parse bot id")
+		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: constants.InternalMsg}, nil
+	}
 	createPostRequest := posts.KafkaCreatePostRequest{
 		PostID:             uuid.New(),
 		UserID:             userID,

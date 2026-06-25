@@ -44,11 +44,13 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 		for {
 			var messages []kafka.Message
 
-			ctx, cancel := context.WithTimeout(ctx, batchTimeout)
-			defer cancel()
+			// Per-batch timeout context. Cancel it at the end of each iteration
+			// instead of deferring (a defer here would accumulate one live timer
+			// per loop iteration for the lifetime of this goroutine).
+			batchCtx, cancel := context.WithTimeout(ctx, batchTimeout)
 
 			for len(messages) < batchSize {
-				message, err := k.reader.ReadMessage(ctx)
+				message, err := k.reader.ReadMessage(batchCtx)
 				if err != nil {
 					if errors.Is(err, context.DeadlineExceeded) {
 						break
@@ -56,15 +58,19 @@ func (k *KafkaConsumer) ReadBatches(ctx context.Context) <-chan []kafka.Message 
 
 					if errors.Is(err, context.Canceled) {
 						k.log.Warn("kafka is shutting down", err)
+						cancel()
 						return
 					}
 
 					k.log.Error(err, false, "unexpected error happened")
+					cancel()
 					return
 				}
 
 				messages = append(messages, message)
 			}
+
+			cancel()
 
 			if len(messages) > 0 {
 				select {

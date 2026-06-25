@@ -14,11 +14,11 @@ func (p *PostsCommandRepo) UpdatePost(ctx context.Context, post model.Post) (mod
 	const query = `
 		UPDATE posts
 		SET post_title=$1, post_text=$2, updated_at=NOW()
-		WHERE id=$3
+		WHERE id=$3 AND user_id=$4
 		RETURNING id, otveti_id, bot_id, bot_name, profile_id, profile_name, group_id, platform_type, user_prompt, post_type, post_title, post_text, created_at, updated_at
 	`
 
-	rows, err := p.db.Query(ctx, query, post.Title, post.Text, post.ID)
+	rows, err := p.db.Query(ctx, query, post.Title, post.Text, post.ID, post.UserID)
 	if err != nil {
 		return model.Post{}, errors.Wrapf(constants.ErrInternal, "failed to update post: %s", err.Error())
 	}

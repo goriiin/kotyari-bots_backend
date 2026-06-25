@@ -9,12 +9,19 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"github.com/json-iterator/go"
 )
 
 func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostUpdate, params gen.UpdatePostByIdParams) (gen.UpdatePostByIdRes, error) {
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	updatePostRequest := posts.KafkaUpdatePostRequest{
 		PostID: params.PostId,
+		UserID: userID,
 		Title:  req.Title,
 		Text:   req.Text,
 	}

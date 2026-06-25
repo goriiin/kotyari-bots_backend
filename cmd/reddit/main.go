@@ -7,22 +7,11 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-// TODO: change behaviour
-// const local = "local-config"
-const docker = "docker-config"
-
 func main() {
-	cfg, _ := config.New[redditapp.RedditAppConfig]()
-
-	config.WatchConfig(func() {
-		newCfg, err := config.NewWithConfig[redditapp.RedditAppConfig](docker)
-		if err != nil {
-			log.Fatalf("error parsing config in runtime: %s", err.Error())
-			return
-		}
-
-		cfg = newCfg
-	})
+	cfg, err := config.New[redditapp.RedditAppConfig]()
+	if err != nil {
+		log.Fatalf("config load: %v", err)
+	}
 
 	app, err := redditapp.NewRedditAPIApp(cfg)
 	if err != nil {

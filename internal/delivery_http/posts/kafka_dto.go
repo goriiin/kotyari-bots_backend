@@ -98,8 +98,9 @@ func (r KafkaResponse) PostCommandToGen() *gen.Post {
 
 func (u KafkaUpdatePostRequest) ToModel() model.Post {
 	return model.Post{
-		ID:    u.PostID,
-		Title: u.Title,
-		Text:  u.Text,
+		ID:     u.PostID,
+		UserID: u.UserID,
+		Title:  u.Title,
+		Text:   u.Text,
 	}
 }

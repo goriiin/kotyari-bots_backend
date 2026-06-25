@@ -16,7 +16,7 @@ func (p *PostsCommandConsumer) SeenPosts(ctx context.Context, payload []byte) er
 		return errors.Wrap(err, "failed to unwrap")
 	}
 
-	err = p.repo.SeenPostsBatch(ctx, seenPosts.PostIDs)
+	err = p.repo.SeenPostsBatch(ctx, seenPosts.PostIDs, seenPosts.UserID)
 	if err != nil {
 		return errors.Wrap(err, "failed to change posts status")
 	}

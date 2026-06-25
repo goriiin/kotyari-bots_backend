@@ -20,10 +20,10 @@ type postsGetter interface {
 type repo interface {
 	CreatePost(ctx context.Context, post model.Post, categoryIDs []uuid.UUID) (model.Post, error)
 	UpdatePost(ctx context.Context, post model.Post) (model.Post, error)
-	DeletePost(ctx context.Context, id uuid.UUID) error
+	DeletePost(ctx context.Context, id, userID uuid.UUID) error
 	CreatePostsBatch(ctx context.Context, posts []model.Post) (err error)
 	UpdatePostsBatch(ctx context.Context, posts []model.Post) (err error)
-	SeenPostsBatch(ctx context.Context, postsIds []uuid.UUID) (err error)
+	SeenPostsBatch(ctx context.Context, postsIds []uuid.UUID, userID uuid.UUID) (err error)
 }
 
 type consumer interface {

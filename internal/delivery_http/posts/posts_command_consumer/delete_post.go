@@ -15,7 +15,7 @@ func (p *PostsCommandConsumer) DeletePost(ctx context.Context, payload []byte) e
 		return errors.Wrap(err, "failed to unmarshal")
 	}
 
-	err = p.repo.DeletePost(ctx, req.PostID)
+	err = p.repo.DeletePost(ctx, req.PostID, req.UserID)
 	if err != nil {
 		return errors.Wrap(err, "failed to delete post")
 	}

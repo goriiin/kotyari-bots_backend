@@ -10,11 +10,11 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func (p *PostsCommandRepo) SeenPostsBatch(ctx context.Context, postsIds []uuid.UUID) (err error) {
+func (p *PostsCommandRepo) SeenPostsBatch(ctx context.Context, postsIds []uuid.UUID, userID uuid.UUID) (err error) {
 	const query = `
         UPDATE posts
         SET is_seen = $1
-        WHERE id = $2
+        WHERE id = $2 AND user_id = $3
     `
 
 	batch := &pgx.Batch{}
@@ -23,6 +23,7 @@ func (p *PostsCommandRepo) SeenPostsBatch(ctx context.Context, postsIds []uuid.U
 		batch.Queue(query,
 			true,
 			id,
+			userID,
 		)
 	}
 
