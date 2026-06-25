@@ -9,12 +9,19 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"github.com/json-iterator/go"
 )
 
 func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostUpdate, params gen.UpdatePostByIdParams) (gen.UpdatePostByIdRes, error) {
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	updatePostRequest := posts.KafkaUpdatePostRequest{
 		PostID: params.PostId,
+		UserID: userID,
 		Title:  req.Title,
 		Text:   req.Text,
 	}
@@ -24,7 +31,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		p.log.Error(err, true, "UpdatePostById: marshal")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -33,7 +40,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		p.log.Error(err, true, "UpdatePostById: request")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -43,7 +50,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		p.log.Error(err, true, "UpdatePostById: unmarshal response")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -51,7 +58,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 	case strings.Contains(resp.Error, constants.InternalMsg):
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   resp.Error,
+			Message:   constants.InternalMsg,
 		}, nil
 
 	case strings.Contains(resp.Error, constants.NotFoundMsg):

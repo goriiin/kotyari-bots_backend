@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,8 +14,22 @@ import (
 )
 
 type Config struct {
+	// Host/Port are how the gRPC endpoint is configured in the YAML
+	// (auth_grpc.host / auth_grpc.port). Addr, when set, takes precedence and
+	// is used verbatim as the dial target.
+	Host    string        `mapstructure:"host"`
+	Port    int           `mapstructure:"port"`
 	Addr    string        `mapstructure:"addr"`
 	Timeout time.Duration `mapstructure:"timeout"`
+}
+
+// dialAddr returns the gRPC dial target, preferring an explicit Addr and
+// falling back to host:port.
+func (c Config) dialAddr() string {
+	if c.Addr != "" {
+		return c.Addr
+	}
+	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
 type Client struct {
@@ -24,7 +39,12 @@ type Client struct {
 }
 
 func NewClient(cfg Config, log *logger.Logger) (*Client, error) {
-	conn, err := grpc.NewClient(cfg.Addr,
+	addr := cfg.dialAddr()
+	if addr == ":0" || addr == "" {
+		return nil, errors.New("auth: gRPC address is not configured (set auth_grpc.host/port or auth_grpc.addr)")
+	}
+
+	conn, err := grpc.NewClient(addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

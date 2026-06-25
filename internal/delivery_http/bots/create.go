@@ -3,9 +3,11 @@ package bots
 import (
 	"context"
 
+	"github.com/go-faster/errors"
 	"github.com/google/uuid"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/bots"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 )
 
 func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateBotRes, error) {
@@ -24,21 +26,25 @@ func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateB
 		profiles = append(profiles, p.ID)
 	}
 
-	created, err := h.u.Create(ctx, model.Bot{
+	bot, profs, err := h.u.CreateWithProfiles(ctx, model.Bot{
 		Name:               req.Name,
 		SystemPrompt:       desc,
 		ModerationRequired: moderation,
 		ProfileIDs:         profiles,
 	})
 	if err != nil {
+		if errors.Is(err, constants.ErrValidation) {
+			return &gen.CreateBotBadRequest{
+				ErrorCode: constants.ValidationMsg,
+				Message:   err.Error(),
+			}, nil
+		}
 		h.log.Error(err, true, "CreateBot: create bot")
-		return nil, err
+		return &gen.CreateBotInternalServerError{
+			ErrorCode: constants.InternalMsg,
+			Message:   constants.InternalMsg,
+		}, nil
 	}
 
-	bot, profs, err := h.u.GetWithProfiles(ctx, created.ID)
-	if err != nil {
-		h.log.Error(err, true, "CreateBot: get with profiles")
-		return nil, err
-	}
 	return modelToDTO(&bot, profs), nil
 }

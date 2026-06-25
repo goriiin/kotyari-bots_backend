@@ -7,19 +7,11 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/pkg/config"
 )
 
-// const local = "local-config"
-const docker = "docker-config"
-
 func main() {
-	cfg, _ := config.New[aggregator.AggregatorAppConfig]()
-	config.WatchConfig(func() {
-		newCfg, err := config.NewWithConfig[aggregator.AggregatorAppConfig](docker)
-		if err != nil {
-			return
-		}
-
-		cfg = newCfg
-	})
+	cfg, err := config.New[aggregator.AggregatorAppConfig]()
+	if err != nil {
+		log.Fatalf("config load: %v", err)
+	}
 
 	app, err := aggregator.NewAggregatorApp(cfg)
 	if err != nil {

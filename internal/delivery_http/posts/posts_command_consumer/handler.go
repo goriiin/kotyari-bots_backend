@@ -18,8 +18,14 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 	for message := range p.consumer.Start(ctx) {
 		var env kafkaConfig.Envelope
 		if err := jsoniter.Unmarshal(message.Msg.Value, &env); err != nil {
+			// A message we cannot even decode is a poison message: we can never
+			// process it, so we must not block the partition on it. Reply to the
+			// waiting caller with an error (so request-reply doesn't hang waiting
+			// for a response) and commit the offset to move past it.
 			p.log.Error(err, false, constants.ErrUnmarshal.Error())
-			_ = message.Ack(ctx)
+			if replyErr := sendErrReply(ctx, message, errors.Wrap(err, constants.UnmarshalMsg)); replyErr != nil {
+				p.log.Error(replyErr, false, "HandleCommands: failed to reply to poison message")
+			}
 			continue
 		}
 
@@ -36,7 +42,10 @@ func (p *PostsCommandConsumer) HandleCommands() error {
 		case posts.CmdPublish:
 			err = p.handlePublishCommand(ctx, message, env.Payload)
 		default:
-			err = errors.Errorf("unknown command received: %s", env.Command)
+			// Unknown command: reply with an error and commit so the consumer
+			// loop receives a decision and does not block on this message
+			// forever (Ack/Nack/Reply must be called exactly once per message).
+			err = sendErrReply(ctx, message, errors.Errorf("unknown command received: %s", env.Command))
 		}
 
 		if err != nil {

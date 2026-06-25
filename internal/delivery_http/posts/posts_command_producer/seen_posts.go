@@ -10,12 +10,19 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	jsoniter "github.com/json-iterator/go"
 )
 
 func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenRequest) (gen.SeenPostsRes, error) {
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	seenPostsRequest := posts.KafkaSeenPostsRequest{
 		PostIDs: req.Seen,
+		UserID:  userID,
 	}
 
 	rawReq, err := jsoniter.Marshal(seenPostsRequest)
@@ -23,7 +30,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		p.log.Error(err, true, "SeenPosts: marshal")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -32,7 +39,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		p.log.Error(err, true, "SeenPosts: request")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -42,7 +49,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		p.log.Error(err, true, "SeenPosts: unmarshal response")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -54,7 +61,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		}, nil
 
 	case strings.Contains(resp.Error, constants.NotFoundMsg):
-		return &gen.SeenPostsInternalServerError{
+		return &gen.SeenPostsNotFound{
 			ErrorCode: http.StatusNotFound,
 			Message:   "post not found",
 		}, nil

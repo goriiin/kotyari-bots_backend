@@ -21,10 +21,13 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 		return model.Post{}, errors.Wrapf(constants.ErrInternal, "failed to begin transaction: %s", err.Error())
 	}
 
+	// Roll back unless the function returns successfully. Rollback after a
+	// successful Commit is a no-op (pgx returns ErrTxClosed, which we ignore),
+	// and we must not overwrite the real error with the rollback's result.
+	committed := false
 	defer func() {
-		if err != nil {
-			err = tx.Rollback(ctx)
-			// TODO: log err
+		if !committed {
+			_ = tx.Rollback(ctx)
 		}
 	}()
 
@@ -34,16 +37,19 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 	}
 
 	const query = `
-		INSERT INTO posts (id, otveti_id, bot_id, profile_id, group_id, user_prompt, platform_type, post_type, post_title, post_text, is_seen)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, $11)
+		INSERT INTO posts (id, user_id, otveti_id, bot_id, bot_name, profile_id, profile_name, group_id, user_prompt, platform_type, post_type, post_title, post_text, is_seen)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 		RETURNING created_at, updated_at
 	`
 
 	row := tx.QueryRow(ctx, query,
 		post.ID,
+		post.UserID,
 		post.OtvetiID,
 		post.BotID,
+		post.BotName,
 		post.ProfileID,
+		post.ProfileName,
 		post.GroupID,
 		post.UserPrompt,
 		post.Platform,
@@ -57,14 +63,15 @@ func (p *PostsCommandRepo) CreatePost(ctx context.Context, post model.Post, cate
 	}
 
 	if len(categoryIDs) > 0 {
-		err = p.insertPostCategoriesBatch(ctx, tx, post.ID, categoryIDs)
-		return model.Post{}, err
+		if err = p.insertPostCategoriesBatch(ctx, tx, post.ID, categoryIDs); err != nil {
+			return model.Post{}, err
+		}
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
+	if err = tx.Commit(ctx); err != nil {
 		return model.Post{}, errors.Wrap(constants.ErrInternal, "failed to commit transaction")
 	}
+	committed = true
 
 	return post, nil
 }

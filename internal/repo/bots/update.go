@@ -22,7 +22,7 @@ func (r *BotsRepository) Update(ctx context.Context, b model.Bot) error {
                 profile_ids = $5,
                 profiles_count = $6, 
                 updated_at = now()
-            WHERE id = $1 AND user_id = $7`,
+            WHERE id = $1 AND user_id = $7 AND is_deleted = false`,
 		b.ID, b.Name, b.SystemPrompt, b.ModerationRequired, b.ProfileIDs, len(b.ProfileIDs), userID,
 	)
 	if err != nil {

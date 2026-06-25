@@ -27,7 +27,7 @@ func (r BotsRepository) Get(ctx context.Context, id uuid.UUID) (model.Bot, error
 		if err != nil {
 			return model.Bot{}, err
 		}
-		dto, err := pgx.CollectOneRow(rows, pgx.RowToStructByPos[botDTO])
+		dto, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[botDTO])
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return model.Bot{}, constants.ErrNotFound
@@ -47,7 +47,7 @@ func (r BotsRepository) Get(ctx context.Context, id uuid.UUID) (model.Bot, error
 	if err != nil {
 		return model.Bot{}, err
 	}
-	dto, err := pgx.CollectOneRow(rows, pgx.RowToStructByPos[botDTO])
+	dto, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[botDTO])
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.Bot{}, constants.ErrNotFound

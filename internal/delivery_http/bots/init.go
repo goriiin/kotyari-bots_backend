@@ -9,7 +9,7 @@ import (
 )
 
 type usecase interface {
-	Create(ctx context.Context, bot model.Bot) (model.Bot, error)
+	CreateWithProfiles(ctx context.Context, bot model.Bot) (model.Bot, []model.Profile, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetWithProfiles(ctx context.Context, id uuid.UUID) (model.Bot, []model.Profile, error)
 	List(ctx context.Context) ([]model.FullBot, error)

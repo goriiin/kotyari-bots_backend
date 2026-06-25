@@ -8,6 +8,8 @@ import (
 	"github.com/go-faster/errors"
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -19,8 +21,14 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 		}, nil
 	}
 
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	publishRequest := posts.KafkaPublishPostRequest{
 		PostID:   params.PostId,
+		UserID:   userID,
 		Approved: req.Approved,
 	}
 
@@ -29,7 +37,7 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 		p.log.Error(err, true, "PublishPost: marshal")
 		return &gen.PublishPostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -38,7 +46,7 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 		p.log.Error(err, true, "PublishPost: request")
 		return &gen.PublishPostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -48,7 +56,7 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 		p.log.Error(err, true, "PublishPost: unmarshal response")
 		return &gen.PublishPostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -56,7 +64,7 @@ func (p *PostsCommandHandler) PublishPost(ctx context.Context, req *gen.PublishP
 		p.log.Warn("PublishPost: response error", errors.New(resp.Error))
 		return &gen.PublishPostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   resp.Error,
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 

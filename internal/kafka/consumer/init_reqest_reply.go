@@ -78,19 +78,32 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 			messageProcessed := false
 
 			for !messageProcessed {
+				// Buffered so the first decision never blocks; subsequent decisions
+				// for the same message are dropped via the non-blocking signal()
+				// helper instead of blocking the handler goroutine forever.
 				done := make(chan error, 1)
 				corrID := kafkaConfig.GetHeader(m, "correlation_id")
+
+				// signal records the message's terminal decision exactly once.
+				// Extra calls (a buggy handler invoking Ack/Nack/Reply more than
+				// once) are ignored rather than deadlocking on a full channel.
+				signal := func(err error) {
+					select {
+					case done <- err:
+					default:
+					}
+				}
 
 				cm := kafkaConfig.CommittableMessage{
 					Msg: m,
 
 					Ack: func(commitCtx context.Context) error {
-						done <- nil
+						signal(nil)
 						return nil
 					},
 
 					Nack: func(_ context.Context, err error) error {
-						done <- err
+						signal(err)
 						return nil
 					},
 
@@ -102,12 +115,16 @@ func (c *KafkaRequestReplyConsumer) Start(ctx context.Context) <-chan kafkaConfi
 							Headers: headers,
 						})
 						if err != nil {
-							done <- fmt.Errorf("failed to reply: %w", err)
+							signal(fmt.Errorf("failed to reply: %w", err))
 							return err
 						}
 
+						// moveOffset == false means "I replied, but I'll Ack/Nack
+						// separately" (e.g. create-then-async). The caller MUST then
+						// call Ack/Nack, otherwise the message is retried after the
+						// reader's session times out rather than blocking forever.
 						if moveOffset {
-							done <- nil
+							signal(nil)
 						}
 
 						return nil

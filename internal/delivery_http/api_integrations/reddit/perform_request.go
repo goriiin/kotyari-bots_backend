@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/go-faster/errors"
@@ -19,11 +18,14 @@ const (
 )
 
 func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
+	// NOTE: ownership of cancel is handed to the draining goroutine below — we
+	// must NOT defer-cancel here, or the context would be cancelled the moment
+	// this function returns, killing the goroutines that still feed `posts`.
 	ctx, cancel := context.WithTimeout(context.Background(), defaultErrGroupWaitTime)
-	defer cancel()
 
 	integrations, err := r.integration.GetIntegrations(ctx, redditAPIString)
 	if err != nil {
+		cancel()
 		return nil, err
 	}
 
@@ -32,7 +34,7 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 
 	for _, integration := range integrations {
 		g.Go(func() error {
-			req, err := http.NewRequest(http.MethodGet, integration.Url, http.NoBody)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, integration.Url, http.NoBody)
 			if err != nil {
 				return errors.Wrap(err, "failed to create request")
 			}
@@ -41,6 +43,9 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 			if err != nil {
 				return errors.Wrap(err, "failed to perform request")
 			}
+			// Always close the body, including on the Forbidden early-return
+			// below (previously leaked the connection on every blocked request).
+			defer func() { _ = resp.Body.Close() }()
 
 			if resp.StatusCode == http.StatusForbidden {
 				return errors.New("request was blocked")
@@ -51,16 +56,18 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 				return errors.Wrapf(err, "bad response body: %s", string(body))
 			}
 
-			err = resp.Body.Close()
-			if err != nil {
-				return errors.Wrap(err, "failed to close body")
-			}
-
 			var redditAPIResponse RedditAPIResponse
 			if err := json.Unmarshal(body, &redditAPIResponse); err != nil {
 				return errors.Wrapf(err, "failed to unmarhsal: %s", integration.Url)
 			}
-			redditAPIResponses <- redditAPIResponse
+
+			// Respect cancellation so a stalled consumer can't wedge this
+			// goroutine forever on an unbuffered send.
+			select {
+			case redditAPIResponses <- redditAPIResponse:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 
 			return nil
 		})
@@ -76,17 +83,18 @@ func (r *RedditAPIDelivery) performRequests() (chan PostData, error) {
 
 	posts := make(chan PostData)
 
-	var wg sync.WaitGroup
 	go func() {
+		defer cancel()
+		defer close(posts)
 		for redditNews := range redditAPIResponses {
-			wg.Add(1)
 			for _, post := range redditNews.Data.Posts {
-				posts <- post.PostData
+				select {
+				case posts <- post.PostData:
+				case <-ctx.Done():
+					return
+				}
 			}
-			wg.Done()
 		}
-		wg.Wait()
-		close(posts)
 	}()
 
 	return posts, nil

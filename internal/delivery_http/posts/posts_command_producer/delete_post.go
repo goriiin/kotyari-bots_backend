@@ -9,18 +9,24 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
+	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	"github.com/json-iterator/go"
 )
 
 func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.DeletePostByIdParams) (gen.DeletePostByIdRes, error) {
-	req := posts.KafkaDeletePostRequest{PostID: params.PostId}
+	userID, err := user.GetID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := posts.KafkaDeletePostRequest{PostID: params.PostId, UserID: userID}
 
 	rawReq, err := jsoniter.Marshal(req)
 	if err != nil {
 		p.log.Error(err, true, "DeletePostById: marshal")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -30,7 +36,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 		p.log.Error(err, true, "DeletePostById: request")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -40,7 +46,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 		p.log.Error(err, true, "DeletePostById: unmarshal response")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 

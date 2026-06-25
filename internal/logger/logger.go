@@ -1,6 +1,7 @@
 package logger
 
 import (
+	stderrors "errors"
 	"os"
 	"strings"
 
@@ -8,6 +9,14 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
 )
+
+// joinErrs combines any number of (possibly nil) errors into a single error,
+// returning nil when none are non-nil. Used so the variadic logging helpers
+// below attach every supplied error instead of silently dropping all of them
+// whenever more than one is passed.
+func joinErrs(errs ...error) error {
+	return stderrors.Join(errs...)
+}
 
 const service = "service_name"
 
@@ -59,8 +68,8 @@ func (l *Logger) Error(err error, withStack bool, msg ...string) {
 }
 
 func (l *Logger) Warn(msg string, err ...error) {
-	if len(err) == 1 {
-		l.log.Warn().Err(err[0]).Msg(msg)
+	if joined := joinErrs(err...); joined != nil {
+		l.log.Warn().Err(joined).Msg(msg)
 		return
 	}
 
@@ -68,8 +77,8 @@ func (l *Logger) Warn(msg string, err ...error) {
 }
 
 func (l *Logger) Info(msg string, err ...error) {
-	if len(err) == 1 {
-		l.log.Info().Err(err[0]).Msg(msg)
+	if joined := joinErrs(err...); joined != nil {
+		l.log.Info().Err(joined).Msg(msg)
 		return
 	}
 
@@ -77,8 +86,8 @@ func (l *Logger) Info(msg string, err ...error) {
 }
 
 func (l *Logger) Debug(msg string, err ...error) {
-	if len(err) == 1 {
-		l.log.Debug().Err(err[0]).Msg(msg)
+	if joined := joinErrs(err...); joined != nil {
+		l.log.Debug().Err(joined).Msg(msg)
 		return
 	}
 

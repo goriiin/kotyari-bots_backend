@@ -24,6 +24,11 @@ func (a *AggregatorRepo) AddTopics(ctx context.Context, topics []model.Topic) er
 	}
 
 	b := a.db.SendBatch(ctx, batch)
+	defer func() {
+		// Always release the batch results / connection, even on early return.
+		_ = b.Close()
+	}()
+
 	for range topics {
 		_, err := b.Exec()
 		if err != nil {

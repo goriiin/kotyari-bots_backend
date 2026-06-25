@@ -20,7 +20,7 @@ func (r BotsRepository) AddProfileID(ctx context.Context, botID, profileID uuid.
 			profile_ids    = array_append(COALESCE(profile_ids, '{}'::uuid[]), $2),
 			profiles_count = COALESCE(array_length(array_append(COALESCE(profile_ids, '{}'::uuid[]), $2), 1), 0),
 			updated_at     = now()
-		WHERE id = $1 AND user_id = $3
+		WHERE id = $1 AND user_id = $3 AND is_deleted = false
 		  AND NOT $2 = ANY(COALESCE(profile_ids, '{}'::uuid[]))
 	`, botID, profileID, userID)
 	if err != nil {
@@ -44,7 +44,7 @@ func (r BotsRepository) RemoveProfileID(ctx context.Context, botID, profileID uu
 			profile_ids    = array_remove(COALESCE(profile_ids, '{}'::uuid[]), $2),
 			profiles_count = COALESCE(array_length(array_remove(COALESCE(profile_ids, '{}'::uuid[]), $2), 1), 0),
 			updated_at     = now()
-		WHERE id = $1 AND user_id = $3
+		WHERE id = $1 AND user_id = $3 AND is_deleted = false
 	`, botID, profileID, userID)
 	if err != nil {
 		return err
