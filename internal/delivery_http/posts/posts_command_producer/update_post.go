@@ -24,7 +24,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		p.log.Error(err, true, "UpdatePostById: marshal")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -33,7 +33,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		p.log.Error(err, true, "UpdatePostById: request")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -43,7 +43,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 		p.log.Error(err, true, "UpdatePostById: unmarshal response")
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -51,7 +51,7 @@ func (p *PostsCommandHandler) UpdatePostById(ctx context.Context, req *gen.PostU
 	case strings.Contains(resp.Error, constants.InternalMsg):
 		return &gen.UpdatePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   resp.Error,
+			Message:   constants.InternalMsg,
 		}, nil
 
 	case strings.Contains(resp.Error, constants.NotFoundMsg):

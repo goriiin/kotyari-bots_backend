@@ -2,7 +2,6 @@ package posts_command_producer
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -11,7 +10,7 @@ import (
 	"github.com/goriiin/kotyari-bots_backend/internal/delivery_http/posts"
 	gen "github.com/goriiin/kotyari-bots_backend/internal/gen/posts/posts_command"
 	"github.com/goriiin/kotyari-bots_backend/internal/model"
-	"github.com/goriiin/kotyari-bots_backend/pkg/ierrors"
+	"github.com/goriiin/kotyari-bots_backend/pkg/constants"
 	"github.com/goriiin/kotyari-bots_backend/pkg/user"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -25,7 +24,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	bot, err := p.fetcher.GetBot(ctx, req.BotId.String())
 	if err != nil {
 		p.log.Error(err, true, "CreatePost: get bot")
-		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: ierrors.GRPCToDomainError(err).Error()}, nil
+		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: constants.InternalMsg}, nil
 	}
 
 	idsString := make([]string, 0, len(req.ProfileIds))
@@ -36,7 +35,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 	profilesBatch, err := p.fetcher.GetProfiles(ctx, idsString)
 	if err != nil {
 		p.log.Error(err, true, "CreatePost: get profiles")
-		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: ierrors.GRPCToDomainError(err).Error()}, nil
+		return &gen.CreatePostInternalServerError{ErrorCode: http.StatusInternalServerError, Message: constants.InternalMsg}, nil
 	}
 
 	postProfiles := make([]posts.CreatePostProfiles, 0, len(idsString))
@@ -70,7 +69,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		p.log.Error(err, true, "CreatePost: marshal")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -79,7 +78,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		p.log.Error(err, true, "CreatePost: request")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -89,7 +88,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		p.log.Error(err, true, "CreatePost: unmarshal response")
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -97,7 +96,7 @@ func (p *PostsCommandHandler) CreatePost(ctx context.Context, req *gen.PostInput
 		p.log.Warn("CreatePost: response error", errors.New(resp.Error))
 		return &gen.CreatePostInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   fmt.Sprintf("Failed to create post, %s", resp.Error),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 

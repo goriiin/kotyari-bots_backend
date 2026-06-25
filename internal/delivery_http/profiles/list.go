@@ -11,7 +11,7 @@ func (h *HTTPHandler) ListMyProfiles(ctx context.Context) (gen.ListMyProfilesRes
 	profiles, err := h.u.List(ctx)
 	if err != nil {
 		h.log.Error(err, true, "ListMyProfiles: list")
-		return &gen.ListMyProfilesInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: err.Error()}, nil
+		return &gen.ListMyProfilesInternalServerError{ErrorCode: constants.ErrInternalMsg, Message: constants.ErrInternalMsg}, nil
 	}
 
 	dtoProfiles := make([]gen.Profile, len(profiles))

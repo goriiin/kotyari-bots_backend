@@ -19,7 +19,7 @@ func (h Handler) AddProfileToBot(ctx context.Context, params gen.AddProfileToBot
 		h.log.Error(err, true, "AddProfileToBot: add profile")
 		return &gen.AddProfileToBotInternalServerError{
 			ErrorCode: constants.InternalMsg,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 	return &gen.NoContent{}, nil
@@ -36,7 +36,7 @@ func (h Handler) RemoveProfileFromBot(ctx context.Context, params gen.RemoveProf
 		h.log.Error(err, true, "RemoveProfileFromBot: remove profile")
 		return &gen.RemoveProfileFromBotInternalServerError{
 			ErrorCode: constants.InternalMsg,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 	return &gen.NoContent{}, nil
@@ -54,7 +54,7 @@ func (h Handler) GetBotProfiles(ctx context.Context, params gen.GetBotProfilesPa
 		h.log.Error(err, true, "GetBotProfiles: get with profiles")
 		return &gen.GetBotProfilesInternalServerError{
 			ErrorCode: constants.InternalMsg,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 

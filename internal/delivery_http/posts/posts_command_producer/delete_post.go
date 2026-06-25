@@ -20,7 +20,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 		p.log.Error(err, true, "DeletePostById: marshal")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -30,7 +30,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 		p.log.Error(err, true, "DeletePostById: request")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -40,7 +40,7 @@ func (p *PostsCommandHandler) DeletePostById(ctx context.Context, params gen.Del
 		p.log.Error(err, true, "DeletePostById: unmarshal response")
 		return &gen.DeletePostByIdInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 

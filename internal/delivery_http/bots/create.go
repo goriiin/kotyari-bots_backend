@@ -24,7 +24,7 @@ func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateB
 		profiles = append(profiles, p.ID)
 	}
 
-	created, err := h.u.Create(ctx, model.Bot{
+	bot, profs, err := h.u.CreateWithProfiles(ctx, model.Bot{
 		Name:               req.Name,
 		SystemPrompt:       desc,
 		ModerationRequired: moderation,
@@ -35,10 +35,5 @@ func (h *Handler) CreateBot(ctx context.Context, req *gen.BotInput) (gen.CreateB
 		return nil, err
 	}
 
-	bot, profs, err := h.u.GetWithProfiles(ctx, created.ID)
-	if err != nil {
-		h.log.Error(err, true, "CreateBot: get with profiles")
-		return nil, err
-	}
 	return modelToDTO(&bot, profs), nil
 }

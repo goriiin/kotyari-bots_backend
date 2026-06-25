@@ -13,7 +13,7 @@ func (h *Handler) SummaryBots(ctx context.Context) (bots.SummaryBotsRes, error) 
 		h.log.Error(err, true, "SummaryBots: get summary")
 		return &bots.Error{
 			ErrorCode: constants.InternalMsg,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 

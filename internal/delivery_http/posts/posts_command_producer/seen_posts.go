@@ -23,7 +23,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		p.log.Error(err, true, "SeenPosts: marshal")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -32,7 +32,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		p.log.Error(err, true, "SeenPosts: request")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
@@ -42,7 +42,7 @@ func (p *PostsCommandHandler) SeenPosts(ctx context.Context, req *gen.PostsSeenR
 		p.log.Error(err, true, "SeenPosts: unmarshal response")
 		return &gen.SeenPostsInternalServerError{
 			ErrorCode: http.StatusInternalServerError,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 

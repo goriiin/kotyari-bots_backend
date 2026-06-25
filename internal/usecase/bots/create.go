@@ -39,3 +39,24 @@ func (s *Service) Create(ctx context.Context, bot model.Bot) (model.Bot, error) 
 	}
 	return b, nil
 }
+
+// CreateWithProfiles creates a bot and returns it together with its resolved
+// profiles, without re-reading the freshly created bot from the database.
+// The profiles still have to be fetched because the bot only stores their IDs.
+func (s *Service) CreateWithProfiles(ctx context.Context, bot model.Bot) (model.Bot, []model.Profile, error) {
+	created, err := s.Create(ctx, bot)
+	if err != nil {
+		return model.Bot{}, nil, err
+	}
+
+	if len(created.ProfileIDs) == 0 {
+		return created, []model.Profile{}, nil
+	}
+
+	profiles, err := s.pg.GetProfilesByIDs(ctx, created.ProfileIDs)
+	if err != nil {
+		return model.Bot{}, nil, err
+	}
+
+	return created, profiles, nil
+}

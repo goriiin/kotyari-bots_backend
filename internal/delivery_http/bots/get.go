@@ -14,14 +14,14 @@ func (h *Handler) GetBotById(ctx context.Context, params gen.GetBotByIdParams) (
 		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.GetBotByIdNotFound{
 				ErrorCode: constants.NotFoundMsg,
-				Message:   err.Error(),
+				Message:   "bot not found",
 			}, nil
 		}
 		if errors.Is(err, constants.ErrServiceUnavailable) {
 			h.log.Error(err, true, "GetBotById: service unavailable")
 			return &gen.GetBotByIdInternalServerError{
 				ErrorCode: constants.ServiceUnavailableMsg,
-				Message:   err.Error(),
+				Message:   constants.ServiceUnavailableMsg,
 			}, nil
 		}
 		h.log.Error(err, true, "GetBotById: get with profiles")

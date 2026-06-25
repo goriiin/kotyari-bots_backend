@@ -20,7 +20,7 @@ func (h *Handler) UpdateBotById(ctx context.Context, req *gen.BotInput, params g
 		if errors.Is(err, constants.ErrNotFound) {
 			return &gen.UpdateBotByIdNotFound{
 				ErrorCode: constants.NotFoundMsg,
-				Message:   err.Error(),
+				Message:   "bot not found",
 			}, nil
 		}
 		h.log.Error(err, true, "UpdateBotById: get with profiles")

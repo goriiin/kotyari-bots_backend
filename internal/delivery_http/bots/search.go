@@ -13,7 +13,7 @@ func (h *Handler) SearchBots(ctx context.Context, params bots.SearchBotsParams) 
 		h.log.Error(err, true, "SearchBots: search")
 		return &bots.SearchBotsInternalServerError{
 			ErrorCode: constants.InternalMsg,
-			Message:   err.Error(),
+			Message:   constants.InternalMsg,
 		}, nil
 	}
 
